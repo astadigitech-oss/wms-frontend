@@ -989,6 +989,12 @@ const sidebarMenu = [
         icon: <ScanText className="w-5 h-5 stroke-[1.5]" />,
         sub_menu: [],
       },
+         {
+        title: "Cargo",
+        href: "/outbond/cargo",
+        icon: <Truck className="w-5 h-5 stroke-[1.5]" />,
+        sub_menu: [],
+      },
       {
         title: "buyer",
         href: "/outbond/buyer",
