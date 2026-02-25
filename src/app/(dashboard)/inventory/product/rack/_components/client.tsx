@@ -446,18 +446,15 @@ export const Client = () => {
 
   // handle export rack by category
   const handleExportRack = async () => {
-    mutateExportRack(
-      {},
-      {
-        onSuccess: (res) => {
-          const link = document.createElement("a");
-          link.href = res.data.data.resource;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        },
+    mutateExportRack("", {
+      onSuccess: (res) => {
+        const link = document.createElement("a");
+        link.href = res.data.data.resource.download_url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       },
-    );
+    });
   };
 
   // handle scan SO Barang

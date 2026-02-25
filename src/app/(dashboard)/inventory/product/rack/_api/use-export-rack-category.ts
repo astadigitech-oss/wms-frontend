@@ -1,18 +1,35 @@
+import { useMutation } from "@tanstack/react-query";
+import axios, { AxiosError } from "axios";
+import type { AxiosResponse } from "axios";
+import { baseUrl } from "@/lib/baseUrl";
 import { toast } from "sonner";
-import { useMutate } from "@/lib/query";
+import { getCookie } from "cookies-next/client";
+
+type Error = AxiosError;
 
 export const useExportRackCategory = () => {
-  const mutation = useMutate({
-    endpoint: "/export_rack_byCategory",
-    method: "post",
+  const accessToken = getCookie("accessToken");
+
+  const mutation = useMutation<AxiosResponse, Error, "">({
+    mutationFn: async () => {
+      const res = await axios.get(`${baseUrl}/racks/export?source=display`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      return res;
+    },
     onSuccess: () => {
       toast.success("File Successfully Exported");
     },
-    onError: {
-      message: "Rack by Category failed to export",
-      title: "EXPORT_RACK_CATEGORY",
+    onError: (err) => {
+      if (err.status === 403) {
+        toast.error(`Error 403: Restricted Access`);
+      } else {
+        toast.error(`ERROR ${err?.status}: Rack Staging failed to export`);
+        console.log("ERROR_EXPORT_RACK_STAGING:", err);
+      }
     },
   });
-
   return mutation;
 };

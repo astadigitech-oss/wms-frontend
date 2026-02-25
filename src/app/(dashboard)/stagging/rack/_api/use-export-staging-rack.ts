@@ -12,7 +12,7 @@ export const useExportStagingRack = () => {
 
   const mutation = useMutation<AxiosResponse, Error, "">({
     mutationFn: async () => {
-      const res = await axios.get(`${baseUrl}/export-staging-rack`, {
+      const res = await axios.get(`${baseUrl}/racks/export?source=staging`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

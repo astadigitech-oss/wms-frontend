@@ -293,7 +293,7 @@ export const Client = () => {
     mutateExportRack("", {
       onSuccess: (res) => {
         const link = document.createElement("a");
-        link.href = res.data.data.resource;
+        link.href = res.data.data.resource.download_url;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
