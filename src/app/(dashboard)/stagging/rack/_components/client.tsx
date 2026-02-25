@@ -59,6 +59,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import Link from "next/link";
+import { useExportStagingRack } from "../_api/use-export-staging-rack";
 const DialogCreateEdit = dynamic(() => import("./dialog-create-edit"), {
   ssr: false,
 });
@@ -186,6 +187,8 @@ export const Client = () => {
     useAddFilterProductStaging();
   const { mutate: mutateExport, isPending: isPendingExport } =
     useExportStagingProduct();
+  const { mutate: mutateExportRack, isPending: isPendingExportRack } =
+    useExportStagingRack();
   const { mutate: mutateSubmit, isPending: isPendingSubmit } = useSubmit();
   const { mutate: mutateDryScrap, isPending: isPendingDryScrap } =
     useDryScrap();
@@ -259,6 +262,7 @@ export const Client = () => {
     isLoadingRacks ||
     isPendingDelete ||
     isPendingCreate ||
+    isPendingExportRack ||
     isPendingUpdate;
 
   // handle close
@@ -275,6 +279,18 @@ export const Client = () => {
 
   const handleExport = async () => {
     mutateExport("", {
+      onSuccess: (res) => {
+        const link = document.createElement("a");
+        link.href = res.data.data.resource;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      },
+    });
+  };
+
+  const handleExportRack = async () => {
+    mutateExportRack("", {
       onSuccess: (res) => {
         const link = document.createElement("a");
         link.href = res.data.data.resource;
@@ -689,6 +705,23 @@ export const Client = () => {
                   </Button>
                 </TooltipProviderPage>
                 <div className="flex gap-4 items-center ml-auto">
+                  <TooltipProviderPage value={"Export Rack"} side="left">
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleExportRack();
+                      }}
+                      className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black bg-sky-100 hover:bg-sky-200 disabled:opacity-100 disabled:hover:bg-sky-200 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                      disabled={isPendingExportRack}
+                      variant={"outline"}
+                    >
+                      {isPendingExportRack ? (
+                        <Loader2 className={cn("w-4 h-4 animate-spin")} />
+                      ) : (
+                        <FileDown className={cn("w-4 h-4")} />
+                      )}
+                    </Button>
+                  </TooltipProviderPage>
                   <Button
                     onClick={() => setIsOpen("create-edit")}
                     className="items-center flex-none h-9 bg-sky-400/80 hover:bg-sky-400 text-black disabled:opacity-100 disabled:hover:bg-sky-400 disabled:pointer-events-auto disabled:cursor-not-allowed"
