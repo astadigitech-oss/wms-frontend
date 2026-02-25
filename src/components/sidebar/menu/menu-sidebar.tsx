@@ -71,9 +71,6 @@
 //   menu: MenuItem[];
 // }
 
-
-
-
 // const sidebarMenu: MenuGroup[] = [
 //   {
 //     id: 1,
@@ -504,16 +501,10 @@
 //   },
 // ];
 
-
-
-
 // const MenuInbound = ({ pathname, setOpen }: MenuInboundProps) => {
 //   const [openMenu, setOpenMenu] = useState<string>("");
 //   const [openSubMenu, setOpenSubMenu] = useState<string>("");
 //   const [profileData, setProfileData] = useState<any>(null);
-
-
-
 
 //   useEffect(() => {
 //     if (hasCookie("profile")) {
@@ -522,40 +513,22 @@
 //     }
 //   }, []);
 
-
-
-
 //   const role = profileData?.role_name?.toUpperCase() as Role;
-
-
-
 
 //   const hasAccess = (roles?: Role[]) => {
 //     if (!roles || roles.length === 0) return true; // ⬅️ SEMUA ROLE
 //     return roles.includes(role);
 //   };
 
-
-
-
 //   const uniq = <T,>(arr: T[]) => Array.from(new Set(arr));
-
-
-
 
 //   const collectRolesFromMenuItem = (menu: MenuItem): Role[] => {
 //     const roles: Role[] = [];
-
-
-
 
 //     // roles langsung di menu (jika ada & tidak punya sub_menu)
 //     if (menu.roles && menu.sub_menu.length === 0) {
 //       roles.push(...menu.roles);
 //     }
-
-
-
 
 //     // ambil dari sub_menu
 //     if (menu.sub_menu.length > 0) {
@@ -743,7 +716,7 @@ const sidebarMenu = [
         icon: <FileCog className="w-5 h-5 stroke-[1.5]" />,
         sub_menu: [],
       },
-       {
+      {
         title: "Inbound Process SKU",
         href: "/inbound/inbound-process-sku",
         icon: <File className="w-5 h-5 stroke-[1.5]" />,
@@ -764,7 +737,7 @@ const sidebarMenu = [
             title: "Manifest Inbound",
             href: "/inbound/check-product/manifest-inbound",
           },
-           {
+          {
             title: "Manifest Inbound SKU",
             href: "/inbound/check-product/manifest-inbound-sku",
           },
@@ -949,10 +922,10 @@ const sidebarMenu = [
         icon: <Shield className="w-5 h-5 stroke-[1.5]" />,
         sub_menu: [],
       },
-       {
+      {
         title: "Non",
         href: "/repair-station/non",
-        icon: <CircleDashed  className="w-5 h-5 stroke-[1.5]" />,
+        icon: <CircleDashed className="w-5 h-5 stroke-[1.5]" />,
         sub_menu: [],
       },
     ],
@@ -989,12 +962,12 @@ const sidebarMenu = [
         icon: <ScanText className="w-5 h-5 stroke-[1.5]" />,
         sub_menu: [],
       },
-         {
-        title: "Cargo",
-        href: "/outbond/cargo",
-        icon: <Truck className="w-5 h-5 stroke-[1.5]" />,
-        sub_menu: [],
-      },
+      //    {
+      //   title: "Cargo",
+      //   href: "/outbond/cargo",
+      //   icon: <Truck className="w-5 h-5 stroke-[1.5]" />,
+      //   sub_menu: [],
+      // },
       {
         title: "buyer",
         href: "/outbond/buyer",
@@ -1110,4 +1083,3 @@ const MenuInbound = ({ pathname, setOpen }: MenuInboundProps) => {
 };
 
 export default MenuInbound;
-
