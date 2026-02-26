@@ -62,6 +62,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useExportRackCategory } from "../_api/use-export-rack-category";
 const DialogCreateEdit = dynamic(() => import("./dialog-create-edit"), {
   ssr: false,
 });
@@ -185,6 +186,8 @@ export const Client = () => {
   //   useDeleteProductCategory();
   const { mutate: mutateExport, isPending: isPendingExport } =
     useExportProductCategory();
+  const { mutate: mutateExportRack, isPending: isPendingExportRack } =
+    useExportRackCategory();
   // const { mutate: mutateDryScrap, isPending: isPendingDryScrap } =
   //   useDryScrap();
   const { mutate: mutateDamaged, isPending: isPendingDamaged } = useToDamaged();
@@ -349,6 +352,8 @@ export const Client = () => {
     isLoadingProducts ||
     isRefetchingProducts ||
     isPendingProducts ||
+    isPendingExport ||
+    isPendingExportRack ||
     isRefetchRacks;
 
   // handle close
@@ -437,6 +442,19 @@ export const Client = () => {
         },
       },
     );
+  };
+
+  // handle export rack by category
+  const handleExportRack = async () => {
+    mutateExportRack("", {
+      onSuccess: (res) => {
+        const link = document.createElement("a");
+        link.href = res.data.data.resource.download_url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      },
+    });
   };
 
   // handle scan SO Barang
@@ -1135,6 +1153,23 @@ export const Client = () => {
                   </Button>
                 </div> */}
                 <div className="flex gap-4 items-center ml-auto">
+                  <TooltipProviderPage value={"Export Rack"} side="left">
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleExportRack();
+                      }}
+                      className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black bg-sky-100 hover:bg-sky-200 disabled:opacity-100 disabled:hover:bg-sky-200 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                      disabled={isPendingExportRack}
+                      variant={"outline"}
+                    >
+                      {isPendingExportRack ? (
+                        <Loader2 className={cn("w-4 h-4 animate-spin")} />
+                      ) : (
+                        <FileDown className={cn("w-4 h-4")} />
+                      )}
+                    </Button>
+                  </TooltipProviderPage>
                   <Button
                     asChild
                     className="bg-sky-400 hover:bg-sky-400/80 text-black"
