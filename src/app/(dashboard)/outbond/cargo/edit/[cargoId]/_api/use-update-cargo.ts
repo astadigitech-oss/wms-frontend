@@ -6,36 +6,40 @@ import { toast } from "sonner";
 import { getCookie } from "cookies-next/client";
 
 type RequestType = {
+  id: string;
   body: any;
 };
 
 type Error = AxiosError;
 
-export const useCreateCargo = () => {
+export const useUpdateCargo = () => {
   const accessToken = getCookie("accessToken");
   const queryClient = useQueryClient();
 
   const mutation = useMutation<AxiosResponse, Error, RequestType>({
-    mutationFn: async ({ body }) => {
-      const res = await axios.post(`${baseUrl}/create-b2b`, body, {
+    mutationFn: async ({ id, body }) => {
+      const res = await axios.put(`${baseUrl}/bulky-documents/${id}`, body, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
       return res;
     },
-    onSuccess: () => {
-      toast.success("Cargo successfully created");
+     onSuccess: () => {
+      toast.success("successfuly updated Cargo");
       queryClient.invalidateQueries({
         queryKey: ["list-bag-by-user-cargo"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["list-product-cargo"],
       });
     },
     onError: (err) => {
       if (err.status === 403) {
         toast.error(`Error 403: Restricted Access`);
       } else {
-        toast.error(`ERROR ${err?.status}: Cargo failed to create`);
-        console.log("ERROR_CREATE_CARGO:", err);
+        toast.error(`ERROR ${err?.status}: cargo failed to update`);
+        console.log("ERROR_UPDATE_CARGO:", err);
       }
     },
   });

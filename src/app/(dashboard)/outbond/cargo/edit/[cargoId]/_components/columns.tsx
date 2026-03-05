@@ -86,6 +86,22 @@ export const columnProductCargo = ({
     ),
   },
   {
+    accessorKey: "product_category_bulky_sale",
+    header: "Category",
+    cell: ({ row }) => (
+      <div className="max-w-[500px] break-all">
+        {row.original.product_category_bulky_sale}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "qty",
+    header: "Qty",
+    cell: ({ row }) => (
+      <div className="max-w-[500px] break-all">{row.original.qty ?? 1}</div>
+    ),
+  },
+  {
     accessorKey: "old_price_bulky_sale",
     header: "Price",
     cell: ({ row }) => (
@@ -166,64 +182,69 @@ export const columnProducts = ({
   },
 ];
 
-export const columnBuyer = ({
-  metaPage,
-  setAdd,
+export const columnEditListBag = ({
   onClose,
+  onSelectBag,
+  selectedBagId,
 }: any): ColumnDef<any>[] => [
   {
     header: () => <div className="text-center">No</div>,
     id: "id",
     cell: ({ row }) => (
       <div className="text-center tabular-nums">
-        {(metaPage.from + row.index).toLocaleString()}
+        {(1 + row.index).toLocaleString()}
       </div>
     ),
   },
   {
-    accessorKey: "name_buyer",
-    header: "Buyer Name",
+    accessorKey: "barcode_bag",
+    header: "Barcode",
     cell: ({ row }) => (
-      <div className="max-w-[500px]">{row.original.name_buyer}</div>
+      <div className="max-w-[500px]">{row.original.barcode_bag}</div>
     ),
   },
   {
-    accessorKey: "phone_buyer",
-    header: "No. Hp",
+    accessorKey: "name_bag",
+    header: "Name",
+    cell: ({ row }) => (
+      <div className="max-w-[500px]">{row.original.name_bag}</div>
+    ),
   },
   {
-    accessorKey: "address_buyer",
-    header: "Address",
+    accessorKey: "total_product",
+    header: "Total Product",
     cell: ({ row }) => (
-      <div className="max-w-[500px]">{row.original.address_buyer}</div>
+      <div className="max-w-[500px]">{row.original.total_product}</div>
     ),
   },
   {
     accessorKey: "action",
     header: () => <div className="text-center">Action</div>,
-    cell: ({ row }) => (
-      <div className="flex gap-4 justify-center items-center">
-        <ButtonAction
-          isLoading={false}
-          label={"Remove"}
-          onClick={(e) => {
-            e.preventDefault();
-            setAdd((prev: any) => ({
-              ...prev,
-              buyer_id: row.original.id,
-              name_buyer: row.original.name_buyer,
-            }));
-            onClose();
-          }}
-          type={"sky"}
-          icon={CheckCircle2}
-        />
-      </div>
-    ),
+    cell: ({ row }) => {
+      const isSelected = selectedBagId === row.original.id;
+      return (
+        <div className="flex gap-4 justify-center items-center">
+          <ButtonAction
+            isLoading={false}
+            label={isSelected ? "Dipilih" : "Pilih"}
+            onClick={(e) => {
+              e.preventDefault();
+              onSelectBag(row.original.id);
+              onClose();
+            }}
+            type={isSelected ? "yellow" : "sky"}
+            icon={CheckCircle2}
+          />
+        </div>
+      );
+    },
   },
 ];
 
-export const columnCategory = ({ setAdd, onClose }: any): ColumnDef<any>[] => [
+export const columnCategory = ({
+  onSelectCategory,
+  onClose,
+}: any): ColumnDef<any>[] => [
   {
     header: () => <div className="text-center">No</div>,
     id: "id",
@@ -260,20 +281,33 @@ export const columnCategory = ({ setAdd, onClose }: any): ColumnDef<any>[] => [
       <div className="flex gap-4 justify-center items-center">
         <ButtonAction
           isLoading={false}
-          label={"Remove"}
+          label={"Select"}
           onClick={(e) => {
             e.preventDefault();
-            setAdd((prev: any) => ({
-              ...prev,
-              category_id: row.original.id,
-              name_category: row.original.name_category,
-            }));
+
+            onSelectCategory(row.original);
             onClose();
           }}
           type={"sky"}
           icon={CheckCircle2}
         />
       </div>
+    ),
+  },
+];
+
+export const columnColor = ({ onSelectColor }: any): ColumnDef<any>[] => [
+  {
+    accessorKey: "name",
+    header: "Color Name",
+  },
+  {
+    id: "action",
+    header: "Action",
+    cell: ({ row }) => (
+      <Button size="sm" onClick={() => onSelectColor(row.original)}>
+        Select
+      </Button>
     ),
   },
 ];
