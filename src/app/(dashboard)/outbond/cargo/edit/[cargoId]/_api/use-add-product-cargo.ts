@@ -11,13 +11,13 @@ type RequestType = {
 
 type Error = AxiosError;
 
-export const useCreateCargo = () => {
+export const useAddProductCargo = () => {
   const accessToken = getCookie("accessToken");
   const queryClient = useQueryClient();
 
   const mutation = useMutation<AxiosResponse, Error, RequestType>({
     mutationFn: async ({ body }) => {
-      const res = await axios.post(`${baseUrl}/create-b2b`, body, {
+      const res = await axios.post(`${baseUrl}/add_product_to_bag`, body, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -25,17 +25,25 @@ export const useCreateCargo = () => {
       return res;
     },
     onSuccess: () => {
-      toast.success("Cargo successfully created");
+      toast.success("Product successfuly added to Cargo");
       queryClient.invalidateQueries({
         queryKey: ["list-bag-by-user-cargo"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["list-product-cargo"],
       });
     },
     onError: (err) => {
       if (err.status === 403) {
         toast.error(`Error 403: Restricted Access`);
       } else {
-        toast.error(`ERROR ${err?.status}: Cargo failed to create`);
-        console.log("ERROR_CREATE_CARGO:", err);
+        toast.error(
+          `ERROR: ${
+            (err?.response?.data as any)?.data?.message ??
+            "Failed to add Product to Cargo"
+          }`
+        );
+        console.log("ERROR_ADD_PRODUCT_CARGO:", err);
       }
     },
   });

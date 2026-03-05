@@ -8,17 +8,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-import { columnCategory } from "../columns";
 import { alertError, cn } from "@/lib/utils";
+import Pagination from "@/components/pagination";
 import { DataTable } from "@/components/data-table";
 import { useSearchQuery } from "@/lib/search";
 import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
+import { usePagination } from "@/lib/pagination";
+
 import { AxiosError } from "axios";
 import { RefreshCw, X } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useMemo } from "react";
-import { useGetListCategory } from "../../_api/use-get-list-category";
+import { useGetListBuyer } from "../create/_api";
+import { columnBuyer } from "../create/_components/columns";
 
-export const DialogCategory = ({
+
+export const DialogBuyer = ({
   open,
   onOpenChange,
   setInput,
@@ -27,23 +31,32 @@ export const DialogCategory = ({
   onOpenChange: () => void;
   setInput: Dispatch<SetStateAction<any>>;
 }) => {
-  const { search, searchValue, setSearch } = useSearchQuery("searchCategory");
-  const { data, isPending, refetch, isRefetching, error, isError } =
-    useGetListCategory({
+  const { search, searchValue, setSearch } = useSearchQuery("searchBuyer");
+  const { metaPage, page, setPage, setPagination } = usePagination("pageBuyer");
+
+  const { data, isPending, refetch, isRefetching, error, isError, isSuccess } =
+    useGetListBuyer({
+      p: page,
       q: searchValue,
     });
 
   const listData = useMemo(() => {
-    return data?.data.data.resource;
+    return data?.data.data.resource.data;
   }, [data]);
 
   const isLoading = isPending || isRefetching;
 
   useEffect(() => {
+    if (data && isSuccess) {
+      setPagination(data?.data.data.resource);
+    }
+  }, [data, isSuccess]);
+
+  useEffect(() => {
     alertError({
       isError,
       error: error as AxiosError,
-      data: "Data Category",
+      data: "Data Buyer",
       action: "get data",
       method: "GET",
     });
@@ -51,6 +64,7 @@ export const DialogCategory = ({
 
   useEffect(() => {
     if (!open) {
+      setPage(0);
       setSearch("");
     }
   }, [open]);
@@ -64,7 +78,7 @@ export const DialogCategory = ({
       >
         <DialogHeader>
           <DialogTitle className="justify-between flex items-center">
-            Select Category
+            Select Buyer
             <TooltipProviderPage value="close" side="left">
               <button
                 onClick={() => onOpenChange()}
@@ -102,11 +116,16 @@ export const DialogCategory = ({
             isSticky
             maxHeight="h-[60vh]"
             isLoading={isLoading}
-            columns={columnCategory({
+            columns={columnBuyer({
+              metaPage,
               setAdd: setInput,
               onClose: onOpenChange,
             })}
             data={listData ?? []}
+          />
+          <Pagination
+            pagination={{ ...metaPage, current: page }}
+            setPagination={setPage}
           />
         </div>
       </DialogContent>

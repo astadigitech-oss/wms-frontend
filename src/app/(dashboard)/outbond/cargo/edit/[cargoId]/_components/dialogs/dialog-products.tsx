@@ -8,42 +8,61 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-import { columnCategory } from "../columns";
+import { columnProducts } from "../columns";
 import { alertError, cn } from "@/lib/utils";
+import Pagination from "@/components/pagination";
 import { DataTable } from "@/components/data-table";
 import { useSearchQuery } from "@/lib/search";
+import { usePagination } from "@/lib/pagination";
 import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
-import { AxiosError } from "axios";
-import { RefreshCw, X } from "lucide-react";
-import { Dispatch, SetStateAction, useEffect, useMemo } from "react";
-import { useGetListCategory } from "../../_api/use-get-list-category";
 
-export const DialogCategory = ({
+import { AxiosError } from "axios";
+import { useEffect, useMemo } from "react";
+import { RefreshCw, X } from "lucide-react";
+
+import { useGetListProducts } from "../../_api";
+
+export const DialogProduct = ({
   open,
   onOpenChange,
-  setInput,
+  cargoId,
+  handleAddProduct,
+  isPendingAddProduct,
 }: {
   open: boolean;
   onOpenChange: () => void;
-  setInput: Dispatch<SetStateAction<any>>;
+  cargoId: any;
+  handleAddProduct: any;
+  isPendingAddProduct: any;
 }) => {
-  const { search, searchValue, setSearch } = useSearchQuery("searchCategory");
-  const { data, isPending, refetch, isRefetching, error, isError } =
-    useGetListCategory({
+  const { search, searchValue, setSearch } = useSearchQuery("searchProduct");
+  const { metaPage, page, setPage, setPagination } =
+    usePagination("pageProduct");
+
+  const { data, isPending, refetch, isRefetching, error, isError, isSuccess } =
+    useGetListProducts({
+      p: page,
       q: searchValue,
+      id: cargoId,
     });
 
   const listData = useMemo(() => {
-    return data?.data.data.resource;
+    return data?.data.data.resource.data;
   }, [data]);
 
   const isLoading = isPending || isRefetching;
 
   useEffect(() => {
+    if (data && isSuccess) {
+      setPagination(data?.data.data.resource);
+    }
+  }, [data, isSuccess]);
+
+  useEffect(() => {
     alertError({
       isError,
       error: error as AxiosError,
-      data: "Data Category",
+      data: "Data Products",
       action: "get data",
       method: "GET",
     });
@@ -51,6 +70,7 @@ export const DialogCategory = ({
 
   useEffect(() => {
     if (!open) {
+      setPage(0);
       setSearch("");
     }
   }, [open]);
@@ -64,7 +84,7 @@ export const DialogCategory = ({
       >
         <DialogHeader>
           <DialogTitle className="justify-between flex items-center">
-            Select Category
+            Select Product
             <TooltipProviderPage value="close" side="left">
               <button
                 onClick={() => onOpenChange()}
@@ -102,11 +122,16 @@ export const DialogCategory = ({
             isSticky
             maxHeight="h-[60vh]"
             isLoading={isLoading}
-            columns={columnCategory({
-              setAdd: setInput,
-              onClose: onOpenChange,
+            columns={columnProducts({
+              metaPage,
+              handleAddProduct,
+              isLoading: isPendingAddProduct,
             })}
             data={listData ?? []}
+          />
+          <Pagination
+            pagination={{ ...metaPage, current: page }}
+            setPagination={setPage}
           />
         </div>
       </DialogContent>

@@ -5,37 +5,42 @@ import { baseUrl } from "@/lib/baseUrl";
 import { toast } from "sonner";
 import { getCookie } from "cookies-next/client";
 
-type RequestType = {
-  body: any;
-};
-
 type Error = AxiosError;
 
-export const useCreateCargo = () => {
+export const useFinishCargo = ({ cargoId }: any) => {
   const accessToken = getCookie("accessToken");
   const queryClient = useQueryClient();
 
-  const mutation = useMutation<AxiosResponse, Error, RequestType>({
-    mutationFn: async ({ body }) => {
-      const res = await axios.post(`${baseUrl}/create-b2b`, body, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+  const mutation = useMutation<AxiosResponse, Error, any>({
+    mutationFn: async () => {
+      const res = await axios.post(
+        `${baseUrl}/bulky-sale-finish?id=${cargoId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
       return res;
     },
     onSuccess: () => {
-      toast.success("Cargo successfully created");
+      toast.success("Cargo successfuly finished");
       queryClient.invalidateQueries({
-        queryKey: ["list-bag-by-user-cargo"],
+        queryKey: ["list-sale-cargo"],
       });
     },
     onError: (err) => {
       if (err.status === 403) {
         toast.error(`Error 403: Restricted Access`);
       } else {
-        toast.error(`ERROR ${err?.status}: Cargo failed to create`);
-        console.log("ERROR_CREATE_CARGO:", err);
+        toast.error(
+          `ERROR: ${
+            (err?.response?.data as any)?.data?.message ??
+            "Failed to finish cargo"
+          }`
+        );
+        console.log("ERROR_FINISH_CARGO:", err);
       }
     },
   });
