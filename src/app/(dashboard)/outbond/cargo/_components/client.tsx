@@ -157,7 +157,7 @@ export const Client = () => {
 
   // memo data detail
   const dataSummary: any = useMemo(() => {
-    return dataSummarySales || {};
+    return dataSummarySales?.data.data.resource || {};
   }, [dataSummarySales]);
 
   console.log("dataSummarySales:", dataSummary);
