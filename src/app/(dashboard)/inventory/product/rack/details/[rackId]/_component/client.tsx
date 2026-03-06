@@ -302,11 +302,11 @@ export const Client = () => {
       ),
     },
     {
-      accessorKey: "actual_old_price_product",
-      header: "Price",
+      accessorKey: "old_price_product",
+      header: "Old Price",
       cell: ({ row }) => (
         <div className="tabular-nums">
-          {formatRupiah(row.original.actual_old_price_product)}
+          {formatRupiah(row.original.old_price_product)}
         </div>
       ),
     },
