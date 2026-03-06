@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit2, PlusCircle, RefreshCw } from "lucide-react";
+import { Edit2, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { alertError, cn, setPaginate } from "@/lib/utils";
 import {
@@ -22,8 +22,8 @@ import Pagination from "@/components/pagination";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import Link from "next/link";
+import { useGetListStockReturOlsera } from "../_api/use-get-list-stock-retur-olsera";
 import { Badge } from "@/components/ui/badge";
-import { useGetListBKL } from "../_api/use-get-list-bkl";
 
 export const Client = () => {
   // data search, page
@@ -47,11 +47,11 @@ export const Client = () => {
     error,
     isError,
     isSuccess,
-  } = useGetListBKL({ p: page, q: searchValue });
+  } = useGetListStockReturOlsera({ p: page, q: searchValue });
 
   // memo data utama
   const dataList: any[] = useMemo(() => {
-    return data?.data.data.resource.data;
+    return data?.data.data.resource?.data ?? [];
   }, [data]);
 
   // load data
@@ -90,23 +90,27 @@ export const Client = () => {
       ),
     },
     {
-      accessorKey: "code_document_bkl",
-      header: "Code Document",
+      accessorKey: "shop_name",
+      header: "Shop Name",
     },
     {
-      accessorKey: "status",
+      accessorKey: "note",
+      header: "Note",
+    },
+    {
+      accessorKey: "status_desc",
       header: () => <div className="text-center">Status</div>,
       cell: ({ row }) => (
         <div className="flex justify-center">
           <Badge
             className={cn(
               "rounded w-20 px-0 justify-center text-black font-normal capitalize",
-              row.original.status.toLowerCase() === "done"
+              row.original.status_desc.toLowerCase() === "Draft"
                 ? "bg-green-400 hover:bg-green-400"
                 : "bg-yellow-400 hover:bg-yellow-400",
             )}
           >
-            {row.original.status}
+            {row.original.status_desc}
           </Badge>
         </div>
       ),
@@ -131,7 +135,7 @@ export const Client = () => {
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : ( */}
               <Link
-                href={`/inventory/slow-moving-product/bkl/detail/${row.original.id}`}
+                href={`/inventory/slow-moving-product/bkl/create/list/submit/${row.original.id}?destinationId=${row.original.destination_id}`}
               >
                 <Edit2 className="w-4 h-4" />
               </Link>
@@ -176,7 +180,7 @@ export const Client = () => {
         </BreadcrumbList>
       </Breadcrumb>
       <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-10 flex-col">
-        <h2 className="text-xl font-bold">List BKL</h2>
+        <h2 className="text-xl font-bold">List Antrean Retur Olsera</h2>
         <div className="flex flex-col w-full gap-4">
           <div className="flex gap-2 items-center w-full justify-between">
             <div className="flex items-center gap-3 w-full">
@@ -199,14 +203,12 @@ export const Client = () => {
                 </Button>
               </TooltipProviderPage>
             </div>
-            <Button variant={"liquid"} asChild>
-              <Link href="/inventory/slow-moving-product/bkl/create/list">
-                <PlusCircle className="size-4" />
-                Create BKL
-              </Link>
-            </Button>
           </div>
-          <DataTable columns={columnBKL} data={dataList ?? []} />
+          <DataTable
+            columns={columnBKL}
+            data={dataList ?? []}
+            isLoading={isLoading || isRefetching}
+          />
           <Pagination
             pagination={{ ...metaPage, current: page }}
             setPagination={setPage}

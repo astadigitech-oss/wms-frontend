@@ -142,7 +142,7 @@ export const Client = () => {
     setPaginate({
       isSuccess: isSuccess,
       data: data,
-      dataPaginate: data?.data.data.resource,
+      dataPaginate: data?.data.data.resource.data,
       setMetaPage: setMetaPage,
       setPage: setPage,
     });

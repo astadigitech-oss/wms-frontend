@@ -2,7 +2,7 @@
 
 import { PlusCircle, ReceiptText, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { alertError, cn, setPaginate } from "@/lib/utils";
+import { alertError, cn, formatRupiah, setPaginate } from "@/lib/utils";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -28,6 +28,8 @@ import dynamic from "next/dynamic";
 import { useGetDetailMigrateColor } from "../_api/use-get-detail-migrate-color";
 import { useExportDetailMigrateColor } from "../_api/use-export-detail-migrate-color";
 import { format } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useGetStatisticsStock } from "../_api/use-get-statistik-stock";
 
 const DialogDetail = dynamic(() => import("./dialog-detail"), {
   ssr: false,
@@ -37,7 +39,7 @@ export const Client = () => {
   // sheet detail
   const [openDetail, setOpenDetail] = useQueryState(
     "dialog",
-    parseAsBoolean.withDefault(false)
+    parseAsBoolean.withDefault(false),
   );
 
   // migrateColorId for detail
@@ -82,6 +84,16 @@ export const Client = () => {
     error: errorMigrateColor,
   } = useGetDetailMigrateColor({ id: migrateColorId });
 
+  // get data statictics stock
+  const {
+    data: dataStatisticsStock,
+    // isLoading: isLoadingStatisticsStock,
+    // refetch: refetchStatisticsStock,
+    // isRefetching: isRefetchingStatisticsStock,
+    // isError: isErrorStatisticsStock,
+    // error: errorStatisticsStock,
+  } = useGetStatisticsStock();
+
   // memo data utama
   const dataList: any[] = useMemo(() => {
     return data?.data.data.resource.data;
@@ -99,6 +111,11 @@ export const Client = () => {
   const dataMetaDetail: any = useMemo(() => {
     return dataMigrateColor?.data.data.resource;
   }, [dataMigrateColor]);
+
+  // memo statistics stock
+  const dataStatisticsStockMemo: any = useMemo(() => {
+    return dataStatisticsStock?.data.data.resource;
+  }, [dataStatisticsStock]);
 
   // get pagetination
   useEffect(() => {
@@ -149,7 +166,7 @@ export const Client = () => {
           link.click();
           document.body.removeChild(link);
         },
-      }
+      },
     );
   };
 
@@ -297,6 +314,146 @@ export const Client = () => {
           <BreadcrumbItem>List</BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
+      <h2 className="text-xl font-bold">Statistics Stock</h2>
+
+      <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* ================= PRODUCT STICKER ================= */}
+        <Card className="bg-white rounded-md shadow border-0">
+          <CardHeader>
+            <CardTitle>Product Sticker</CardTitle>
+          </CardHeader>
+
+          <CardContent className="flex flex-col gap-6">
+            {/* GRAND TOTAL */}
+            <div className="flex justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Total Quantity</p>
+                <p className="text-lg font-semibold">
+                  {dataStatisticsStockMemo?.product_sticker?.grand_total_qty?.toLocaleString()}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-500">Total Value</p>
+                <p className="text-lg font-semibold">
+                  {formatRupiah(
+                    dataStatisticsStockMemo?.product_sticker
+                      ?.grand_total_value || 0,
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* DETAILS PER COLOR */}
+            <div className="flex flex-col gap-2 border-t pt-4">
+              {Object.entries(
+                dataStatisticsStockMemo?.product_sticker?.details_per_color ||
+                  {},
+              ).map(([color, detail]: any) => (
+                <div key={color} className="flex justify-between text-sm py-1">
+                  <div className="capitalize font-medium">{color}</div>
+                  <div className="text-right">
+                    <div>{detail.qty.toLocaleString()}</div>
+                    <div className="text-xs text-gray-500">
+                      {formatRupiah(detail.total_value)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ================= BKL PRODUCTS ================= */}
+        <Card className="bg-white rounded-md shadow border-0">
+          <CardHeader>
+            <CardTitle>BKL Products</CardTitle>
+          </CardHeader>
+
+          <CardContent className="flex flex-col gap-6">
+            <div className="flex justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Total Quantity</p>
+                <p className="text-lg font-semibold">
+                  {dataStatisticsStockMemo?.bkl_products?.grand_total_qty?.toLocaleString()}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-500">Total Value</p>
+                <p className="text-lg font-semibold">
+                  {formatRupiah(
+                    dataStatisticsStockMemo?.bkl_products?.grand_total_value ||
+                      0,
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 border-t pt-4">
+              {Object.entries(
+                dataStatisticsStockMemo?.bkl_products?.details_per_color || {},
+              ).map(([color, detail]: any) => (
+                <div key={color} className="flex justify-between text-sm py-1">
+                  <div className="capitalize font-medium">{color}</div>
+                  <div className="text-right">
+                    <div>{detail.qty.toLocaleString()}</div>
+                    <div className="text-xs text-gray-500">
+                      {formatRupiah(detail.total_value)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ================= OLSERA STOCK ================= */}
+        <Card className="bg-white rounded-md shadow border-0">
+          <CardHeader>
+            <CardTitle>Olsera Stock</CardTitle>
+          </CardHeader>
+
+          <CardContent className="flex flex-col gap-6">
+            <div className="flex justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Total Quantity</p>
+                <p className="text-lg font-semibold">
+                  {dataStatisticsStockMemo?.olsera_stock?.grand_total_qty?.toLocaleString()}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-500">Total Value</p>
+                <p className="text-lg font-semibold">
+                  {formatRupiah(
+                    dataStatisticsStockMemo?.olsera_stock?.grand_total_value ||
+                      0,
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 border-t pt-4">
+              {Object.entries(
+                dataStatisticsStockMemo?.olsera_stock?.details_per_category ||
+                  {},
+              ).map(([category, detail]: any) => (
+                <div
+                  key={category}
+                  className="flex justify-between text-sm py-1"
+                >
+                  <div className="font-medium">{category}</div>
+                  <div className="text-right">
+                    <div>{detail.qty.toLocaleString()}</div>
+                    <div className="text-xs text-gray-500">
+                      {formatRupiah(detail.total_value)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-10 flex-col">
         <h2 className="text-xl font-bold">List Migrate</h2>
         <div className="flex flex-col w-full gap-4">

@@ -29,6 +29,8 @@ import { useGetDetailDestinationMC } from "../_api/use-get-detail-destination-mc
 import { useCreateDestinationMC } from "../_api/use-create-destination-mc";
 import Pagination from "@/components/pagination";
 import dynamic from "next/dynamic";
+import { useSyncOlseraTokens } from "../_api/use-sync-olsera";
+import { toast } from "sonner";
 
 const DialogCreateEdit = dynamic(() => import("./dialog-create-edit"), {
   ssr: false,
@@ -40,7 +42,7 @@ export const Client = () => {
   // dialog create edit
   const [openCreateEdit, setOpenCreateEdit] = useQueryState(
     "dialog",
-    parseAsBoolean.withDefault(false)
+    parseAsBoolean.withDefault(false),
   );
 
   // warehouse Id for Edit
@@ -75,7 +77,7 @@ export const Client = () => {
   const [DeleteDialog, confirmDelete] = useConfirm(
     "Delete Destination",
     "This action cannot be undone",
-    "destructive"
+    "destructive",
   );
 
   // mutate DELETE, UPDATE, CREATE
@@ -85,6 +87,8 @@ export const Client = () => {
     useUpdateDestinationMC();
   const { mutate: mutateCreate, isPending: isPendingCreate } =
     useCreateDestinationMC();
+  const { mutate: mutateSyncTokens, isPending: isPendingSync } =
+    useSyncOlseraTokens();
 
   // get data utama
   const {
@@ -174,7 +178,7 @@ export const Client = () => {
         onSuccess: () => {
           handleClose();
         },
-      }
+      },
     );
   };
 
@@ -195,8 +199,21 @@ export const Client = () => {
             queryKey: ["destination-mc-detail", data.data.data.resource.id],
           });
         },
-      }
+      },
     );
+  };
+
+  const handleSyncTokens = () => {
+    mutateSyncTokens(undefined, {
+      onSuccess: (res) => {
+        const message =
+          res?.data?.message ||
+          res?.data?.data?.message ||
+          "Tokens synced successfully";
+
+        toast.success(message);
+      },
+    });
   };
 
   // update from gmaps to state
@@ -375,6 +392,20 @@ export const Client = () => {
                 </Button>
               </TooltipProviderPage>
               <div className="flex gap-4 items-center ml-auto">
+                <Button
+                  onClick={handleSyncTokens}
+                  disabled={isPendingSync}
+                  className="hidden"
+                  // className="items-center flex-none h-9 border-green-400 text-green-700 hover:bg-green-50 disabled:opacity-100 disabled:hover:bg-green-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                  variant={"outline"}
+                >
+                  {isPendingSync ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4 mr-1" />
+                  )}
+                  Sync Tokens
+                </Button>
                 <Button
                   onClick={(e) => {
                     e.preventDefault();

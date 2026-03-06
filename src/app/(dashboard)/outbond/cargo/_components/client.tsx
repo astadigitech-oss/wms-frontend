@@ -1,8 +1,8 @@
 "use client";
 
-import { Edit2, PlusCircle, RefreshCw } from "lucide-react";
+import { FileDown, Filter, Pencil, PlusCircle, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { alertError, cn, setPaginate } from "@/lib/utils";
+import { alertError, cn, formatRupiah, setPaginate } from "@/lib/utils";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -22,10 +22,13 @@ import Pagination from "@/components/pagination";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { useGetListBKL } from "../_api/use-get-list-bkl";
+import { useGetListCargo } from "../_api/use-get-list-b2b";
 
 export const Client = () => {
+  const router = useRouter();
+
   // data search, page
   const [dataSearch, setDataSearch] = useQueryState("q", { defaultValue: "" });
   const searchValue = useDebounce(dataSearch);
@@ -47,7 +50,7 @@ export const Client = () => {
     error,
     isError,
     isSuccess,
-  } = useGetListBKL({ p: page, q: searchValue });
+  } = useGetListCargo({ p: page, q: searchValue });
 
   // memo data utama
   const dataList: any[] = useMemo(() => {
@@ -79,7 +82,7 @@ export const Client = () => {
   }, [isError, error]);
 
   // column data
-  const columnBKL: ColumnDef<any>[] = [
+  const columnCargo: ColumnDef<any>[] = [
     {
       header: () => <div className="text-center">No</div>,
       id: "id",
@@ -90,26 +93,66 @@ export const Client = () => {
       ),
     },
     {
-      accessorKey: "code_document_bkl",
+      accessorKey: "code_document_bulky",
       header: "Code Document",
     },
     {
-      accessorKey: "status",
+      accessorKey: "name_document",
+      header: "Name Document",
+    },
+    {
+      accessorKey: "total_product_bulky",
+      header: () => <div className="text-center">Total Product</div>,
+      cell: ({ row }) => (
+        <div className="text-center tabular-nums">
+          {row.original.total_product_bulky}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "total_old_price_bulky",
+      header: () => <div className="text-center">Total Old Price</div>,
+      cell: ({ row }) => (
+        <div className="text-center tabular-nums">
+          {formatRupiah(row.original.total_old_price_bulky)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "status_bulky",
       header: () => <div className="text-center">Status</div>,
       cell: ({ row }) => (
         <div className="flex justify-center">
           <Badge
             className={cn(
               "rounded w-20 px-0 justify-center text-black font-normal capitalize",
-              row.original.status.toLowerCase() === "done"
+              row.original.status_bulky.toLowerCase() === "selesai"
                 ? "bg-green-400 hover:bg-green-400"
                 : "bg-yellow-400 hover:bg-yellow-400",
             )}
           >
-            {row.original.status}
+            {row.original.status_bulky}
           </Badge>
         </div>
       ),
+    },
+    {
+      accessorKey: "status_so_text",
+      header: "Status SO",
+      cell: ({ row }) => {
+        const status = row.original.status_so_text;
+        return (
+          <Badge
+            className={cn(
+              "shadow-none font-normal rounded-full capitalize text-black",
+              status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
+              status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
+            )}
+          >
+            {status}
+          </Badge>
+        );
+      },
     },
     {
       accessorKey: "action",
@@ -117,26 +160,17 @@ export const Client = () => {
       cell: ({ row }) => (
         <div className="flex gap-4 justify-center items-center">
           <TooltipProviderPage value={<p>Edit</p>}>
-            <Button
-              asChild
-              className="items-center w-9 px-0 flex-none h-9 border-yellow-400 text-yellow-700 hover:text-yellow-700 hover:bg-yellow-50 disabled:opacity-100 disabled:hover:bg-yellow-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
-              variant={"outline"}
-              // onClick={(e) => {
-              //   e.preventDefault();
-              //   setProductId(row.original.id);
-              //   setIsOpenDetailProduct(true);
-              // }}
-            >
-              {/* {isLoadingDetailProduct ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : ( */}
-              <Link
-                href={`/inventory/slow-moving-product/bkl/detail/${row.original.id}`}
+            {row.original.status_bulky.toLowerCase() !== "selesai" && (
+              <Button
+                className="items-center w-9 px-0 flex-none h-9 border-yellow-400 text-yellow-700 hover:text-yellow-700 hover:bg-yellow-50"
+                variant={"outline"}
+                onClick={() =>
+                  router.push(`/outbond/cargo/edit/${row.original.id}`)
+                }
               >
-                <Edit2 className="w-4 h-4" />
-              </Link>
-              {/* )} */}
-            </Button>
+                <Pencil className="w-4 h-4" />
+              </Button>
+            )}
           </TooltipProviderPage>
         </div>
       ),
@@ -170,13 +204,43 @@ export const Client = () => {
             <BreadcrumbLink href="/">Home</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbItem>Slow Moving Product</BreadcrumbItem>
+          <BreadcrumbItem>Outbond</BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbItem>BKL</BreadcrumbItem>
+          <BreadcrumbItem>Cargo</BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
+      <div className="w-full grid grid-cols-2 gap-4">
+        {/* Card 1 */}
+        <div className="rounded-2xl border bg-white p-5 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-500">Sale Offline</h3>
+          </div>
+
+          <div className="mt-1">
+            <div className="text-xl font-semibold">{formatRupiah(5000000)}</div>
+
+            <p className="text-sm text-gray-600 mt-1">
+              Qty: <span className="font-medium">100</span>
+            </p>
+          </div>
+        </div>
+        {/* Card 2 */}
+        <div className="rounded-2xl border bg-white p-5 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-500">Sale Online</h3>
+          </div>
+
+          <div className="mt-1">
+            <div className="text-xl font-semibold">{formatRupiah(5000000)}</div>
+
+            <p className="text-sm text-gray-600 mt-1">
+              Qty: <span className="font-medium">100</span>
+            </p>
+          </div>
+        </div>
+      </div>
       <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-10 flex-col">
-        <h2 className="text-xl font-bold">List BKL</h2>
+        <h2 className="text-xl font-bold">List Cargo</h2>
         <div className="flex flex-col w-full gap-4">
           <div className="flex gap-2 items-center w-full justify-between">
             <div className="flex items-center gap-3 w-full">
@@ -200,13 +264,29 @@ export const Client = () => {
               </TooltipProviderPage>
             </div>
             <Button variant={"liquid"} asChild>
-              <Link href="/inventory/slow-moving-product/bkl/create/list">
+              <Link href="/outbond/cargo/create">
+                <FileDown className="size-4" />
+                Export
+              </Link>
+            </Button>
+            <Button variant={"liquid"} asChild>
+              <Link href="/outbond/cargo/create">
+                <Filter className="size-4" />
+                Filter
+              </Link>
+            </Button>
+            <Button variant={"liquid"} asChild>
+              <Link href="/outbond/cargo/create">
                 <PlusCircle className="size-4" />
-                Create BKL
+                Create Cargo
               </Link>
             </Button>
           </div>
-          <DataTable columns={columnBKL} data={dataList ?? []} />
+          <DataTable
+            columns={columnCargo}
+            data={dataList ?? []}
+            isLoading={isLoading}
+          />
           <Pagination
             pagination={{ ...metaPage, current: page }}
             setPagination={setPage}

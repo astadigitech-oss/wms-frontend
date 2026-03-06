@@ -342,9 +342,9 @@ export const Client = () => {
         row.original.new_category_product ?? row.original.new_tag_product,
     },
     {
-      accessorKey: "new_price_product",
+      accessorKey: "old_price_product",
       header: "Price",
-      cell: ({ row }) => formatRupiah(row.original.new_price_product),
+      cell: ({ row }) => formatRupiah(row.original.old_price_product),
     },
     {
       accessorKey: "new_status_product",

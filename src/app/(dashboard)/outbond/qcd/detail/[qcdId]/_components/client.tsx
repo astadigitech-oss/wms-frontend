@@ -594,7 +594,7 @@ export const Client = () => {
           ) : (
             <div>
               <DataTable
-                isLoading={isRefetching}
+                isLoading={isRefetching || isLoadingData}
                 columns={columnQcd}
                 data={dataList ?? []}
               />

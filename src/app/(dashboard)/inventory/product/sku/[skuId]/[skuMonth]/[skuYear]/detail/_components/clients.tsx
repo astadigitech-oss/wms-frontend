@@ -46,7 +46,7 @@ import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { useToDamaged } from "../_api/use-to-damaged";
 import DialogHistoryBundling from "./dialog-history-bundling";
-import { useGetListHistoryBundling } from "../_api/use-get-list-bundling";
+import { useGetListHistoryBundling } from "../_api/use-get-list-history-bundling";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 
@@ -88,7 +88,7 @@ export const Client = () => {
   const { mutate: mutateCE } = useCreateEditBarcodeSKU();
   const { mutate: mutateDeleteBarcode } = useDeleteBarcodeSku();
   const { mutate: mutateDamaged, isPending: isDamagedLoading } = useToDamaged();
-  
+
   const [DeleteBarcodeDialog, confirmBarcodeDelete] = useConfirm(
     "Delete Barcode",
     "This action cannot be undone",
@@ -119,6 +119,7 @@ export const Client = () => {
     isError: isErrorHistoryBundling,
     isSuccess: isSuccessHistoryBundling,
   } = useGetListHistoryBundling({
+    code_documents: codeDocument,
     p: pageHistoryBundling,
     q: searchHistoryBundlingValue,
   });
@@ -198,8 +199,6 @@ export const Client = () => {
       },
     );
   };
-
- 
 
   const handleCloseHistoryBundling = () => {
     setIsHistoryBundling(false);
@@ -305,7 +304,6 @@ export const Client = () => {
       header: () => <div className="text-center">Action</div>,
       cell: ({ row }) => (
         <div className="flex gap-4 justify-center items-center">
-         
           <TooltipProviderPage value={<p>Bundling</p>}>
             <Button
               asChild

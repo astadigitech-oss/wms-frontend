@@ -285,7 +285,11 @@ export const Client = () => {
             </div>
           ) : (
             <div>
-              <DataTable columns={columnListQCD} data={dataList ?? []} />
+              <DataTable
+                columns={columnListQCD}
+                data={dataList ?? []}
+                isLoading={isLoading || isRefetching}
+              />
               <Pagination
                 pagination={{ ...metaPage, current: page }}
                 setPagination={setPage}
