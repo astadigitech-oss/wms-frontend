@@ -640,7 +640,6 @@ import {
   PackageSearch,
   RailSymbol,
   Recycle,
-  ScanText,
   Shield,
   ShoppingBasket,
   SquareLibrary,
@@ -956,13 +955,13 @@ const sidebarMenu = [
         icon: <ShoppingBasket className="w-5 h-5 stroke-[1.5]" />,
         sub_menu: [],
       },
+      // {
+      //   title: "B2B",
+      //   href: "/outbond/b2b",
+      //   icon: <ScanText className="w-5 h-5 stroke-[1.5]" />,
+      //   sub_menu: [],
+      // },
       {
-        title: "B2B",
-        href: "/outbond/b2b",
-        icon: <ScanText className="w-5 h-5 stroke-[1.5]" />,
-        sub_menu: [],
-      },
-         {
         title: "Cargo",
         href: "/outbond/cargo",
         icon: <Truck className="w-5 h-5 stroke-[1.5]" />,
