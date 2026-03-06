@@ -305,9 +305,15 @@ export const columnColor = ({ onSelectColor }: any): ColumnDef<any>[] => [
     id: "action",
     header: "Action",
     cell: ({ row }) => (
-      <Button size="sm" onClick={() => onSelectColor(row.original)}>
-        Select
-      </Button>
+      <div className="flex gap-4 justify-center items-center">
+        <ButtonAction
+          isLoading={false}
+          label={"Select"}
+          onClick={() => onSelectColor(row.original)}
+          type={"sky"}
+          icon={CheckCircle2}
+        />
+      </div>
     ),
   },
 ];

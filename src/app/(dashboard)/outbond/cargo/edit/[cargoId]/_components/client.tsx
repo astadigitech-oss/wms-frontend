@@ -271,10 +271,6 @@ export const Client = () => {
   }, [selectedBagId, refetch]);
 
   useEffect(() => {
-    refetch();
-  }, [selectedBagId, refetch]);
-
-  useEffect(() => {
     if (searchValue) {
       handleAddProduct({ type: "product", barcode: searchValue });
     }
