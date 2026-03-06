@@ -1,15 +1,15 @@
 "use client";
 
 import {
-  DollarSign,
   Filter,
   Loader2,
+  Package,
   Pencil,
   PlusCircle,
   ReceiptText,
   RefreshCw,
+  ShoppingBasket,
   Trash2,
-  Wifi,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { alertError, cn, formatRupiah, setPaginate } from "@/lib/utils";
@@ -372,7 +372,9 @@ export const Client = () => {
               "rounded w-20 px-0 justify-center text-black font-normal capitalize",
               row.original.is_sale.toLowerCase() === "sale"
                 ? "bg-green-400 hover:bg-green-400"
-                : "bg-yellow-400 hover:bg-yellow-400",
+                : row.original.is_sale.toLowerCase() === "not sale"
+                  ? "bg-gray-300 hover:bg-gray-300"
+                  : "bg-yellow-400 hover:bg-yellow-400",
             )}
           >
             {row.original.is_sale}
@@ -388,17 +390,17 @@ export const Client = () => {
           <TooltipProviderPage value={<p>Online</p>}>
             {row.original.type?.toLowerCase() === "cargo online" &&
               row.original.is_sale?.toLowerCase() !== "sale" && (
-              <Button
-                variant="outline"
-                className="w-9 h-9 px-0 border-indigo-400 text-indigo-700 hover:bg-indigo-50"
-                onClick={() => {
-                  setVolumeData(row.original);
-                  setOpenVolume(true);
-                }}
-              >
-                <Wifi className="w-4 h-4" />
-              </Button>
-            )}
+                <Button
+                  variant="outline"
+                  className="w-9 h-9 px-0 border-indigo-400 text-indigo-700 hover:bg-indigo-50"
+                  onClick={() => {
+                    setVolumeData(row.original);
+                    setOpenVolume(true);
+                  }}
+                >
+                  <Package className="w-4 h-4" />
+                </Button>
+              )}
           </TooltipProviderPage>
           <TooltipProviderPage value={<p>Edit</p>}>
             {row.original.status_bulky.toLowerCase() !== "selesai" && (
@@ -437,7 +439,7 @@ export const Client = () => {
 
           <TooltipProviderPage value={<p>Delete</p>}>
             <Button
-              className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+              className="items-center w-9 px-0 hidden flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isPendingDelete}
               onClick={(e) => {
@@ -462,7 +464,7 @@ export const Client = () => {
                   setOpenBuyerDiscount(true);
                 }}
               >
-                <DollarSign className="w-4 h-4" />
+                <ShoppingBasket className="w-4 h-4" />
               </Button>
             )}
           </TooltipProviderPage>
