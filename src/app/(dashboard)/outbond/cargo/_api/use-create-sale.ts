@@ -50,6 +50,9 @@ export const useCreateSale = () => {
       queryClient.invalidateQueries({
         queryKey: ["list-bulky-document"],
       });
+       queryClient.invalidateQueries({
+        queryKey: ["list-cargo"],
+      });
     },
 
     onError: (err) => {

@@ -107,7 +107,7 @@ export const Client = () => {
   const { mutate: updateCargo } = useUpdateCargo();
 
   const { search, searchValue, setSearch } = useSearch();
-  const { data, isPending, isSuccess, refetch, isRefetching, error, isError } =
+  const { data, isPending, isSuccess, refetch, isRefetching, error, isError, isLoading: isLoadingBag } =
     useGetListBagByUser({ cargoId, ids: selectedBagId });
   const isLoading = isPending || isRefetching;
 
@@ -128,7 +128,6 @@ export const Client = () => {
     );
     return selectedBag ? selectedBag.name_bag : "";
   };
-
   const handleSelectCategory = async ({
     category,
     color_name,
@@ -138,12 +137,14 @@ export const Client = () => {
     color_name?: string;
     type: "category" | "color";
   }) => {
+    // tutup dialog category
+    setDialog("");
+
     const ok = await confirmAddBag();
     if (!ok) return;
 
     const body: any = {
       bulky_document_id: cargoId,
-      color_name: color_name,
       type,
     };
 
@@ -151,10 +152,12 @@ export const Client = () => {
       body.category_id = category.id;
     }
 
+    if (color_name) {
+      body.color_name = color_name;
+    }
+
     addBag(
-      {
-        body,
-      },
+      { body },
       {
         onSuccess: () => {
           refetch();
@@ -162,6 +165,42 @@ export const Client = () => {
       },
     );
   };
+
+  // const handleSelectCategory = async ({
+  //   category,
+  //   color_name,
+  //   type,
+  // }: {
+  //   category?: any;
+  //   color_name?: string;
+  //   type: "category" | "color";
+  // }) => {
+  //   await new Promise((resolve) => setTimeout(resolve, 200));
+
+  //   const ok = await confirmAddBag();
+  //   if (!ok) return;
+
+  //   const body: any = {
+  //     bulky_document_id: cargoId,
+  //     color_name: color_name,
+  //     type,
+  //   };
+
+  //   if (category) {
+  //     body.category_id = category.id;
+  //   }
+
+  //   addBag(
+  //     {
+  //       body,
+  //     },
+  //     {
+  //       onSuccess: () => {
+  //         refetch();
+  //       },
+  //     },
+  //   );
+  // };
 
   // const handleSelectCategory = async (category: any) => {
   //   const ok = await confirmAddBag();
@@ -360,6 +399,9 @@ export const Client = () => {
           setSelectedBagId(id);
           setDialog("");
         }}
+        onRefetch={refetch}
+        isLoadingBag={isLoadingBag}
+        isRefetchingBag={isRefetching}
       />
       <Breadcrumb>
         <BreadcrumbList>

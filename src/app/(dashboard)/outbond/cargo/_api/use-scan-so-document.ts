@@ -27,10 +27,10 @@ export const useScanSODocument = () => {
     onSuccess: (res) => {
       toast.success(res.data?.data?.message || "Code Document scanned successfully");
       queryClient.invalidateQueries({
-        queryKey: ["list-list-b2b"],
+        queryKey: ["list-cargo"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["detail-b2b"],
+        queryKey: ["detail-cargo"],
       });
     },
     onError: (err) => {
