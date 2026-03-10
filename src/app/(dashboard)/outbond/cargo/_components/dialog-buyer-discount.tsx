@@ -41,13 +41,11 @@ console.log("buyer", buyer);
   const handleApply = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!buyer?.buyer_id) return;
-
     createSaleBulky(
       {
         id: data?.id, // ⬅ bulky document id (12)
         body: {
-          buyer_id: buyer.buyer_id,
+          buyer_id: buyer?.buyer_id || data?.buyer_id, // fallback ke buyer lama kalau tidak ganti
           discount_bulky: discount,
         },
       },
@@ -85,7 +83,7 @@ console.log("buyer", buyer);
               <Label>Buyer</Label>
               <div className="flex gap-2">
                 <Input
-                  value={ buyer?.name_buyer ||data?.name_buyer || ""}
+                  value={ buyer?.name_buyer || data?.name_buyer || ""}
                   placeholder="Select buyer"
                   disabled
                   className="bg-gray-100 border-0 border-b rounded-none"
@@ -142,7 +140,7 @@ console.log("buyer", buyer);
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={!buyer} className="w-full">
+              <Button type="submit" className="w-full">
                 Apply
               </Button>
             </div>

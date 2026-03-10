@@ -205,7 +205,7 @@ export const columnBuyer = ({
       <div className="flex gap-4 justify-center items-center">
         <ButtonAction
           isLoading={false}
-          label={"Remove"}
+          label={"Select"}
           onClick={(e) => {
             e.preventDefault();
             setAdd((prev: any) => ({

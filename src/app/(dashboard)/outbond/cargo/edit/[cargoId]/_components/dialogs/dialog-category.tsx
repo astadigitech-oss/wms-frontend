@@ -18,7 +18,7 @@ import { columnCategory, columnColor } from "../columns";
 import { useSearchQuery } from "@/lib/search";
 import { alertError, cn } from "@/lib/utils";
 
-import { RefreshCw, X } from "lucide-react";
+import { RefreshCw} from "lucide-react";
 import { AxiosError } from "axios";
 
 import { useEffect, useMemo, useState } from "react";
@@ -70,6 +70,9 @@ export const DialogCategory = ({
     data: dataColor,
     isPending: isPendingColor,
     refetch: refetchColor,
+    isRefetching: isRefetchingColor,
+    error: errorColor,
+    isError: isErrorColor,
   } = useGetListColor({
     q: searchValue,
   });
@@ -89,7 +92,7 @@ export const DialogCategory = ({
   }, [dataColor]);
 
   const isLoadingCategory = isPending || isRefetching;
-  const isLoadingColor = isPendingColor;
+  const isLoadingColor = isPendingColor || isRefetchingColor;
 
   /*
   ==========================
@@ -136,6 +139,16 @@ export const DialogCategory = ({
       method: "GET",
     });
   }, [isError, error]);
+
+   useEffect(() => {
+    alertError({
+      isError: isErrorColor,
+      error: errorColor as AxiosError,
+      data: "Data Color",
+      action: "get data",
+      method: "GET",
+    });
+  }, [isErrorColor, errorColor]);
 
   /*
   ==========================
@@ -193,14 +206,14 @@ export const DialogCategory = ({
 
             Select Type
 
-            <TooltipProviderPage value="close">
+            {/* <TooltipProviderPage value="close">
               <button
                 onClick={onOpenChange}
                 className="w-6 h-6 flex items-center justify-center border rounded-full"
               >
                 <X className="w-4 h-4" />
               </button>
-            </TooltipProviderPage>
+            </TooltipProviderPage> */}
 
           </DialogTitle>
         </DialogHeader>

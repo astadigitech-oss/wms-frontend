@@ -166,7 +166,7 @@ export const columnProducts = ({
       <div className="flex gap-4 justify-center items-center">
         <ButtonAction
           isLoading={isLoading}
-          label={"Remove"}
+          label={"Add"}
           onClick={(e) => {
             e.preventDefault();
             handleAddProduct({

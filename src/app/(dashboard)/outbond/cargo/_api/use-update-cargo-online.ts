@@ -54,6 +54,10 @@ export const useUpdateCargoOnline = () => {
       queryClient.invalidateQueries({
         queryKey: ["list-bulky-document"],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ["list-cargo"],
+      });
     },
 
     onError: (err) => {
