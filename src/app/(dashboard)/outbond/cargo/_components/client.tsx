@@ -301,6 +301,15 @@ export const Client = () => {
         </div>
       ),
     },
+      {
+      accessorKey: "after_price_bulky",
+      header: () => <div className="text-center">Total New Price</div>,
+      cell: ({ row }) => (
+        <div className="text-center tabular-nums">
+          {formatRupiah(row.original.after_price_bulky)}
+        </div>
+      ),
+    },
     {
       accessorKey: "type",
       header: () => <div className="text-center">Type</div>,
@@ -315,8 +324,8 @@ export const Client = () => {
                 !typeValue
                   ? "bg-gray-300 hover:bg-gray-300"
                   : isCargoOnline
-                    ? "bg-green-400 hover:bg-green-400"
-                    : "bg-yellow-400 hover:bg-yellow-400",
+                    ? "bg-blue-400 hover:bg-blue-400"
+                    : "bg-purple-400 hover:bg-purple-400",
               )}
             >
               {typeValue || "null"}
@@ -592,34 +601,63 @@ export const Client = () => {
             <h3 className="text-sm font-medium text-gray-500">Sale Offline</h3>
           </div>
 
-          <div className="mt-1">
-            <div className="text-xl font-semibold">
-              {formatRupiah(dataSummary?.cargo_offline?.total_price)}
-            </div>
-
-            <p className="text-sm text-gray-600 mt-1">
-              Qty:{" "}
+          <div className="mt-2 space-y-1 text-sm">
+            <p>
+              Old Price :{" "}
               <span className="font-medium">
-                {dataSummary.cargo_offline?.qty || 0}
+                {formatRupiah(
+                  dataSummary?.cargo_offline?.total_old_price || 0,
+                )}
+              </span>
+            </p>
+
+            <p>
+              New Price :{" "}
+              <span className="font-semibold text-green-600">
+                {formatRupiah(
+                  dataSummary?.cargo_offline?.total_price || 0,
+                )}
+              </span>
+            </p>
+
+            <p>
+              Qty :{" "}
+              <span className="font-medium">
+                {dataSummary?.cargo_offline?.qty || 0}
               </span>
             </p>
           </div>
         </div>
+
         {/* Card 2 */}
         <div className="rounded-2xl border bg-white p-5 shadow-sm hover:shadow-md transition">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-gray-500">Sale Online</h3>
           </div>
 
-          <div className="mt-1">
-            <div className="text-xl font-semibold">
-              {formatRupiah(dataSummary?.cargo_online?.total_price)}
-            </div>
-
-            <p className="text-sm text-gray-600 mt-1">
-              Qty:{" "}
+          <div className="mt-2 space-y-1 text-sm">
+            <p>
+              Old Price :{" "}
               <span className="font-medium">
-                {dataSummary.cargo_online?.qty || 0}
+                {formatRupiah(
+                  dataSummary?.cargo_online?.total_old_price || 0,
+                )}
+              </span>
+            </p>
+
+            <p>
+              New Price :{" "}
+              <span className="font-semibold text-green-600">
+                {formatRupiah(
+                  dataSummary?.cargo_online?.total_price || 0,
+                )}
+              </span>
+            </p>
+
+            <p>
+              Qty :{" "}
+              <span className="font-medium">
+                {dataSummary?.cargo_online?.qty || 0}
               </span>
             </p>
           </div>

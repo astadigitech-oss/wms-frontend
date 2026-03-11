@@ -29,7 +29,8 @@ export const DialogBuyerDiscount = ({
   const [openBuyer, setOpenBuyer] = useState(false);
   const [buyer, setBuyer] = useState<any>(null);
   const [discount, setDiscount] = useState<number>(0);
-console.log("buyer", buyer);
+  console.log("data bulky", data);
+  console.log("buyer", buyer);
   const price = Number(data?.total_old_price_bulky || 0);
 
   const totalAfterDiscount = useMemo(() => {
@@ -38,6 +39,7 @@ console.log("buyer", buyer);
   }, [discount, price]);
   const { mutate: createSaleBulky } = useCreateSale();
 
+  const isCargoOnline = data?.type?.toLowerCase() === "cargo online";
   const handleApply = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -73,30 +75,32 @@ console.log("buyer", buyer);
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Buyer & Discount</DialogTitle>
+            <DialogTitle>Sale {data?.name_document}</DialogTitle>
             <DialogDescription />
           </DialogHeader>
 
           <form onSubmit={handleApply} className="flex flex-col gap-4">
             {/* Buyer */}
-            <div className="flex flex-col gap-1">
-              <Label>Buyer</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={ buyer?.name_buyer || data?.name_buyer || ""}
-                  placeholder="Select buyer"
-                  disabled
-                  className="bg-gray-100 border-0 border-b rounded-none"
-                />
-                <Button
-                  type="button"
-                  onClick={() => setOpenBuyer(true)}
-                  variant="outline"
-                >
-                  Select
-                </Button>
+            {!isCargoOnline && (
+              <div className="flex flex-col gap-1">
+                <Label>Buyer</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={buyer?.name_buyer || data?.name_buyer || ""}
+                    placeholder="Select buyer"
+                    disabled
+                    className="bg-gray-100 border-0 border-b rounded-none"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => setOpenBuyer(true)}
+                    variant="outline"
+                  >
+                    Select
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Price */}
             <div className="flex flex-col gap-1">
@@ -109,17 +113,19 @@ console.log("buyer", buyer);
             </div>
 
             {/* Discount */}
-            <div className="flex flex-col gap-1">
-              <Label>Discount (%)</Label>
-              <Input
-                type="number"
-                min={0}
-                max={100}
-                value={discount}
-                onChange={(e) => setDiscount(Number(e.target.value))}
-                className="border-0 border-b rounded-none"
-              />
-            </div>
+            {!isCargoOnline && (
+              <div className="flex flex-col gap-1">
+                <Label>Discount (%)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={discount}
+                  onChange={(e) => setDiscount(Number(e.target.value))}
+                  className="border-0 border-b rounded-none"
+                />
+              </div>
+            )}
 
             {/* Total */}
             <div className="flex flex-col gap-1">
@@ -141,7 +147,7 @@ console.log("buyer", buyer);
                 Cancel
               </Button>
               <Button type="submit" className="w-full">
-                Apply
+                Sale
               </Button>
             </div>
           </form>
