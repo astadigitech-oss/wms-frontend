@@ -29,7 +29,8 @@ export const DialogBuyerDiscount = ({
   const [openBuyer, setOpenBuyer] = useState(false);
   const [buyer, setBuyer] = useState<any>(null);
   const [discount, setDiscount] = useState<number>(0);
-console.log("buyer", buyer);
+  console.log("data bulky", data);
+  console.log("buyer", buyer);
   const price = Number(data?.total_old_price_bulky || 0);
 
   const totalAfterDiscount = useMemo(() => {
@@ -83,7 +84,7 @@ console.log("buyer", buyer);
               <Label>Buyer</Label>
               <div className="flex gap-2">
                 <Input
-                  value={ buyer?.name_buyer || data?.name_buyer || ""}
+                  value={buyer?.name_buyer || data?.name_buyer || ""}
                   placeholder="Select buyer"
                   disabled
                   className="bg-gray-100 border-0 border-b rounded-none"
@@ -141,7 +142,7 @@ console.log("buyer", buyer);
                 Cancel
               </Button>
               <Button type="submit" className="w-full">
-                Apply
+                Sale
               </Button>
             </div>
           </form>
