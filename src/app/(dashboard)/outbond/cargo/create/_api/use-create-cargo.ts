@@ -17,7 +17,7 @@ export const useCreateCargo = () => {
 
   const mutation = useMutation<AxiosResponse, Error, RequestType>({
     mutationFn: async ({ body }) => {
-      const res = await axios.post(`${baseUrl}/create-cargo`, body, {
+      const res = await axios.post(`${baseUrl}/create-b2b`, body, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

@@ -637,13 +637,11 @@ import {
   IdCard,
   LibraryBigIcon,
   LineChart,
+  Package,
   PackageSearch,
-  RailSymbol,
   Recycle,
-  ScanText,
   Shield,
   ShoppingBasket,
-  SquareLibrary,
   SwatchBook,
   Target,
   TriangleAlert,
@@ -749,14 +747,14 @@ const sidebarMenu = [
             title: "Manual Inbound",
             href: "/inbound/check-product/manual-inbound",
           },
-          {
-            title: "Scan Result",
-            href: "/inbound/check-product/scan-result",
-          },
-          {
-            title: "Product Input",
-            href: "/inbound/check-product/product-input",
-          },
+          // {
+          //   title: "Scan Result",
+          //   href: "/inbound/check-product/scan-result",
+          // },
+          // {
+          //   title: "Product Input",
+          //   href: "/inbound/check-product/product-input",
+          // },
         ],
       },
       {
@@ -785,12 +783,12 @@ const sidebarMenu = [
       //   icon: <Layers3 className="w-5 h-5 stroke-[1.5]" />,
       //   sub_menu: [],
       // },
-      {
-        title: "Approvement Stagging",
-        href: "/stagging/approvement",
-        icon: <SquareLibrary className="w-5 h-5 stroke-[1.5]" />,
-        sub_menu: [],
-      },
+      // {
+      //   title: "Approvement Stagging",
+      //   href: "/stagging/approvement",
+      //   icon: <SquareLibrary className="w-5 h-5 stroke-[1.5]" />,
+      //   sub_menu: [],
+      // },
       {
         title: "Stagging",
         href: "/stagging/rack",
@@ -843,19 +841,10 @@ const sidebarMenu = [
         ],
       },
       {
-        title: "Moving Product",
-        href: undefined,
-        icon: <RailSymbol className="w-5 h-5 stroke-[1.5]" />,
-        sub_menu: [
-          {
-            title: "bundle",
-            href: "/inventory/moving-product/bundle",
-          },
-          {
-            title: "repair",
-            href: "/inventory/moving-product/repair",
-          },
-        ],
+        title: "Bundle",
+        href: "/inventory/moving-product/bundle",
+        icon: <Package className="w-5 h-5 stroke-[1.5]" />,
+        sub_menu: [],
       },
       {
         title: "Slow Moving Product",
@@ -866,10 +855,10 @@ const sidebarMenu = [
           //   title: "list product",
           //   href: "/inventory/slow-moving-product/list-product",
           // },
-          {
-            title: "promo product",
-            href: "/inventory/slow-moving-product/promo-product",
-          },
+          // {
+          //   title: "promo product",
+          //   href: "/inventory/slow-moving-product/promo-product",
+          // },
           {
             title: "BKL",
             href: "/inventory/slow-moving-product/bkl",
@@ -956,18 +945,18 @@ const sidebarMenu = [
         icon: <ShoppingBasket className="w-5 h-5 stroke-[1.5]" />,
         sub_menu: [],
       },
-      {
-        title: "B2B",
-        href: "/outbond/b2b",
-        icon: <ScanText className="w-5 h-5 stroke-[1.5]" />,
-        sub_menu: [],
-      },
-      //    {
-      //   title: "Cargo",
-      //   href: "/outbond/cargo",
-      //   icon: <Truck className="w-5 h-5 stroke-[1.5]" />,
+      // {
+      //   title: "B2B",
+      //   href: "/outbond/b2b",
+      //   icon: <ScanText className="w-5 h-5 stroke-[1.5]" />,
       //   sub_menu: [],
       // },
+      {
+        title: "Cargo",
+        href: "/outbond/cargo",
+        icon: <Truck className="w-5 h-5 stroke-[1.5]" />,
+        sub_menu: [],
+      },
       {
         title: "buyer",
         href: "/outbond/buyer",
@@ -995,14 +984,14 @@ const sidebarMenu = [
             title: "list Pallet",
             href: "/outbond/pallet/list",
           },
-          {
-            title: "Category Pallet",
-            href: "/outbond/pallet/category-pallet",
-          },
-          {
-            title: "Warehouse",
-            href: "/outbond/pallet/warehouse",
-          },
+          // {
+          //   title: "Category Pallet",
+          //   href: "/outbond/pallet/category-pallet",
+          // },
+          // {
+          //   title: "Warehouse",
+          //   href: "/outbond/pallet/warehouse",
+          // },
           {
             title: "Condition",
             href: "/outbond/pallet/condition",

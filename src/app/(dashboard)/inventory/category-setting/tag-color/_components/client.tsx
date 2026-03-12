@@ -1,15 +1,12 @@
 "use client";
 
 import {
-  AlertCircle,
   ChevronRight,
   Edit3,
   Loader2,
   Minus,
-  Monitor,
   PlusCircle,
   RefreshCw,
-  Smartphone,
   Trash2,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -48,7 +45,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useCreateTagColor } from "../_api/use-create-tag-color";
 import { toast } from "sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useGetListTagColorAPK } from "../_api/use-get-list-tag-color-apk";
 import PickerColor from "@/components/picker-color";
 
@@ -56,7 +53,7 @@ export const Client = () => {
   const queryClient = useQueryClient();
 
   // type color APK || WMS
-  const [isApk, setIsApk] = useQueryState(
+  const [isApk] = useQueryState(
     "apk",
     parseAsBoolean.withDefault(false)
   );
@@ -503,7 +500,7 @@ export const Client = () => {
             </BreadcrumbList>
           </Breadcrumb>
         </TabsContent>
-        <div className="flex w-full bg-sky-400 rounded overflow-hidden shadow-md px-5 py-3 justify-between items-center mb-4 mt-4 sticky top-5 z-10 border">
+        {/* <div className="flex w-full bg-sky-400 rounded overflow-hidden shadow-md px-5 py-3 justify-between items-center mb-4 mt-4 sticky top-5 z-10 border">
           <div className="flex items-center">
             <AlertCircle className="size-4 mr-2" />
             <p className="text-sm font-medium">Please select the type first</p>
@@ -536,7 +533,7 @@ export const Client = () => {
               </Button>
             </TabsTrigger>
           </TabsList>
-        </div>
+        </div> */}
         <TabsContent value="wms">
           <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-10 flex-col">
             <h2 className="text-xl font-bold">List Tag Colors WMS</h2>

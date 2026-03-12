@@ -3,13 +3,13 @@ import axios from "axios";
 import { baseUrl } from "@/lib/baseUrl";
 import { getCookie } from "cookies-next/client";
 
-export const useGetListCargo = ({ p, q }: any) => {
+export const useGetSummarySales = () => {
   const accessToken = getCookie("accessToken");
   const query = useQuery({
-    queryKey: ["list-cargo", { p, q }],
+    queryKey: ["summary-sales"],
     queryFn: async () => {
       const res = await axios.get(
-        `${baseUrl}/bulky-documents?page=${p}&q=${q}`,
+        `${baseUrl}/bulky-documents/summary-sales`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,

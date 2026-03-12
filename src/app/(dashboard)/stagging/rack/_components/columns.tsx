@@ -9,13 +9,11 @@ import {
   Loader2,
   LucideIcon,
   Pencil,
-  PlusCircle,
   Printer,
   ReceiptText,
   Shield,
   Trash2,
   XCircle,
-  BookMarked,
 } from "lucide-react";
 import Link from "next/link";
 import { MouseEvent } from "react";
@@ -65,7 +63,7 @@ const ButtonAction = ({
 export const columnProductStaging = ({
   metaPageProduct,
   isLoading,
-  handleAddFilter,
+  // handleAddFilter,
   // handleDryScrap,
   // handleMigrateToRepair,
   // isPendingMigrateToRepair,
@@ -149,30 +147,30 @@ export const columnProductStaging = ({
       );
     },
   },
-  {
-    accessorKey: "status_so",
-    header: "Status SO",
-    cell: ({ row }) => {
-      const status = row.original.status_so;
-      return (
-        <Badge
-          className={cn(
-            "shadow-none font-normal rounded-full capitalize text-black",
-            status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
-            status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
-          )}
-        >
-          {status}
-        </Badge>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "status_so",
+  //   header: "Status SO",
+  //   cell: ({ row }) => {
+  //     const status = row.original.status_so;
+  //     return (
+  //       <Badge
+  //         className={cn(
+  //           "shadow-none font-normal rounded-full capitalize text-black",
+  //           status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
+  //           status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
+  //         )}
+  //       >
+  //         {status}
+  //       </Badge>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "action",
     header: () => <div className="text-center">Action</div>,
     cell: ({ row }) => (
       <div className="flex gap-4 justify-center items-center">
-        <ButtonAction
+        {/* <ButtonAction
           icon={PlusCircle}
           isLoading={isLoading}
           type="sky"
@@ -181,7 +179,7 @@ export const columnProductStaging = ({
             handleAddFilter(row.original.id);
           }}
           label="Add to Filter"
-        />
+        /> */}
         <ButtonAction
           icon={ReceiptText}
           isLoading={isLoading}
@@ -375,8 +373,8 @@ export const columnRackStaging = ({
   setSelectedNameRack,
   setSelectedTotalProduct,
   setBarcodeOpen,
-  handleStockOpname,
-  isPendingStockOpname,
+  // handleStockOpname,
+  // isPendingStockOpname,
 }: any): ColumnDef<any>[] => [
   {
     header: () => <div className="text-center">No</div>,
@@ -413,24 +411,24 @@ export const columnRackStaging = ({
       </div>
     ),
   },
-  {
-    accessorKey: "status_so",
-    header: "Status SO",
-    cell: ({ row }) => {
-      const status = row.original.status_so;
-      return (
-        <Badge
-          className={cn(
-            "shadow-none font-normal rounded-full capitalize text-black",
-            status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
-            status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
-          )}
-        >
-          {status}
-        </Badge>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "status_so",
+  //   header: "Status SO",
+  //   cell: ({ row }) => {
+  //     const status = row.original.status_so;
+  //     return (
+  //       <Badge
+  //         className={cn(
+  //           "shadow-none font-normal rounded-full capitalize text-black",
+  //           status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
+  //           status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
+  //         )}
+  //       >
+  //         {status}
+  //       </Badge>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "action",
     header: () => <div className="text-center">Action</div>,
@@ -503,7 +501,7 @@ export const columnRackStaging = ({
           icon={Boxes}
           type="sky"
         />
-        <ButtonAction
+        {/* <ButtonAction
           label="Stock Opname"
           onClick={(e) => {
             e.preventDefault();
@@ -512,7 +510,7 @@ export const columnRackStaging = ({
           isLoading={isPendingStockOpname}
           icon={BookMarked}
           type="yellow"
-        />
+        /> */}
       </div>
     ),
   },

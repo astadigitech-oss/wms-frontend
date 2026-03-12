@@ -205,12 +205,12 @@ export const columnBuyer = ({
       <div className="flex gap-4 justify-center items-center">
         <ButtonAction
           isLoading={false}
-          label={"Remove"}
+          label={"Select"}
           onClick={(e) => {
             e.preventDefault();
             setAdd((prev: any) => ({
               ...prev,
-              category_id: row.original.id,
+              buyer_id: row.original.id,
               name_buyer: row.original.name_buyer,
             }));
             onClose();
@@ -223,10 +223,7 @@ export const columnBuyer = ({
   },
 ];
 
-export const columnCategory = ({
-  setAdd,
-  onClose,
-}: any): ColumnDef<any>[] => [
+export const columnCategory = ({ setAdd, onClose }: any): ColumnDef<any>[] => [
   {
     header: () => <div className="text-center">No</div>,
     id: "id",

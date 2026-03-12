@@ -16,8 +16,7 @@ import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
 import { AxiosError } from "axios";
 import { RefreshCw, X } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useMemo } from "react";
-
-import { useGetListCategory } from "../../_api";
+import { useGetListCategory } from "../../_api/use-get-list-category";
 
 export const DialogCategory = ({
   open,
