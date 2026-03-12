@@ -14,7 +14,6 @@ import {
   Shield,
   Trash2,
   XCircle,
-  BookMarked,
 } from "lucide-react";
 import Link from "next/link";
 import { MouseEvent } from "react";
@@ -374,8 +373,8 @@ export const columnRackStaging = ({
   setSelectedNameRack,
   setSelectedTotalProduct,
   setBarcodeOpen,
-  handleStockOpname,
-  isPendingStockOpname,
+  // handleStockOpname,
+  // isPendingStockOpname,
 }: any): ColumnDef<any>[] => [
   {
     header: () => <div className="text-center">No</div>,
@@ -502,7 +501,7 @@ export const columnRackStaging = ({
           icon={Boxes}
           type="sky"
         />
-        <ButtonAction
+        {/* <ButtonAction
           label="Stock Opname"
           onClick={(e) => {
             e.preventDefault();
@@ -511,7 +510,7 @@ export const columnRackStaging = ({
           isLoading={isPendingStockOpname}
           icon={BookMarked}
           type="yellow"
-        />
+        /> */}
       </div>
     ),
   },
