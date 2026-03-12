@@ -5,8 +5,17 @@ import { baseUrl } from "@/lib/baseUrl";
 import { toast } from "sonner";
 import { getCookie } from "cookies-next/client";
 
-type RequestType = {
-  [key: string]: string;
+export type RequestType = {
+  new_name_product: string;
+  new_quantity_product: string;
+  old_price_product: string;
+  new_status_product: string;
+  new_category_product: string;
+  new_price_product: string;
+  new_tag_product: string;
+  condition: string;
+  is_extra: boolean;
+  description: string;
 };
 
 type Error = AxiosError;

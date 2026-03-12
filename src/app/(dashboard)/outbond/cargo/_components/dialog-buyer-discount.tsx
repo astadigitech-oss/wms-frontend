@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import React, { FormEvent, useEffect, useMemo, useState } from "react";
 import { DialogBuyer } from "./dialog-buyer"; // ⬅ import dialog buyer
 import { useCreateSale } from "../_api/use-create-sale";
+import { formatRupiah } from "@/lib/utils";
 
 export const DialogBuyerDiscount = ({
   open,
@@ -29,8 +30,6 @@ export const DialogBuyerDiscount = ({
   const [openBuyer, setOpenBuyer] = useState(false);
   const [buyer, setBuyer] = useState<any>(null);
   const [discount, setDiscount] = useState<number>(0);
-  console.log("data bulky", data);
-  console.log("buyer", buyer);
   const price = Number(data?.total_old_price_bulky || 0);
 
   const totalAfterDiscount = useMemo(() => {
@@ -47,7 +46,7 @@ export const DialogBuyerDiscount = ({
       {
         id: data?.id, // ⬅ bulky document id (12)
         body: {
-          buyer_id: buyer?.buyer_id || data?.buyer_id, // fallback ke buyer lama kalau tidak ganti
+          buyer_id: buyer?.buyer_id || data?.buyer_id || "", // fallback ke buyer lama kalau tidak ganti
           discount_bulky: discount,
         },
       },
@@ -62,7 +61,7 @@ export const DialogBuyerDiscount = ({
   useEffect(() => {
     if (open) {
       setBuyer(buyer || null);
-      setDiscount(data?.discount || 0);
+      setDiscount(data?.discount_bulky ?? 0);
     } else {
       setBuyer(null);
       setDiscount(0);
@@ -131,7 +130,9 @@ export const DialogBuyerDiscount = ({
             <div className="flex flex-col gap-1">
               <Label>Total After Discount</Label>
               <Input
-                value={totalAfterDiscount.toLocaleString("id-ID")}
+                value={formatRupiah(
+                  data?.after_price_bulky || totalAfterDiscount,
+                )}
                 disabled
                 className="bg-green-50 text-green-700 font-semibold border-0 border-b rounded-none"
               />

@@ -141,6 +141,7 @@ export const Client = () => {
   const dataCategories: any[] = useMemo(() => {
     return dataCategory?.data.data.resource ?? [];
   }, [dataCategory]);
+  const isExtra = Boolean(dataDetail?.data.data.resource?.is_extra);
 
   useEffect(() => {
     if (isSuccessDetail && dataDetail) {
@@ -235,6 +236,7 @@ export const Client = () => {
       new_quantity_product: input.qty,
       new_category_product: input.category ?? null,
       new_tag_product: input.new_tag_product ?? null,
+      is_extra: isExtra,
     };
     mutateToDisplay(
       { id: dataResDetail?.id, source: dataResDetail?.source, body },
