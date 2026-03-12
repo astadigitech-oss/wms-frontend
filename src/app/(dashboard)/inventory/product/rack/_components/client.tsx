@@ -919,7 +919,7 @@ export const Client = () => {
           </TooltipProviderPage> */}
           <TooltipProviderPage value={<p>Stock Opname</p>}>
             <Button
-              className="items-center w-9 px-0 flex-none h-9 border-yellow-400 text-yellow-700 hover:text-yellow-700 hover:bg-yellow-50 disabled:opacity-100 disabled:hover:bg-yellow-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+              className="hidden items-center w-9 px-0 flex-none h-9 border-yellow-400 text-yellow-700 hover:text-yellow-700 hover:bg-yellow-50 disabled:opacity-100 disabled:hover:bg-yellow-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isPendingStockOpname}
               onClick={(e) => {
