@@ -357,24 +357,24 @@ export const Client = () => {
         </Badge>
       ),
     },
-    {
-      accessorKey: "status_so",
-      header: "Status SO",
-      cell: ({ row }) => {
-        const status = row.original.status_so;
-        return (
-          <Badge
-            className={cn(
-              "shadow-none font-normal rounded-full capitalize text-black",
-              status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
-              status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
-            )}
-          >
-            {status}
-          </Badge>
-        );
-      },
-    },
+    // {
+    //   accessorKey: "status_so",
+    //   header: "Status SO",
+    //   cell: ({ row }) => {
+    //     const status = row.original.status_so;
+    //     return (
+    //       <Badge
+    //         className={cn(
+    //           "shadow-none font-normal rounded-full capitalize text-black",
+    //           status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
+    //           status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
+    //         )}
+    //       >
+    //         {status}
+    //       </Badge>
+    //     );
+    //   },
+    // },
     {
       accessorKey: "action",
       header: () => <div className="text-center">Action</div>,
@@ -495,7 +495,7 @@ export const Client = () => {
           <BreadcrumbItem>List Product Abnormal</BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 flex-col">
+      <div className="hidden w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 flex-col">
         <h3 className="text-lg font-semibold">SO Barang Disini</h3>
         <form onSubmit={handleScanSOProduct} className="flex flex-col gap-3">
           <div className="flex gap-3 items-end">

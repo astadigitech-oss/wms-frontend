@@ -360,24 +360,24 @@ export const Client = () => {
         </div>
       ),
     },
-    {
-      accessorKey: "status_so_text",
-      header: "Status SO",
-      cell: ({ row }) => {
-        const status = row.original.status_so_text;
-        return (
-          <Badge
-            className={cn(
-              "shadow-none font-normal rounded-full capitalize text-black",
-              status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
-              status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
-            )}
-          >
-            {status}
-          </Badge>
-        );
-      },
-    },
+    // {
+    //   accessorKey: "status_so_text",
+    //   header: "Status SO",
+    //   cell: ({ row }) => {
+    //     const status = row.original.status_so_text;
+    //     return (
+    //       <Badge
+    //         className={cn(
+    //           "shadow-none font-normal rounded-full capitalize text-black",
+    //           status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
+    //           status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
+    //         )}
+    //       >
+    //         {status}
+    //       </Badge>
+    //     );
+    //   },
+    // },
 
     {
       accessorKey: "is_sale",
@@ -388,10 +388,10 @@ export const Client = () => {
             className={cn(
               "rounded w-20 px-0 justify-center text-black font-normal capitalize",
               row.original.is_sale.toLowerCase() === "sale"
-                ? "bg-green-400 hover:bg-green-400"
+                ? "bg-pink-400 hover:bg-pink-400"
                 : row.original.is_sale.toLowerCase() === "not sale"
                   ? "bg-gray-300 hover:bg-gray-300"
-                  : "bg-yellow-400 hover:bg-yellow-400",
+                  : "bg-blue-400 hover:bg-blue-400",
             )}
           >
             {row.original.is_sale}
@@ -750,7 +750,7 @@ export const Client = () => {
           </div>
         </div>
       </div>
-      <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-4 flex-col">
+      <div className="hidden w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-4 flex-col">
         <h3 className="text-lg font-semibold">SO Document Disini</h3>
         <form onSubmit={handleScanSODocument} className="flex flex-col gap-3">
           <div className="flex gap-3 items-end">
