@@ -9,7 +9,6 @@ import {
   Loader2,
   LucideIcon,
   Pencil,
-  PlusCircle,
   Printer,
   ReceiptText,
   Shield,
@@ -65,7 +64,7 @@ const ButtonAction = ({
 export const columnProductStaging = ({
   metaPageProduct,
   isLoading,
-  handleAddFilter,
+  // handleAddFilter,
   // handleDryScrap,
   // handleMigrateToRepair,
   // isPendingMigrateToRepair,
@@ -172,7 +171,7 @@ export const columnProductStaging = ({
     header: () => <div className="text-center">Action</div>,
     cell: ({ row }) => (
       <div className="flex gap-4 justify-center items-center">
-        <ButtonAction
+        {/* <ButtonAction
           icon={PlusCircle}
           isLoading={isLoading}
           type="sky"
@@ -181,7 +180,7 @@ export const columnProductStaging = ({
             handleAddFilter(row.original.id);
           }}
           label="Add to Filter"
-        />
+        /> */}
         <ButtonAction
           icon={ReceiptText}
           isLoading={isLoading}
