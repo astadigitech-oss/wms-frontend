@@ -1,12 +1,9 @@
 "use client";
 
 import {
-  AlertCircle,
   Loader2,
-  Monitor,
   ReceiptText,
   RefreshCw,
-  Smartphone,
   Trash2,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -32,7 +29,7 @@ import { useConfirm } from "@/hooks/use-confirm";
 import { useGetListProductColorWMS } from "../_api/use-get-list-product-color-wms";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent} from "@/components/ui/tabs";
 import { useGetListProductColorAPK } from "../_api/use-get-list-product-color-apk";
 import { Badge } from "@/components/ui/badge";
 import Pagination from "@/components/pagination";
@@ -48,7 +45,7 @@ export const Client = () => {
   const queryClient = useQueryClient();
 
   // type color APK || WMS
-  const [isApk, setIsApk] = useQueryState(
+  const [isApk] = useQueryState(
     "apk",
     parseAsBoolean.withDefault(false),
   );
@@ -779,7 +776,7 @@ export const Client = () => {
             </BreadcrumbList>
           </Breadcrumb>
         </TabsContent>
-        <div className="flex w-full bg-sky-400 rounded overflow-hidden shadow-md px-5 py-3 justify-between items-center mb-4 mt-4 sticky top-5 z-10 border">
+        {/* <div className="flex w-full bg-sky-400 rounded overflow-hidden shadow-md px-5 py-3 justify-between items-center mb-4 mt-4 sticky top-5 z-10 border">
           <div className="flex items-center">
             <AlertCircle className="size-4 mr-2" />
             <p className="text-sm font-medium">Please select the type first</p>
@@ -812,7 +809,7 @@ export const Client = () => {
               </Button>
             </TabsTrigger>
           </TabsList>
-        </div>
+        </div> */}
         <TabsContent value="wms">
           <div className="flex w-full flex-col gap-4">
             <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-6 flex-col">
