@@ -34,6 +34,7 @@ import BarcodePrinted from "@/components/barcode";
 import { useGetPriceProductPA } from "../_api/use-get-price-product-pa";
 import { useSubmitManualInbound } from "../_api/use-submit-manual-inbound";
 import Loading from "@/app/(dashboard)/loading";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const Client = () => {
   const nameRef = useRef<HTMLInputElement | null>(null);
@@ -72,6 +73,7 @@ export const Client = () => {
     discount: 0,
     damaged: "",
     abnormal: "",
+    isExtra: false,
   });
 
   // debounce
@@ -113,6 +115,7 @@ export const Client = () => {
       new_price_product: input.discountPrice,
       new_tag_product: colorData.name_color ?? "",
       condition: type,
+      is_extra: input.isExtra,
       description:
         type === "abnormal"
           ? input.abnormal
@@ -132,6 +135,7 @@ export const Client = () => {
           discount: 0,
           damaged: "",
           abnormal: "",
+          isExtra: false,
         });
         if (nameRef.current) {
           nameRef.current.focus();
@@ -271,6 +275,19 @@ export const Client = () => {
                     type="number"
                     className="w-full border-sky-400/80 focus-visible:ring-sky-400"
                   />
+                </div>
+                <div className="flex items-center gap-3 mt-2">
+                  <Checkbox
+                    id="is_extra"
+                    checked={input.isExtra}
+                    onCheckedChange={(checked) =>
+                      setInput((prev) => ({
+                        ...prev,
+                        isExtra: checked === true,
+                      }))
+                    }
+                  />
+                  <Label htmlFor="is_extra">Extra Product</Label>
                 </div>
               </div>
             </div>

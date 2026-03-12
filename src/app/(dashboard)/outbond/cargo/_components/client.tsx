@@ -3,6 +3,7 @@
 import {
   Filter,
   Loader2,
+  MoreVertical,
   Package,
   Pencil,
   PlusCircle,
@@ -62,6 +63,12 @@ import { useGetDetailCargo } from "../_api/use-get-detail-cargo";
 import { useGetSummarySales } from "../_api/use-get-summary-sales";
 import { DialogVolume } from "./dialog-volume";
 import { DialogBuyerDiscount } from "./dialog-buyer-discount";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const DialogDetail = dynamic(() => import("./dialog-detail"), {
   ssr: false,
@@ -159,8 +166,6 @@ export const Client = () => {
   const dataSummary: any = useMemo(() => {
     return dataSummarySales?.data.data.resource || {};
   }, [dataSummarySales]);
-
-  console.log("dataSummarySales:", dataSummary);
 
   // memo data red detail
   const dataResDetail: any = useMemo(() => {
@@ -285,7 +290,7 @@ export const Client = () => {
     },
     {
       accessorKey: "total_product_bulky",
-      header: () => <div className="text-center">Total Product</div>,
+      header: () => <div className="text-center">Qty</div>,
       cell: ({ row }) => (
         <div className="text-center tabular-nums">
           {row.original.total_product_bulky}
@@ -294,16 +299,16 @@ export const Client = () => {
     },
     {
       accessorKey: "total_old_price_bulky",
-      header: () => <div className="text-center">Total Old Price</div>,
+      header: () => <div className="text-center">Old Price</div>,
       cell: ({ row }) => (
         <div className="text-center tabular-nums">
           {formatRupiah(row.original.total_old_price_bulky)}
         </div>
       ),
     },
-      {
+    {
       accessorKey: "after_price_bulky",
-      header: () => <div className="text-center">Total New Price</div>,
+      header: () => <div className="text-center">New Price</div>,
       cell: ({ row }) => (
         <div className="text-center tabular-nums">
           {formatRupiah(row.original.after_price_bulky)}
@@ -316,6 +321,9 @@ export const Client = () => {
       cell: ({ row }) => {
         const typeValue = row.original.type;
         const isCargoOnline = typeValue?.toLowerCase() === "cargo online";
+
+        const displayType = typeValue?.replace(/cargo\s*/i, "");
+
         return (
           <div className="flex justify-center">
             <Badge
@@ -328,7 +336,7 @@ export const Client = () => {
                     : "bg-purple-400 hover:bg-purple-400",
               )}
             >
-              {typeValue || "null"}
+              {displayType || "null"}
             </Badge>
           </div>
         );
@@ -394,92 +402,179 @@ export const Client = () => {
     {
       accessorKey: "action",
       header: () => <div className="text-center">Action</div>,
-      cell: ({ row }) => (
-        <div className="flex gap-4 justify-center items-center">
-          <TooltipProviderPage value={<p>Online</p>}>
-            {row.original.type?.toLowerCase() === "cargo online" &&
-              row.original.is_sale?.toLowerCase() !== "sale" && (
+      cell: ({ row }) => {
+        const data = row.original;
+
+        return (
+          <div className="flex justify-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-9 h-9 px-0 border-indigo-400 text-indigo-700 hover:bg-indigo-50"
-                  onClick={() => {
-                    setVolumeData(row.original);
-                    setOpenVolume(true);
-                  }}
+                  className="w-9 h-9 px-0 border-sky-400 text-sky-700 hover:bg-sky-50"
                 >
-                  <Package className="w-4 h-4" />
+                  <MoreVertical className="w-4 h-4" />
                 </Button>
-              )}
-          </TooltipProviderPage>
-          <TooltipProviderPage value={<p>Edit</p>}>
-            {row.original.status_bulky.toLowerCase() !== "selesai" && (
-              <Button
-                className="items-center w-9 px-0 flex-none h-9 border-yellow-400 text-yellow-700 hover:text-yellow-700 hover:bg-yellow-50"
-                variant={"outline"}
-                onClick={() =>
-                  router.push(`/outbond/cargo/edit/${row.original.id}`)
-                }
-              >
-                <Pencil className="w-4 h-4" />
-              </Button>
-            )}
-          </TooltipProviderPage>
-          <TooltipProviderPage value={<p>Detail</p>}>
-            <Button
-              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
-              variant={"outline"}
-              // disabled={isLoadingDetail}
-              // onClick={(e) => {
-              //   e.preventDefault();
-              //   setCargoId(row.original.id);
-              //   setOpenDetail(true);
-              // }}
-              onClick={() =>
-                router.push(`/outbond/cargo/detail/${row.original.id}`)
-              }
-            >
-              {/* {isLoadingDetail ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : ( */}
-              <ReceiptText className="w-4 h-4" />
-              {/* // )} */}
-            </Button>
-          </TooltipProviderPage>
+              </DropdownMenuTrigger>
 
-          <TooltipProviderPage value={<p>Delete</p>}>
-            <Button
-              className="items-center w-9 px-0 hidden flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
-              variant={"outline"}
-              disabled={isPendingDelete}
-              onClick={(e) => {
-                e.preventDefault();
-                handleDelete(row.original.id);
-              }}
-            >
-              {isPendingDelete ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Trash2 className="w-4 h-4" />
-              )}
-            </Button>
-          </TooltipProviderPage>
-          <TooltipProviderPage value={<p>Sale</p>}>
-            {row.original.is_sale.toLowerCase() !== "sale" && (
-              <Button
-                variant="outline"
-                className="w-9 h-9 px-0 border-emerald-400 text-emerald-700 hover:bg-emerald-50"
-                onClick={() => {
-                  setBuyerDiscountData(row.original);
-                  setOpenBuyerDiscount(true);
-                }}
-              >
-                <ShoppingBasket className="w-4 h-4" />
-              </Button>
-            )}
-          </TooltipProviderPage>
-        </div>
-      ),
+              <DropdownMenuContent align="end" className="w-44">
+                {/* Volume */}
+                {data.type?.toLowerCase() === "cargo online" &&
+                  data.is_sale?.toLowerCase() !== "sale" && (
+                    <DropdownMenuItem
+                      className="text-indigo-700 hover:bg-indigo-50"
+                      onClick={() => {
+                        setVolumeData(data);
+                        setOpenVolume(true);
+                      }}
+                    >
+                      <Package className="w-4 h-4 mr-2" />
+                      Volume
+                    </DropdownMenuItem>
+                  )}
+
+                {/* Edit */}
+                {data.status_bulky.toLowerCase() !== "selesai" && (
+                  <DropdownMenuItem
+                    className="text-yellow-700 hover:bg-yellow-50"
+                    onClick={() =>
+                      router.push(`/outbond/cargo/edit/${data.id}`)
+                    }
+                  >
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                )}
+
+                {/* Detail */}
+                <DropdownMenuItem
+                  className="text-sky-700 hover:bg-sky-50"
+                  onClick={() =>
+                    router.push(`/outbond/cargo/detail/${data.id}`)
+                  }
+                >
+                  <ReceiptText className="w-4 h-4 mr-2" />
+                  Detail
+                </DropdownMenuItem>
+
+                {/* Sale */}
+                {data.is_sale.toLowerCase() !== "sale" && (
+                  <DropdownMenuItem
+                    className="text-emerald-700 hover:bg-emerald-50"
+                    onClick={() => {
+                      setBuyerDiscountData(data);
+                      setOpenBuyerDiscount(true);
+                    }}
+                  >
+                    <ShoppingBasket className="w-4 h-4 mr-2" />
+                    Sale
+                  </DropdownMenuItem>
+                )}
+
+                {/* Delete */}
+                <DropdownMenuItem
+                  className="text-red-600 hover:bg-red-50"
+                  disabled={isPendingDelete}
+                  onClick={() => handleDelete(data.id)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
     },
+    // {
+    //   accessorKey: "action",
+    //   header: () => <div className="text-center">Action</div>,
+    //   cell: ({ row }) => (
+    //     <div className="flex gap-4 justify-center items-center">
+    //       <TooltipProviderPage value={<p>Online</p>}>
+    //         {row.original.type?.toLowerCase() === "cargo online" &&
+    //           row.original.is_sale?.toLowerCase() !== "sale" && (
+    //             <Button
+    //               variant="outline"
+    //               className="w-9 h-9 px-0 border-indigo-400 text-indigo-700 hover:bg-indigo-50"
+    //               onClick={() => {
+    //                 setVolumeData(row.original);
+    //                 setOpenVolume(true);
+    //               }}
+    //             >
+    //               <Package className="w-4 h-4" />
+    //             </Button>
+    //           )}
+    //       </TooltipProviderPage>
+    //       <TooltipProviderPage value={<p>Edit</p>}>
+    //         {row.original.status_bulky.toLowerCase() !== "selesai" && (
+    //           <Button
+    //             className="items-center w-9 px-0 flex-none h-9 border-yellow-400 text-yellow-700 hover:text-yellow-700 hover:bg-yellow-50"
+    //             variant={"outline"}
+    //             onClick={() =>
+    //               router.push(`/outbond/cargo/edit/${row.original.id}`)
+    //             }
+    //           >
+    //             <Pencil className="w-4 h-4" />
+    //           </Button>
+    //         )}
+    //       </TooltipProviderPage>
+    //       <TooltipProviderPage value={<p>Detail</p>}>
+    //         <Button
+    //           className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+    //           variant={"outline"}
+    //           // disabled={isLoadingDetail}
+    //           // onClick={(e) => {
+    //           //   e.preventDefault();
+    //           //   setCargoId(row.original.id);
+    //           //   setOpenDetail(true);
+    //           // }}
+    //           onClick={() =>
+    //             router.push(`/outbond/cargo/detail/${row.original.id}`)
+    //           }
+    //         >
+    //           {/* {isLoadingDetail ? (
+    //             <Loader2 className="w-4 h-4 animate-spin" />
+    //           ) : ( */}
+    //           <ReceiptText className="w-4 h-4" />
+    //           {/* // )} */}
+    //         </Button>
+    //       </TooltipProviderPage>
+
+    //       <TooltipProviderPage value={<p>Delete</p>}>
+    //         <Button
+    //           className="items-center w-9 px-0 hidden flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+    //           variant={"outline"}
+    //           disabled={isPendingDelete}
+    //           onClick={(e) => {
+    //             e.preventDefault();
+    //             handleDelete(row.original.id);
+    //           }}
+    //         >
+    //           {isPendingDelete ? (
+    //             <Loader2 className="w-4 h-4 animate-spin" />
+    //           ) : (
+    //             <Trash2 className="w-4 h-4" />
+    //           )}
+    //         </Button>
+    //       </TooltipProviderPage>
+    //       <TooltipProviderPage value={<p>Sale</p>}>
+    //         {row.original.is_sale.toLowerCase() !== "sale" && (
+    //           <Button
+    //             variant="outline"
+    //             className="w-9 h-9 px-0 border-emerald-400 text-emerald-700 hover:bg-emerald-50"
+    //             onClick={() => {
+    //               setBuyerDiscountData(row.original);
+    //               setOpenBuyerDiscount(true);
+    //             }}
+    //           >
+    //             <ShoppingBasket className="w-4 h-4" />
+    //           </Button>
+    //         )}
+    //       </TooltipProviderPage>
+    //     </div>
+    //   ),
+    // },
   ];
   // column data detail
   const columnCargoDetail: ColumnDef<any>[] = [
@@ -605,18 +700,14 @@ export const Client = () => {
             <p>
               Old Price :{" "}
               <span className="font-medium">
-                {formatRupiah(
-                  dataSummary?.cargo_offline?.total_old_price || 0,
-                )}
+                {formatRupiah(dataSummary?.cargo_offline?.total_old_price || 0)}
               </span>
             </p>
 
             <p>
               New Price :{" "}
               <span className="font-semibold text-green-600">
-                {formatRupiah(
-                  dataSummary?.cargo_offline?.total_price || 0,
-                )}
+                {formatRupiah(dataSummary?.cargo_offline?.total_price || 0)}
               </span>
             </p>
 
@@ -639,18 +730,14 @@ export const Client = () => {
             <p>
               Old Price :{" "}
               <span className="font-medium">
-                {formatRupiah(
-                  dataSummary?.cargo_online?.total_old_price || 0,
-                )}
+                {formatRupiah(dataSummary?.cargo_online?.total_old_price || 0)}
               </span>
             </p>
 
             <p>
               New Price :{" "}
               <span className="font-semibold text-green-600">
-                {formatRupiah(
-                  dataSummary?.cargo_online?.total_price || 0,
-                )}
+                {formatRupiah(dataSummary?.cargo_online?.total_price || 0)}
               </span>
             </p>
 
