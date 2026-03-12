@@ -388,10 +388,10 @@ export const Client = () => {
             className={cn(
               "rounded w-20 px-0 justify-center text-black font-normal capitalize",
               row.original.is_sale.toLowerCase() === "sale"
-                ? "bg-pink-400 hover:bg-pink-400"
+                ? "bg-green-400 hover:bg-green-400"
                 : row.original.is_sale.toLowerCase() === "not sale"
                   ? "bg-gray-300 hover:bg-gray-300"
-                  : "bg-blue-400 hover:bg-blue-400",
+                  : "bg-yellow-400 hover:bg-yellow-400",
             )}
           >
             {row.original.is_sale}
