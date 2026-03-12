@@ -637,8 +637,8 @@ import {
   IdCard,
   LibraryBigIcon,
   LineChart,
+  Package,
   PackageSearch,
-  RailSymbol,
   Recycle,
   Shield,
   ShoppingBasket,
@@ -841,19 +841,10 @@ const sidebarMenu = [
         ],
       },
       {
-        title: "Moving Product",
-        href: undefined,
-        icon: <RailSymbol className="w-5 h-5 stroke-[1.5]" />,
-        sub_menu: [
-          {
-            title: "bundle",
-            href: "/inventory/moving-product/bundle",
-          },
-          // {
-          //   title: "repair",
-          //   href: "/inventory/moving-product/repair",
-          // },
-        ],
+        title: "Bundle",
+        href: "/inventory/moving-product/bundle",
+        icon: <Package className="w-5 h-5 stroke-[1.5]" />,
+        sub_menu: [],
       },
       {
         title: "Slow Moving Product",
