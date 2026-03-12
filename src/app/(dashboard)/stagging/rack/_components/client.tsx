@@ -644,7 +644,7 @@ export const Client = () => {
           </TabsList>
         </div>
         <TabsContent value="rack" className="w-full gap-4 flex flex-col">
-          <div className="bg-white shadow rounded-xl p-5 border border-gray-200 flex flex-col gap-4">
+          <div className="bg-white shadow rounded-xl p-5 border border-gray-200 flex-col gap-4 hidden md:flex-row">
             <h3 className="text-lg font-semibold">SO Rack Disini</h3>
             <form onSubmit={handleScanSORack} className="flex flex-col gap-3">
               <div className="flex gap-3 items-end">
@@ -971,7 +971,7 @@ export const Client = () => {
         </TabsContent>
         <TabsContent value="product" className="w-full gap-4 flex flex-col">
           {/* Card: SO Barang Disini */}
-          <div className="bg-white shadow rounded-xl p-5 border border-gray-200 flex flex-col gap-4">
+          <div className="bg-white shadow rounded-xl p-5 border border-gray-200 hidden flex-col gap-4">
             <h3 className="text-lg font-semibold">SO Barang Disini</h3>
             <form
               onSubmit={handleScanSOProduct}

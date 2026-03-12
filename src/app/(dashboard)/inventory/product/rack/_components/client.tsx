@@ -682,24 +682,24 @@ export const Client = () => {
         );
       },
     },
-    {
-      accessorKey: "status_so",
-      header: "Status SO",
-      cell: ({ row }) => {
-        const status = row.original.status_so;
-        return (
-          <Badge
-            className={cn(
-              "shadow-none font-normal rounded-full capitalize text-black",
-              status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
-              status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
-            )}
-          >
-            {status}
-          </Badge>
-        );
-      },
-    },
+    // {
+    //   accessorKey: "status_so",
+    //   header: "Status SO",
+    //   cell: ({ row }) => {
+    //     const status = row.original.status_so;
+    //     return (
+    //       <Badge
+    //         className={cn(
+    //           "shadow-none font-normal rounded-full capitalize text-black",
+    //           status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
+    //           status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
+    //         )}
+    //       >
+    //         {status}
+    //       </Badge>
+    //     );
+    //   },
+    // },
     {
       accessorKey: "action",
       header: () => <div className="text-center">Action</div>,
@@ -1415,7 +1415,7 @@ export const Client = () => {
           </div> */}
 
           <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-10 flex-col">
-            <div className="bg-white shadow rounded-xl p-5 border border-gray-200 flex flex-col gap-4">
+            <div className="bg-white shadow rounded-xl p-5 border border-gray-200 hidden flex-col gap-4">
               <h3 className="text-lg font-semibold">SO Barang Disini</h3>
               <form
                 onSubmit={handleScanSOProduct}

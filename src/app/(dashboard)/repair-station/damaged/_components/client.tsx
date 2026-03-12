@@ -278,7 +278,7 @@ export const Client = () => {
           <BreadcrumbItem>List Product Damaged</BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-4 flex-col">
+      <div className="hidden w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-4 flex-col">
         <h3 className="text-lg font-semibold">SO Barang Disini</h3>
         <form onSubmit={handleScanSOProduct} className="flex flex-col gap-3">
           <div className="flex gap-3 items-end">

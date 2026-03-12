@@ -148,24 +148,24 @@ export const columnProductStaging = ({
       );
     },
   },
-  {
-    accessorKey: "status_so",
-    header: "Status SO",
-    cell: ({ row }) => {
-      const status = row.original.status_so;
-      return (
-        <Badge
-          className={cn(
-            "shadow-none font-normal rounded-full capitalize text-black",
-            status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
-            status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
-          )}
-        >
-          {status}
-        </Badge>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "status_so",
+  //   header: "Status SO",
+  //   cell: ({ row }) => {
+  //     const status = row.original.status_so;
+  //     return (
+  //       <Badge
+  //         className={cn(
+  //           "shadow-none font-normal rounded-full capitalize text-black",
+  //           status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
+  //           status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
+  //         )}
+  //       >
+  //         {status}
+  //       </Badge>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "action",
     header: () => <div className="text-center">Action</div>,
@@ -412,24 +412,24 @@ export const columnRackStaging = ({
       </div>
     ),
   },
-  {
-    accessorKey: "status_so",
-    header: "Status SO",
-    cell: ({ row }) => {
-      const status = row.original.status_so;
-      return (
-        <Badge
-          className={cn(
-            "shadow-none font-normal rounded-full capitalize text-black",
-            status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
-            status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
-          )}
-        >
-          {status}
-        </Badge>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "status_so",
+  //   header: "Status SO",
+  //   cell: ({ row }) => {
+  //     const status = row.original.status_so;
+  //     return (
+  //       <Badge
+  //         className={cn(
+  //           "shadow-none font-normal rounded-full capitalize text-black",
+  //           status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
+  //           status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
+  //         )}
+  //       >
+  //         {status}
+  //       </Badge>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "action",
     header: () => <div className="text-center">Action</div>,
