@@ -22,6 +22,7 @@ const DialogProduct = ({
   setSearch,
   refetch,
   isRefetching,
+  isLoading,  
   columns,
   dataTable,
   page,
@@ -34,6 +35,7 @@ const DialogProduct = ({
   setSearch: any;
   refetch: any;
   isRefetching: any;
+  isLoading: any;
   columns: any;
   dataTable: any;
   page: any;
@@ -88,7 +90,7 @@ const DialogProduct = ({
             <DataTable
               isSticky
               maxHeight="h-[60vh]"
-              isLoading={isRefetching}
+              isLoading={isRefetching || isLoading}
               columns={columns}
               data={dataTable ?? []}
             />

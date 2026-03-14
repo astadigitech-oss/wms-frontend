@@ -99,13 +99,13 @@ export const Client = () => {
   const [SubmitDialog, confirmSubmit] = useConfirm(
     "Create Bundle",
     "This action cannot be undone",
-    "liquid"
+    "liquid",
   );
 
   const [DeleteProductDialog, confirmDeleteProduct] = useConfirm(
     "Remove Product From Filter",
     "This action cannot be undone",
-    "destructive"
+    "destructive",
   );
 
   // confirm end ----------------------------------------------------------------
@@ -131,6 +131,7 @@ export const Client = () => {
     data: dataProduct,
     refetch: refetchProduct,
     isRefetching: isRefetchingProduct,
+    isLoading: isLoadingProduct,
     error: errorProduct,
     isError: isErrorProduct,
     isSuccess: isSuccessProduct,
@@ -190,14 +191,14 @@ export const Client = () => {
 
   // handling action strat ----------------------------------------------------------------
 
-  const handleAddProduct = (id: any) => {
+  const handleAddProduct = (id: any, source: any) => {
     mutateAddProduct(
-      { id },
+      { id, source },
       {
         onSuccess: () => {
           handleCloseProduct();
         },
-      }
+      },
     );
   };
 
@@ -369,7 +370,7 @@ export const Client = () => {
               variant={"outline"}
               onClick={(e) => {
                 e.preventDefault();
-                handleAddProduct(row.original.id);
+                handleAddProduct(row.original.id, row.original.source);
               }}
               type="button"
             >
@@ -418,6 +419,7 @@ export const Client = () => {
         setSearch={setProductSearch}
         refetch={refetchProduct}
         isRefetching={isRefetchingProduct}
+        isLoading={isLoadingProduct}
         columns={columnProduct}
         dataTable={dataListProduct}
         page={pageProduct}
@@ -563,7 +565,7 @@ export const Client = () => {
                                     {item.discount_category +
                                       "% - Max. " +
                                       (formatRupiah(
-                                        Math.round(item.max_price_category)
+                                        Math.round(item.max_price_category),
                                       ) ?? "Rp 0")}
                                   </p>
                                 </div>
@@ -616,7 +618,7 @@ export const Client = () => {
                   <RefreshCw
                     className={cn(
                       "w-4 h-4",
-                      isRefetching ? "animate-spin" : ""
+                      isRefetching ? "animate-spin" : "",
                     )}
                   />
                 </Button>
