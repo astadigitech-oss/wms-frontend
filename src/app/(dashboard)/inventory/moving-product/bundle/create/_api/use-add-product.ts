@@ -7,6 +7,7 @@ import { getCookie } from "cookies-next/client";
 
 type RequestType = {
   id: any;
+  source?: string;
 };
 
 type Error = AxiosError;
@@ -16,15 +17,15 @@ export const useAddProduct = () => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation<AxiosResponse, Error, RequestType>({
-    mutationFn: async ({ id }) => {
+    mutationFn: async ({ id, source }) => {
       const res = await axios.post(
         `${baseUrl}/bundle/filter_product/${id}/add`,
-        {},
+        { source },
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
-        }
+        },
       );
       return res;
     },
