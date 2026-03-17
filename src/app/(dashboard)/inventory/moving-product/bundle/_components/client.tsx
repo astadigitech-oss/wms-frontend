@@ -152,7 +152,7 @@ export const Client = () => {
             className={`rounded text-black font-normal capitalize hover:opacity-90 ${
               status === "sale"
                 ? "bg-green-400/80 hover:bg-green-400/80"
-                : "bg-sky-400/80 hover:bg-sky-400/80"
+                : "bg-gray-200 hover:bg-gray-200"
             }`}
           >
             {row.original.product_status}
