@@ -703,82 +703,58 @@ export const Client = () => {
     {
       accessorKey: "action",
       header: () => <div className="text-center">Action</div>,
-      cell: ({ row }) => (
-        <div className="flex gap-4 justify-center items-center">
-          <TooltipProviderPage value={<p>Detail</p>}>
-            <Button
-              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
-              variant={"outline"}
-              disabled={isLoadingDetailProduct}
-              onClick={(e) => {
-                e.preventDefault();
-                setProductId(row.original.id);
-                setIsOpenDetailProduct(true);
-              }}
-            >
-              {isLoadingDetailProduct ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <ReceiptText className="w-4 h-4" />
-              )}
-            </Button>
-          </TooltipProviderPage>
-          <TooltipProviderPage value={<p>Damaged</p>}>
-            <Button
-              className="items-center w-9 px-0 flex-none h-9 border-orange-400 text-orange-700 hover:text-orange-700 hover:bg-orange-50"
-              variant={"outline"}
-              onClick={(e) => {
-                e.preventDefault();
-                setDamagedProductId(row.original.id);
-                setDamagedBarcode(
-                  row.original.new_barcode_product ??
-                    row.original.old_barcode_product ??
-                    "-",
-                );
-                setSource(row.original.source ?? "");
-                setIsOpenDamaged(true);
-              }}
-            >
-              <Shield className="w-4 h-4" />
-            </Button>
-          </TooltipProviderPage>
-          {/* <TooltipProviderPage value={<p>Delete</p>}>
-            <Button
-              className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
-              variant={"outline"}
-              disabled={isPendingDeleteProduct}
-              onClick={(e) => {
-                e.preventDefault();
-                handleDeleteProduct(row.original.id);
-              }}
-            >
-              {isPendingDeleteProduct ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Trash2 className="w-4 h-4" />
-              )}
-            </Button>
-          </TooltipProviderPage> */}
+      cell: ({ row }) => {
+        const isBundle = row.original.source === "bundle";
 
-          {/* <TooltipProviderPage value={<p>Scrapt</p>}>
-            <Button
-              className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
-              variant={"outline"}
-              disabled={isPendingDryScrap}
-              onClick={(e) => {
-                e.preventDefault();
-                handleDryScrap(row.original.id);
-              }}
-            >
-              {isPendingDryScrap ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Drill className="w-4 h-4" />
-              )}
-            </Button>
-          </TooltipProviderPage> */}
-        </div>
-      ),
+        return (
+          <div className="flex gap-4 justify-center items-center">
+            {/* Detail */}
+            {!isBundle && (
+              <TooltipProviderPage value={<p>Detail</p>}>
+                <Button
+                  className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                  variant={"outline"}
+                  disabled={isLoadingDetailProduct}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setProductId(row.original.id);
+                    setIsOpenDetailProduct(true);
+                  }}
+                >
+                  {isLoadingDetailProduct ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <ReceiptText className="w-4 h-4" />
+                  )}
+                </Button>
+              </TooltipProviderPage>
+            )}
+
+            {/* Damaged */}
+            {!isBundle && (
+              <TooltipProviderPage value={<p>Damaged</p>}>
+                <Button
+                  className="items-center w-9 px-0 flex-none h-9 border-orange-400 text-orange-700 hover:text-orange-700 hover:bg-orange-50"
+                  variant={"outline"}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setDamagedProductId(row.original.id);
+                    setDamagedBarcode(
+                      row.original.new_barcode_product ??
+                        row.original.old_barcode_product ??
+                        "-",
+                    );
+                    setSource(row.original.source ?? "");
+                    setIsOpenDamaged(true);
+                  }}
+                >
+                  <Shield className="w-4 h-4" />
+                </Button>
+              </TooltipProviderPage>
+            )}
+          </div>
+        );
+      },
     },
   ];
 

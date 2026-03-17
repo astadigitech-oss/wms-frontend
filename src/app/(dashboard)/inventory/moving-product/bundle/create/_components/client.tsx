@@ -501,6 +501,15 @@ export const Client = () => {
               </div>
               <div className="w-full flex flex-col gap-1">
                 <Label>{input.color ? "Tag Color" : "Category"}</Label>
+
+                {!input.color && (
+                  <p className="text-xs text-yellow-600">
+                    ⚠ Pastikan semua data product sudah selesai diinput sebelum
+                    memilih kategori, karena kategori akan otomatis menghitung
+                    diskon harga.
+                  </p>
+                )}
+
                 {!input.color && dataListCategories.length === 0 && (
                   <Input
                     className="border-0 shadow-none focus-visible:ring-transparent focus-visible:outline-none rounded-none focus-visible:border-b focus-visible:border-sky-500 hover:underline hover:underline-offset-2 focus-visible:no-underline disabled:opacity-100 disabled:cursor-default"
@@ -508,6 +517,7 @@ export const Client = () => {
                     disabled
                   />
                 )}
+
                 {input.color && (
                   <Input
                     className="border-0 shadow-none focus-visible:ring-transparent focus-visible:outline-none rounded-none focus-visible:border-b focus-visible:border-sky-500 hover:underline hover:underline-offset-2 focus-visible:no-underline disabled:opacity-100 disabled:cursor-default"
@@ -515,6 +525,7 @@ export const Client = () => {
                     disabled
                   />
                 )}
+
                 {!input.color && dataListCategories.length > 0 && (
                   <Popover open={isOpen} onOpenChange={setIsOpen}>
                     <PopoverTrigger asChild>
@@ -525,15 +536,18 @@ export const Client = () => {
                         </div>
                       </Button>
                     </PopoverTrigger>
+
                     <PopoverContent
                       className="p-0"
                       style={{ width: "var(--radix-popover-trigger-width)" }}
                     >
                       <Command>
-                        <CommandInput />
+                        <CommandInput placeholder="Search category..." />
+
                         <CommandList className="p-1">
                           <CommandGroup heading="List Categories">
                             <CommandEmpty>No Data Found.</CommandEmpty>
+
                             {dataListCategories.map((item) => (
                               <CommandItem
                                 key={item.id}
@@ -556,11 +570,14 @@ export const Client = () => {
                                     <Circle className="fill-black size-2.5" />
                                   )}
                                 </div>
+
                                 <div className="w-full flex flex-col gap-1">
                                   <div className="w-full font-medium">
                                     {item.name_category}
                                   </div>
+
                                   <Separator className="bg-gray-500" />
+
                                   <p className="text-xs text-start w-full text-gray-500">
                                     {item.discount_category +
                                       "% - Max. " +

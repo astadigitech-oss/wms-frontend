@@ -48,7 +48,7 @@ export const Client = () => {
   const [UnbundleDialog, confirmUnbundle] = useConfirm(
     "Unbundle Bundle",
     "This action cannot be undone",
-    "destructive"
+    "destructive",
   );
 
   const { mutate: mutateUnbundle, isPending: isPendingUnbundle } =
@@ -144,11 +144,21 @@ export const Client = () => {
     {
       accessorKey: "product_status",
       header: "Status",
-      cell: ({ row }) => (
-        <Badge className="rounded text-black font-normal capitalize bg-sky-400/80 hover:bg-sky-400/80">
-          {row.original.product_status}
-        </Badge>
-      ),
+      cell: ({ row }) => {
+        const status = row.original.product_status?.toLowerCase();
+
+        return (
+          <Badge
+            className={`rounded text-black font-normal capitalize hover:opacity-90 ${
+              status === "sale"
+                ? "bg-green-400/80 hover:bg-green-400/80"
+                : "bg-sky-400/80 hover:bg-sky-400/80"
+            }`}
+          >
+            {row.original.product_status}
+          </Badge>
+        );
+      },
     },
     {
       accessorKey: "action",
