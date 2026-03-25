@@ -663,7 +663,7 @@ const sidebarMenu = [
     menu: [
       {
         title: "Storage Report",
-        href: "/dashboard/storage-report",
+        href: "/dashboard/storage-report-new",
         icon: <LineChart className="w-5 h-5 stroke-[1.5]" />,
         query: "storage-report",
         sub_menu: [],
@@ -682,25 +682,32 @@ const sidebarMenu = [
         query: "analytic-sale",
         sub_menu: [],
       },
-      {
+         {
         title: "Summary Report",
-        href: undefined,
+        href: "/dashboard/summary-report-new",
         icon: <ClipboardMinus className="w-5 h-5 stroke-[1.5]" />,
-        sub_menu: [
-          {
-            title: "Product combined",
-            href: "/dashboard/summary-report/product-combined",
-          },
-          // {
-          //   title: "Product Inbound",
-          //   href: "/dashboard/summary-report/product-inbound",
-          // },
-          // {
-          //   title: "Product Outbound",
-          //   href: "/dashboard/summary-report/product-outbound",
-          // },
-        ],
+        query: "analytic-sale",
+        sub_menu: [],
       },
+      // {
+      //   title: "Summary Report",
+      //   href: undefined,
+      //   icon: <ClipboardMinus className="w-5 h-5 stroke-[1.5]" />,
+      //   sub_menu: [
+      //     {
+      //       title: "Product combined",
+      //       href: "/dashboard/summary-report/product-combined",
+      //     },
+      //     // {
+      //     //   title: "Product Inbound",
+      //     //   href: "/dashboard/summary-report/product-inbound",
+      //     // },
+      //     // {
+      //     //   title: "Product Outbound",
+      //     //   href: "/dashboard/summary-report/product-outbound",
+      //     // },
+      //   ],
+      // },
     ],
   },
   {
