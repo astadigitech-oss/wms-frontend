@@ -776,8 +776,12 @@ export const Client = () => {
                 <Tooltip />
                 <Bar
                   dataKey="value"
-                  fill="#3b82f6"
-                  radius={[6, 6, 0, 0]}
+                  fill="#7dd3fc"
+                  strokeWidth={2}
+                  stroke="#38bdf8"
+                  radius={[4, 4, 4, 4]}
+                  label={{ position: "top", fill: "black" }}
+                  activeBar={{ fill: "#38bdf8" }}
                 />{" "}
               </BarChart>
             </ResponsiveContainer>
