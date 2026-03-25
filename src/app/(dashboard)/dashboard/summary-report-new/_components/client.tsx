@@ -833,24 +833,22 @@ export const Client = () => {
           {/* HEADER */}
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold">Summary Category Bag</h3>
-            <TooltipProviderPage value={<p>Export Data</p>}>
-              <Button
-                onClick={handleExportSummaryCategory}
-                className={cn(
-                  "items-center w-9 px-0 h-9",
-                  "border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50",
-                  "disabled:opacity-100 disabled:pointer-events-auto disabled:cursor-not-allowed",
-                )}
-                variant="outline"
-                disabled={isPendingExportSummaryCategory}
-              >
-                {isPendingExportSummaryCategory ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <FileDown className="w-4 h-4" />
-                )}
-              </Button>
-            </TooltipProviderPage>
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                handleExportSummaryCategory();
+              }}
+              className="items-center flex-none h-9 bg-sky-400/80 hover:bg-sky-400 text-black ml-auto disabled:opacity-100 disabled:hover:bg-sky-400 disabled:pointer-events-auto disabled:cursor-not-allowed"
+              disabled={isPendingExportSummaryCategory}
+              variant={"outline"}
+            >
+              {isPendingExportSummaryCategory ? (
+                <Loader2 className={"w-4 h-4 mr-1 animate-spin"} />
+              ) : (
+                <FileDown className={"w-4 h-4 mr-1"} />
+              )}
+              Export Summary
+            </Button>
           </div>
 
           {/* TABS */}
