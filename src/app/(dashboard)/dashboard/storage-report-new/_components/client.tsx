@@ -43,6 +43,11 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { useExportStorageReport } from "../_api/use-export-storage-report";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface ChartData {
   category_product: string;
@@ -83,14 +88,36 @@ export const columnsStorage: ColumnDef<any>[] = [
 
 export default function Client() {
   const [isMounted, setIsMounted] = useState(false);
+  const today = new Date();
+  const [month, setMonth] = useState<number>(today.getMonth() + 1);
+  const [year, setYear] = useState<number>(today.getFullYear());
+  const months = [
+    { label: "January", value: 1 },
+    { label: "February", value: 2 },
+    { label: "March", value: 3 },
+    { label: "April", value: 4 },
+    { label: "May", value: 5 },
+    { label: "June", value: 6 },
+    { label: "July", value: 7 },
+    { label: "August", value: 8 },
+    { label: "September", value: 9 },
+    { label: "October", value: 10 },
+    { label: "November", value: 11 },
+    { label: "December", value: 12 },
+  ];
+
+  const years = Array.from({ length: 5 }, (_, i) => today.getFullYear() - i);
   const [dataSearch, setDataSearch] = useQueryState("q", { defaultValue: "" });
   const searchValue = useDebounce(dataSearch);
   const [layout, setLayout] = useQueryState("layout", { defaultValue: "list" });
   const { mutate: mutateExport, isPending: isPendingExport } =
     useExportStorageReport();
-  const { data, isLoading, isPending, isRefetching, isError, error } =
-    useGetStorageReport();
-
+  const { data, isLoading, isPending,refetch, isRefetching, isError, error } =
+    useGetStorageReport({
+      month,
+      year,
+    });
+  const [filterType, setFilterType] = useState("all");
   const loading = isLoading || isPending || isRefetching;
 
   const resource = useMemo(() => {
@@ -104,39 +131,121 @@ export default function Client() {
   const chartData = useMemo(() => {
     if (!resource) return [];
 
-    const display = resource.chart.category;
-    const staging = resource.chart_staging.category;
-    const b2b = resource.chart_b2b.category;
-    const dump = resource.chart_dump.category;
-    const scrap = resource.chart_scrap_qcd.category;
+    const display = resource.chart.category || [];
+    const staging = resource.chart_staging.category || [];
+    const b2b = resource.chart_b2b.category || [];
+    const dump = resource.chart_dump.category || [];
+    const scrap = resource.chart_scrap_qcd.category || [];
 
-    const categories = [
-      ...new Set([
-        ...display.map((i: any) => i.category_product),
-        ...staging.map((i: any) => i.category_product),
-        ...b2b.map((i: any) => i.category_product),
-        ...dump.map((i: any) => i.category_product),
-        ...scrap.map((i: any) => i.category_product),
-      ]),
-    ];
+    // ✅ ALL (TETAP SEPERTI KODE KAMU)
+    if (filterType === "all") {
+      const categories = [
+        ...new Set([
+          ...display.map((i: any) => i.category_product),
+          ...staging.map((i: any) => i.category_product),
+          ...b2b.map((i: any) => i.category_product),
+          ...dump.map((i: any) => i.category_product),
+          ...scrap.map((i: any) => i.category_product),
+        ]),
+      ];
 
-    return categories.map((cat) => {
-      const d = display.find((i: any) => i.category_product === cat);
-      const s = staging.find((i: any) => i.category_product === cat);
-      const b = b2b.find((i: any) => i.category_product === cat);
-      const dp = dump.find((i: any) => i.category_product === cat);
-      const sc = scrap.find((i: any) => i.category_product === cat);
+      return categories.map((cat) => {
+        const d = display.find((i: any) => i.category_product === cat);
+        const s = staging.find((i: any) => i.category_product === cat);
+        const b = b2b.find((i: any) => i.category_product === cat);
+        const dp = dump.find((i: any) => i.category_product === cat);
+        const sc = scrap.find((i: any) => i.category_product === cat);
 
-      return {
-        category: cat,
-        display: d?.total_category ?? 0,
-        staging: s?.total_category ?? 0,
-        b2b: b?.total_category ?? 0,
-        dump: dp?.total_category ?? 0,
-        scrap: sc?.total_category ?? 0,
-      };
-    });
-  }, [resource]);
+        return {
+          category: cat,
+          display: d?.total_category ?? 0,
+          staging: s?.total_category ?? 0,
+          b2b: b?.total_category ?? 0,
+          dump: dp?.total_category ?? 0,
+          scrap: sc?.total_category ?? 0,
+        };
+      });
+    }
+
+    // ✅ SINGLE TYPE (WAJIB ADA value)
+    const map: any = {
+      display,
+      staging,
+      b2b,
+      dump,
+      scrap,
+    };
+
+    const selected = map[filterType] || [];
+
+    return selected.map((item: any) => ({
+      category: item.category_product,
+      value: Number(item.total_category || 0), // 🔥 penting
+    }));
+  }, [resource, filterType]);
+
+  // const chartData = useMemo(() => {
+  //   if (!resource) return [];
+  //   console.log({
+  //     display: resource.chart.category,
+  //     staging: resource.chart_staging.category,
+  //     b2b: resource.chart_b2b.category,
+  //     dump: resource.chart_dump.category,
+  //     scrap: resource.chart_scrap_qcd.category,
+  //   });
+
+  //   const display = resource.chart.category;
+  //   const staging = resource.chart_staging.category;
+  //   const b2b = resource.chart_b2b.category;
+  //   const dump = resource.chart_dump.category;
+  //   const scrap = resource.chart_scrap_qcd.category;
+
+  //   // ✅ 1. ALL → PAKAI KODE LAMA PERSIS
+  //   if (filterType === "all") {
+  //     const categories = [
+  //       ...new Set([
+  //         ...display.map((i: any) => i.category_product),
+  //         ...staging.map((i: any) => i.category_product),
+  //         ...b2b.map((i: any) => i.category_product),
+  //         ...dump.map((i: any) => i.category_product),
+  //         ...scrap.map((i: any) => i.category_product),
+  //       ]),
+  //     ];
+
+  //     return categories.map((cat) => {
+  //       const d = display.find((i: any) => i.category_product === cat);
+  //       const s = staging.find((i: any) => i.category_product === cat);
+  //       const b = b2b.find((i: any) => i.category_product === cat);
+  //       const dp = dump.find((i: any) => i.category_product === cat);
+  //       const sc = scrap.find((i: any) => i.category_product === cat);
+
+  //       return {
+  //         category: cat,
+  //         display: d?.total_category ?? 0,
+  //         staging: s?.total_category ?? 0,
+  //         b2b: b?.total_category ?? 0,
+  //         dump: dp?.total_category ?? 0,
+  //         scrap: sc?.total_category ?? 0,
+  //       };
+  //     });
+  //   }
+
+  //   // ✅ 2. SINGLE TYPE → FILTER
+  //   const map: any = {
+  //     display,
+  //     staging,
+  //     b2b,
+  //     dump,
+  //     scrap,
+  //   };
+
+  //   const selected = map[filterType] || [];
+
+  //   return selected.map((item: any) => ({
+  //     category: item.category_product,
+  //     value: item.total_category,
+  //   }));
+  // }, [resource, filterType]);
 
   const donutData = [
     {
@@ -167,6 +276,10 @@ export default function Client() {
     e.preventDefault();
     setDataSearch("");
   };
+
+  useEffect(() => {
+    refetch();
+  }, [month, year]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -327,7 +440,73 @@ export default function Client() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Produk category</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle>Produk category</CardTitle>
+
+            <div className="flex gap-3 items-center">
+              {/* FILTER TYPE */}
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="h-8 border rounded px-2 text-sm"
+              >
+                <option value="all">All Type</option>
+                <option value="display">Display</option>
+                <option value="staging">Staging</option>
+                <option value="b2b">B2B</option>
+                <option value="dump">Dump</option>
+                <option value="scrap">Scrap</option>
+              </select>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 border-sky-400/80"
+                  >
+                    {months.find((m) => m.value === month)?.label} {year}
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent className="p-4 w-56" align="end">
+                  <div className="flex flex-col gap-3">
+                    {/* MONTH */}
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Month</p>
+                      <select
+                        className="w-full border rounded px-2 py-1"
+                        value={month}
+                        onChange={(e) => setMonth(Number(e.target.value))}
+                      >
+                        {months.map((m) => (
+                          <option key={m.value} value={m.value}>
+                            {m.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* YEAR */}
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Year</p>
+                      <select
+                        className="w-full border rounded px-2 py-1"
+                        value={year}
+                        onChange={(e) => setYear(Number(e.target.value))}
+                      >
+                        {years.map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
         </CardHeader>
 
         <CardContent>
@@ -336,7 +515,7 @@ export default function Client() {
               <div className="w-full h-full bg-gray-200 animate-pulse rounded" />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
+                {/* <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="category" />
                   <YAxis />
@@ -372,7 +551,87 @@ export default function Client() {
                     stroke="#6b7280"
                     strokeWidth={3}
                   />
-                </LineChart>
+                </LineChart> */}
+                {/* <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="category" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+
+                  {filterType === "all" ? (
+                    <>
+                      <Line
+                        dataKey="display"
+                        stroke="#16a34a"
+                        strokeWidth={3}
+                      />
+                      <Line dataKey="staging" stroke="#000" strokeWidth={3} />
+                      <Line dataKey="b2b" stroke="#3b82f6" strokeWidth={3} />
+                      <Line dataKey="dump" stroke="#ef4444" strokeWidth={3} />
+                      <Line dataKey="scrap" stroke="#6b7280" strokeWidth={3} />
+                    </>
+                  ) : (
+                    <Line dataKey="value" stroke="#16a34a" strokeWidth={3} />
+                  )}
+                </LineChart> */}
+                <ResponsiveContainer width="100%" height="100%">
+                  {filterType === "all" ? (
+                    // ✅ MULTI LINE (PERSIS PUNYA KAMU)
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="category" />
+                      <YAxis />
+                      <Tooltip />
+
+                      <Line
+                        type="monotone"
+                        dataKey="display"
+                        stroke="#16a34a"
+                        strokeWidth={3}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="staging"
+                        stroke="#000"
+                        strokeWidth={3}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="b2b"
+                        stroke="#3b82f6"
+                        strokeWidth={3}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="dump"
+                        stroke="#ef4444"
+                        strokeWidth={3}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="scrap"
+                        stroke="#6b7280"
+                        strokeWidth={3}
+                      />
+                    </LineChart>
+                  ) : (
+                    // ✅ SINGLE LINE
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="category" />
+                      <YAxis />
+                      <Tooltip />
+
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#16a34a"
+                        strokeWidth={3}
+                      />
+                    </LineChart>
+                  )}
+                </ResponsiveContainer>
               </ResponsiveContainer>
             )}
           </div>
