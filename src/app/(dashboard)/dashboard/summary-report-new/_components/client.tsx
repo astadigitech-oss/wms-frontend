@@ -196,27 +196,39 @@ export const Client = () => {
   const summaryData = dataSummaryCategory?.data?.data?.resource;
 
   const tableCategoryData = useMemo(() => {
-    if (!summaryData) return [];
+  if (!summaryData) return [];
 
-    const dataMap: any = {
-      staging: summaryData.staging,
-      display: summaryData.display,
-      cargo: summaryData.cargo,
-      repair: summaryData.repair,
-      sku: summaryData.sku,
-    };
+  // KHUSUS SKU
+  if (activeTab === "sku") {
+    const skuData = summaryData.sku ?? [];
 
-    const selected = dataMap[activeTab] ?? [];
-
-    return selected.map((item: any, index: number) => ({
+    return skuData.map((item: any, index: number) => ({
       no: index + 1,
-      category: item.category_name ?? "-",
-      qty_bag: item.total_qty_bag ?? 0,
-      qty_product: item.total_qty_product ?? 0,
-      old_price: item.total_old_price ?? 0,
-      new_price: item.total_new_price ?? 0,
+      code_document: item.code_document ?? "-",
+      qty_product: item.qty_product ?? 0,
+      old_price: item.old_price ?? 0,
     }));
-  }, [summaryData, activeTab]);
+  }
+
+  // DEFAULT
+  const dataMap: any = {
+    staging: summaryData.staging,
+    display: summaryData.display,
+    cargo: summaryData.cargo,
+    repair: summaryData.repair,
+  };
+
+  const selected = dataMap[activeTab] ?? [];
+
+  return selected.map((item: any, index: number) => ({
+    no: index + 1,
+    category: item.category_name ?? "-",
+    qty_bag: item.total_qty_bag ?? 0,
+    qty_product: item.total_qty_product ?? 0,
+    old_price: item.total_old_price ?? 0,
+    new_price: item.total_new_price ?? 0,
+  }));
+}, [summaryData, activeTab]);
 
   const columnCategory: ColumnDef<any>[] = useMemo(() => {
     // khusus SKU
@@ -227,8 +239,8 @@ export const Client = () => {
           accessorKey: "no",
         },
         {
-          header: "Code Documents",
-          accessorKey: "code_documents",
+          header: "Code Document",
+          accessorKey: "code_document",
         },
         {
           header: "Qty Product",
