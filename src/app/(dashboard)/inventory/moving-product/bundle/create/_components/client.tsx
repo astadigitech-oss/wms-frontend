@@ -99,13 +99,13 @@ export const Client = () => {
   const [SubmitDialog, confirmSubmit] = useConfirm(
     "Create Bundle",
     "This action cannot be undone",
-    "liquid"
+    "liquid",
   );
 
   const [DeleteProductDialog, confirmDeleteProduct] = useConfirm(
     "Remove Product From Filter",
     "This action cannot be undone",
-    "destructive"
+    "destructive",
   );
 
   // confirm end ----------------------------------------------------------------
@@ -131,6 +131,7 @@ export const Client = () => {
     data: dataProduct,
     refetch: refetchProduct,
     isRefetching: isRefetchingProduct,
+    isLoading: isLoadingProduct,
     error: errorProduct,
     isError: isErrorProduct,
     isSuccess: isSuccessProduct,
@@ -190,14 +191,14 @@ export const Client = () => {
 
   // handling action strat ----------------------------------------------------------------
 
-  const handleAddProduct = (id: any) => {
+  const handleAddProduct = (id: any, source: any) => {
     mutateAddProduct(
-      { id },
+      { id, source },
       {
         onSuccess: () => {
           handleCloseProduct();
         },
-      }
+      },
     );
   };
 
@@ -369,7 +370,7 @@ export const Client = () => {
               variant={"outline"}
               onClick={(e) => {
                 e.preventDefault();
-                handleAddProduct(row.original.id);
+                handleAddProduct(row.original.id, row.original.source);
               }}
               type="button"
             >
@@ -418,6 +419,7 @@ export const Client = () => {
         setSearch={setProductSearch}
         refetch={refetchProduct}
         isRefetching={isRefetchingProduct}
+        isLoading={isLoadingProduct}
         columns={columnProduct}
         dataTable={dataListProduct}
         page={pageProduct}
@@ -499,6 +501,15 @@ export const Client = () => {
               </div>
               <div className="w-full flex flex-col gap-1">
                 <Label>{input.color ? "Tag Color" : "Category"}</Label>
+
+                {!input.color && (
+                  <p className="text-xs text-yellow-600">
+                    ⚠ Pastikan semua data product sudah selesai diinput sebelum
+                    memilih kategori, karena kategori akan otomatis menghitung
+                    diskon harga.
+                  </p>
+                )}
+
                 {!input.color && dataListCategories.length === 0 && (
                   <Input
                     className="border-0 shadow-none focus-visible:ring-transparent focus-visible:outline-none rounded-none focus-visible:border-b focus-visible:border-sky-500 hover:underline hover:underline-offset-2 focus-visible:no-underline disabled:opacity-100 disabled:cursor-default"
@@ -506,6 +517,7 @@ export const Client = () => {
                     disabled
                   />
                 )}
+
                 {input.color && (
                   <Input
                     className="border-0 shadow-none focus-visible:ring-transparent focus-visible:outline-none rounded-none focus-visible:border-b focus-visible:border-sky-500 hover:underline hover:underline-offset-2 focus-visible:no-underline disabled:opacity-100 disabled:cursor-default"
@@ -513,6 +525,7 @@ export const Client = () => {
                     disabled
                   />
                 )}
+
                 {!input.color && dataListCategories.length > 0 && (
                   <Popover open={isOpen} onOpenChange={setIsOpen}>
                     <PopoverTrigger asChild>
@@ -523,15 +536,18 @@ export const Client = () => {
                         </div>
                       </Button>
                     </PopoverTrigger>
+
                     <PopoverContent
                       className="p-0"
                       style={{ width: "var(--radix-popover-trigger-width)" }}
                     >
                       <Command>
-                        <CommandInput />
+                        <CommandInput placeholder="Search category..." />
+
                         <CommandList className="p-1">
                           <CommandGroup heading="List Categories">
                             <CommandEmpty>No Data Found.</CommandEmpty>
+
                             {dataListCategories.map((item) => (
                               <CommandItem
                                 key={item.id}
@@ -554,16 +570,19 @@ export const Client = () => {
                                     <Circle className="fill-black size-2.5" />
                                   )}
                                 </div>
+
                                 <div className="w-full flex flex-col gap-1">
                                   <div className="w-full font-medium">
                                     {item.name_category}
                                   </div>
+
                                   <Separator className="bg-gray-500" />
+
                                   <p className="text-xs text-start w-full text-gray-500">
                                     {item.discount_category +
                                       "% - Max. " +
                                       (formatRupiah(
-                                        Math.round(item.max_price_category)
+                                        Math.round(item.max_price_category),
                                       ) ?? "Rp 0")}
                                   </p>
                                 </div>
@@ -616,7 +635,7 @@ export const Client = () => {
                   <RefreshCw
                     className={cn(
                       "w-4 h-4",
-                      isRefetching ? "animate-spin" : ""
+                      isRefetching ? "animate-spin" : "",
                     )}
                   />
                 </Button>

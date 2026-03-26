@@ -168,9 +168,12 @@ export const columnProductStaging = ({
   {
     accessorKey: "action",
     header: () => <div className="text-center">Action</div>,
-    cell: ({ row }) => (
-      <div className="flex gap-4 justify-center items-center">
-        {/* <ButtonAction
+    cell: ({ row }) => {
+      const isBundle = row.original.source === "bundle";
+
+      return (
+        <div className="flex gap-4 justify-center items-center">
+          {/* <ButtonAction
           icon={PlusCircle}
           isLoading={isLoading}
           type="sky"
@@ -180,35 +183,39 @@ export const columnProductStaging = ({
           }}
           label="Add to Filter"
         /> */}
-        <ButtonAction
-          icon={ReceiptText}
-          isLoading={isLoading}
-          type="yellow"
-          onClick={(e) => {
-            e.preventDefault();
-            setIsOpen("detail");
-            setProductId(row.original.id);
-          }}
-          label="Detail"
-        />
-        <ButtonAction
-          label="Damaged"
-          onClick={(e) => {
-            e.preventDefault();
-            setDamagedProductId(row.original.id);
-            setDamagedBarcode(
-              row.original.new_barcode_product ??
-                row.original.old_barcode_product ??
-                "-",
-            );
-            setSource(row.original.source ?? "");
-            setIsOpenDamaged(true);
-          }}
-          isLoading={isLoading}
-          icon={Shield}
-          type="red"
-        />
-        {/* <Popover>
+          {!isBundle && (
+            <>
+              <ButtonAction
+                icon={ReceiptText}
+                isLoading={isLoading}
+                type="yellow"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsOpen("detail");
+                  setProductId(row.original.id);
+                }}
+                label="Detail"
+              />
+              <ButtonAction
+                label="Damaged"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setDamagedProductId(row.original.id);
+                  setDamagedBarcode(
+                    row.original.new_barcode_product ??
+                      row.original.old_barcode_product ??
+                      "-",
+                  );
+                  setSource(row.original.source ?? "");
+                  setIsOpenDamaged(true);
+                }}
+                isLoading={isLoading}
+                icon={Shield}
+                type="red"
+              />
+            </>
+          )}
+          {/* <Popover>
           <TooltipProviderPage value={<p>Migrate To Repair / Dry Scrap</p>}>
             <PopoverTrigger asChild>
               <Button
@@ -260,8 +267,9 @@ export const columnProductStaging = ({
             </div>
           </PopoverContent>
         </Popover> */}
-      </div>
-    ),
+        </div>
+      );
+    },
   },
 ];
 

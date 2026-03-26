@@ -133,6 +133,7 @@ export const Client = () => {
     data: dataProduct,
     refetch: refetchProduct,
     isRefetching: isRefetchingProduct,
+    isLoading: isLoadingProduct,
     error: errorProduct,
     isError: isErrorProduct,
     isSuccess: isSuccessProduct,
@@ -200,9 +201,11 @@ export const Client = () => {
 
   // handling action strat ----------------------------------------------------------------
 
-  const handleAddProduct = (id: string) => {
+  const handleAddProduct = (productId: any, source: string) => {
     mutateAddProduct(
-      { id, idDetail: bundleId },
+      {
+        productId, idDetail: bundleId, source,
+      },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({
@@ -433,7 +436,7 @@ export const Client = () => {
               variant={"outline"}
               onClick={(e) => {
                 e.preventDefault();
-                handleAddProduct(row.original.id);
+                handleAddProduct(row.original.id, row.original.source);
               }}
               type="button"
             >
@@ -501,6 +504,7 @@ export const Client = () => {
         setSearch={setProductSearch}
         refetch={refetchProduct}
         isRefetching={isRefetchingProduct}
+        isLoading={isLoadingProduct}
         columns={columnProduct}
         dataTable={dataListProduct}
         page={pageProduct}

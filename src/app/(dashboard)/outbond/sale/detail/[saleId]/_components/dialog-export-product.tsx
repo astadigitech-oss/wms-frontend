@@ -42,7 +42,7 @@ const DialogExportProduct = ({
   const [settingOpen, setSettingOpen] = useState(false);
   const [hintOpen, setHintOpen] = useState(false);
   const [pageBreak, setPageBreak] = useState<"none" | "total" | "catat">(
-    "none"
+    "none",
   );
   const [cekOpen, setCekOpen] = useState(false);
   const [catatOpen, setCatatOpen] = useState(false);
@@ -189,7 +189,7 @@ const DialogExportProduct = ({
                       htmlFor={"1"}
                       className={cn(
                         "flex items-center gap-2 px-5 h-9 rounded-md hover:bg-sky-100 font-medium",
-                        pageBreak === "none" && "bg-sky-100 hover:bg-sky-200"
+                        pageBreak === "none" && "bg-sky-100 hover:bg-sky-200",
                       )}
                     >
                       <RadioGroupItem value={"none"} id="1" />
@@ -199,7 +199,7 @@ const DialogExportProduct = ({
                       htmlFor={"2"}
                       className={cn(
                         "flex items-center gap-2 px-5 h-9 rounded-md hover:bg-sky-100 font-medium",
-                        pageBreak === "total" && "bg-sky-100 hover:bg-sky-200"
+                        pageBreak === "total" && "bg-sky-100 hover:bg-sky-200",
                       )}
                     >
                       <RadioGroupItem value={"total"} id="2" />
@@ -209,7 +209,7 @@ const DialogExportProduct = ({
                       htmlFor={"3"}
                       className={cn(
                         "flex items-center gap-2 px-5 h-9 rounded-md hover:bg-sky-100 font-medium",
-                        pageBreak === "catat" && "bg-sky-100 hover:bg-sky-200"
+                        pageBreak === "catat" && "bg-sky-100 hover:bg-sky-200",
                       )}
                     >
                       <RadioGroupItem value={"catat"} id="3" />
@@ -240,7 +240,7 @@ const DialogExportProduct = ({
                 contentRef.current &&
                   contentRef.current.offsetHeight * (scale[0] / 100) >
                     window.innerHeight * 0.7 &&
-                  `overflow-y-scroll`
+                  `overflow-y-scroll`,
               )}
               style={{
                 height: contentRef.current
@@ -350,9 +350,9 @@ const DialogExportProduct = ({
                         <p className="w-full px-3 py-0.5">
                           {format(
                             new Date(
-                              data?.buyer?.created_at ?? new Date().toString()
+                              data?.buyer?.created_at ?? new Date().toString(),
                             ),
-                            "dd/MM/yyyy"
+                            "dd/MM/yyyy",
                           )}
                         </p>
                       </div>
@@ -481,7 +481,7 @@ const DialogExportProduct = ({
                       </p>
                       <p className="w-32 flex-none pr-3 text-end tabular-nums">
                         {formatRupiah(
-                          data?.buyer?.total_display_document_sale
+                          data?.buyer?.total_display_document_sale,
                         ) ?? "Rp 0"}
                       </p>
                     </div>
@@ -502,15 +502,18 @@ const DialogExportProduct = ({
                         -{formatRupiah(data?.buyer?.voucher) ?? "Rp 0"}
                       </p>
                     </div>
-                    <div className="flex">
-                      <p className="px-3">Discount Class</p>
-                      <p className="w-12 flex-none" />
-                      <p className="w-32 flex-none pr-3 text-end tabular-nums">
-                        -{" "}
-                        {formatRupiah(data?.buyer_loyalty?.total_disc_rank) ??
-                          "Rp 0"}
-                      </p>
-                    </div>
+                    {(data?.buyer?.total_display_document_sale ?? 0) >= 5000000 && (
+                      <div className="flex">
+                        <p className="px-3">Discount Class</p>
+                        <p className="w-12 flex-none" />
+                        <p className="w-32 flex-none pr-3 text-end tabular-nums">
+                          -{" "}
+                          {formatRupiah(
+                            data?.buyer_loyalty?.total_disc_rank ?? 0,
+                          )}
+                        </p>
+                      </div>
+                    )}
                     <div className="flex border-t border-black pt-1 mt-1 pl-10 border-dashed">
                       <p className="px-3">DPP</p>
                       <p className="w-12 flex-none" />
@@ -526,11 +529,11 @@ const DialogExportProduct = ({
                       <p
                         className={cn(
                           "w-32 flex-none pr-3 text-end tabular-nums",
-                          !data?.buyer?.is_tax && "line-through decoration-2"
+                          !data?.buyer?.is_tax && "line-through decoration-2",
                         )}
                       >
                         {formatRupiah(
-                          (data?.buyer?.grand_total / 100) * data?.buyer?.tax
+                          (data?.buyer?.grand_total / 100) * data?.buyer?.tax,
                         ) ?? "Rp 0"}
                       </p>
                     </div>
