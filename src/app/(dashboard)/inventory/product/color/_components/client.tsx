@@ -65,7 +65,7 @@ export const Client = () => {
     "dialog",
     parseAsString.withDefault(""),
   );
-  const [barcodeOpen, setBarcodeOpen] = useState(false);
+  // const [barcodeOpen, setBarcodeOpen] = useState(false);
   const [selectedNameRack, setSelectedNameRack] = useState("");
   const [selectedBarcode, setSelectedBarcode] = useState("");
   const [selectedTotalProduct, setSelectedTotalProduct] = useState("");
@@ -73,20 +73,20 @@ export const Client = () => {
   const [input, setInput] = useState<any>({ name: "" });
 
   // dialog to migrate
-    const [ToMigrateDialog, confirmToMigrate] = useConfirm(
-      "To Migrate Rack",
-      "This action cannot be undone",
-      "destructive",
-    )
+  const [ToMigrateDialog, confirmToMigrate] = useConfirm(
+    "To Migrate Rack",
+    "This action cannot be undone",
+    "destructive",
+  );
 
   // type color APK || WMS
   const [isApk] = useQueryState("apk", parseAsBoolean.withDefault(false));
 
-  // dialog edit
-  const [openDialog, setOpenDialog] = useQueryState(
-    "dialog",
-    parseAsBoolean.withDefault(false),
-  );
+  // // dialog edit
+  // const [openDialog, setOpenDialog] = useQueryState(
+  //   "dialog",
+  //   parseAsBoolean.withDefault(false),
+  // );
 
   // color ID Edit
   const [productId, setProductId] = useQueryState("productId", {
@@ -153,7 +153,8 @@ export const Client = () => {
     useDeleteProductColor();
   const { mutate: mutateCreate, isPending: isPendingCreate } = useCreateRack();
   const { mutate: mutateUpdate, isPending: isPendingUpdate } = useUpdateRack();
-  const { mutate: mutateToMigrate, isPending: isPendingToMigrate } = useToMigrate();
+  const { mutate: mutateToMigrate, isPending: isPendingToMigrate } =
+    useToMigrate();
 
   // data WMS
   const {
@@ -370,7 +371,7 @@ export const Client = () => {
     );
   };
 
-   const handleToMigrate = async (id: any) => {
+  const handleToMigrate = async (id: any) => {
     const ok = await confirmToMigrate();
 
     if (!ok) return;
@@ -546,11 +547,10 @@ export const Client = () => {
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isLoadingProduct}
-              onClick={(e) => {
-                e.preventDefault();
-                setProductId(row.original.id);
-                setOpenDialog(true);
-              }}
+            onClick={() => {
+  setProductId(row.original.id);
+  setIsOpen("detail");
+}}
             >
               {isLoadingProduct ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -636,11 +636,10 @@ export const Client = () => {
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isLoadingProduct}
-              onClick={(e) => {
-                e.preventDefault();
-                setProductId(row.original.id);
-                setOpenDialog(true);
-              }}
+             onClick={() => {
+  setProductId(row.original.id);
+  setIsOpen("detail");
+}}
             >
               {isLoadingProduct ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -725,11 +724,10 @@ export const Client = () => {
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isLoadingProduct}
-              onClick={(e) => {
-                e.preventDefault();
-                setProductId(row.original.id);
-                setOpenDialog(true);
-              }}
+             onClick={() => {
+  setProductId(row.original.id);
+  setIsOpen("detail");
+}}
             >
               {isLoadingProduct ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -814,11 +812,10 @@ export const Client = () => {
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isLoadingProduct}
-              onClick={(e) => {
-                e.preventDefault();
-                setProductId(row.original.id);
-                setOpenDialog(true);
-              }}
+            onClick={() => {
+  setProductId(row.original.id);
+  setIsOpen("detail");
+}}
             >
               {isLoadingProduct ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -947,13 +944,12 @@ export const Client = () => {
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isPendingRacksWMS}
-              onClick={(e) => {
-                e.preventDefault();
-                setSelectedBarcode(row.original.barcode);
-                setSelectedNameRack(row.original.name);
-                setSelectedTotalProduct(row.original.total_items);
-                setBarcodeOpen(true);
-              }}
+             onClick={() => {
+  setSelectedBarcode(row.original.barcode);
+  setSelectedNameRack(row.original.name);
+  setSelectedTotalProduct(row.original.total_items);
+  setIsOpen("barcode");
+}}
             >
               {isPendingRacksWMS ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -1040,7 +1036,7 @@ export const Client = () => {
     <div className="flex flex-col items-start bg-gray-100 w-full relative px-4 gap-4 py-4">
       <DeleteDialog />
       <ToMigrateDialog />
-      <DialogDetail
+      {/* <DialogDetail
         open={openDialog}
         onCloseModal={() => {
           if (openDialog) {
@@ -1062,6 +1058,37 @@ export const Client = () => {
         name={selectedNameRack}
         handleCancel={() => {
           setBarcodeOpen(false);
+        }}
+      /> */}
+      <DialogDetail
+        open={isOpen === "detail"}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsOpen("");
+          } else {
+            setIsOpen("detail");
+          }
+        }}
+        data={dataDetail}
+        isLoading={isLoadingProduct}
+      />
+      <DialogBarcode
+        open={isOpen === "barcode"}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsOpen("");
+            setSelectedBarcode("");
+            setSelectedNameRack("");
+            setSelectedTotalProduct("");
+          } else {
+            setIsOpen("barcode");
+          }
+        }}
+        barcode={selectedBarcode}
+        qty={selectedTotalProduct}
+        name={selectedNameRack}
+        handleCancel={() => {
+          setIsOpen("");
         }}
       />
       <DialogCreateEdit

@@ -7,6 +7,7 @@ import {
   RefreshCw,
   ScanBarcode,
   Search,
+  Truck,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { alertError, cn, formatRupiah } from "@/lib/utils";
@@ -46,6 +47,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useToMigrate } from "../_api/use-to-migrate";
 
 const DialogProduct = dynamic(() => import("./dialog-product"), {
   ssr: false,
@@ -84,6 +86,12 @@ export const Client = () => {
     "destructive",
   );
 
+  const [ToMigrateDialog, confirmToMigrate] = useConfirm(
+    "To Migrate Rack",
+    "This action cannot be undone",
+    "destructive",
+  );
+
   // confirm end ----------------------------------------------------------------
 
   // mutate strat ----------------------------------------------------------------
@@ -94,6 +102,7 @@ export const Client = () => {
     useRemoveProduct();
   const { mutate: mutateScanSO, isPending: isPendingScanSO } =
     useScanSOProduct();
+  const { mutate: mutateMigrate, isPending: isPendingMigrate } = useToMigrate();
 
   // mutate end ----------------------------------------------------------------
 
@@ -150,6 +159,13 @@ export const Client = () => {
 
   // handling action strat ----------------------------------------------------------------
 
+  const handleMigrate = async (id: any) => {
+    const ok = await confirmToMigrate();
+
+    if (!ok) return;
+    mutateMigrate({ id });
+  };
+
   const handleAddProduct = (barcode: string) => {
     const body = {
       rack_id: rackId,
@@ -177,10 +193,7 @@ export const Client = () => {
     );
   };
 
-  const handleRemoveProduct = async (
-    rackId: any,
-    productId: any,
-  ) => {
+  const handleRemoveProduct = async (rackId: any, productId: any) => {
     const ok = await confirmDeleteProduct();
 
     if (!ok) return;
@@ -329,10 +342,7 @@ export const Client = () => {
               type="button"
               disabled={isPendingRemoveProduct}
               onClick={() => {
-                handleRemoveProduct(
-                  rackId,
-                  row.original.new_barcode_product,
-                );
+                handleRemoveProduct(rackId, row.original.new_barcode_product);
               }}
             >
               {isPendingRemoveProduct ? (
@@ -428,6 +438,7 @@ export const Client = () => {
   return (
     <div className="flex flex-col items-start bg-gray-100 w-full relative px-4 py-4">
       <DeleteProductDialog />
+      <ToMigrateDialog />
       <DialogProduct
         open={isProduct}
         onCloseModal={() => {
@@ -506,6 +517,19 @@ export const Client = () => {
                     />
                   </Button>
                 </TooltipProviderPage>
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    className="items-center flex-none h-9 bg-sky-400/80 hover:bg-sky-400 text-black ml-auto disabled:opacity-100 disabled:hover:bg-sky-400 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                    onClick={() => {
+                      handleMigrate(rackId);
+                    }}
+                    disabled={isPendingMigrate}
+                  >
+                    <Truck className="size-4" />
+                    To Migrate
+                  </Button>
+                </div>
               </div>
             </div>
             <div className="flex w-full gap-4">

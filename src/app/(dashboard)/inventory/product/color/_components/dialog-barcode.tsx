@@ -11,25 +11,26 @@ import React from "react";
 
 const DialogBarcode = ({
   open,
-  onCloseModal,
+  onOpenChange,
   barcode,
   qty,
   name,
   handleCancel,
 }: {
   open: boolean;
-  onCloseModal: () => void;
+  onOpenChange: (open: boolean) => void;
   barcode: any;
   qty: any;
   name: any;
   handleCancel: () => void;
 }) => {
   return (
-    <Dialog open={open} onOpenChange={onCloseModal}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-fit">
         <DialogHeader>
           <DialogTitle>QR Printered</DialogTitle>
         </DialogHeader>
+
         <OnlyQRPrinted
           qr={barcode ?? ""}
           qty={qty ?? ""}
