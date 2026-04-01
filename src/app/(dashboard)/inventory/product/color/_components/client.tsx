@@ -9,6 +9,7 @@ import {
   Printer,
   ReceiptText,
   RefreshCw,
+  Scan,
   Trash2,
   Truck,
 } from "lucide-react";
@@ -54,6 +55,7 @@ import DialogCreateEdit from "./dialog-create-edit";
 import { useCreateRack } from "../_api/use-create-rack";
 import { useUpdateRack } from "../_api/use-update-rack";
 import { useToMigrate } from "../_api/use-to-migrate";
+import { useExportColorRack } from "../_api/use-export-color-rack";
 
 const DialogDetail = dynamic(() => import("./dialog-detail"), {
   ssr: false,
@@ -155,6 +157,7 @@ export const Client = () => {
   const { mutate: mutateUpdate, isPending: isPendingUpdate } = useUpdateRack();
   const { mutate: mutateToMigrate, isPending: isPendingToMigrate } =
     useToMigrate();
+  const { mutate: mutateExportRack, isPending: isPendingExportRack } = useExportColorRack();
 
   // data WMS
   const {
@@ -378,6 +381,18 @@ export const Client = () => {
     mutateToMigrate({ id });
   };
 
+    const handleExportRack = async () => {
+    mutateExportRack("", {
+      onSuccess: (res) => {
+        const link = document.createElement("a");
+        link.href = res.data.data.resource.download_url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      },
+    });
+  };
+
   // handle close
   const handleClose = () => {
     setIsOpen("");
@@ -547,10 +562,10 @@ export const Client = () => {
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isLoadingProduct}
-            onClick={() => {
-  setProductId(row.original.id);
-  setIsOpen("detail");
-}}
+              onClick={() => {
+                setProductId(row.original.id);
+                setIsOpen("detail");
+              }}
             >
               {isLoadingProduct ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -636,10 +651,10 @@ export const Client = () => {
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isLoadingProduct}
-             onClick={() => {
-  setProductId(row.original.id);
-  setIsOpen("detail");
-}}
+              onClick={() => {
+                setProductId(row.original.id);
+                setIsOpen("detail");
+              }}
             >
               {isLoadingProduct ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -724,10 +739,10 @@ export const Client = () => {
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isLoadingProduct}
-             onClick={() => {
-  setProductId(row.original.id);
-  setIsOpen("detail");
-}}
+              onClick={() => {
+                setProductId(row.original.id);
+                setIsOpen("detail");
+              }}
             >
               {isLoadingProduct ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -812,10 +827,10 @@ export const Client = () => {
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isLoadingProduct}
-            onClick={() => {
-  setProductId(row.original.id);
-  setIsOpen("detail");
-}}
+              onClick={() => {
+                setProductId(row.original.id);
+                setIsOpen("detail");
+              }}
             >
               {isLoadingProduct ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -944,12 +959,12 @@ export const Client = () => {
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isPendingRacksWMS}
-             onClick={() => {
-  setSelectedBarcode(row.original.barcode);
-  setSelectedNameRack(row.original.name);
-  setSelectedTotalProduct(row.original.total_items);
-  setIsOpen("barcode");
-}}
+              onClick={() => {
+                setSelectedBarcode(row.original.barcode);
+                setSelectedNameRack(row.original.name);
+                setSelectedTotalProduct(row.original.total_items);
+                setIsOpen("barcode");
+              }}
             >
               {isPendingRacksWMS ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -1256,21 +1271,21 @@ export const Client = () => {
                             side="left"
                           >
                             <Button
-                              // onClick={(e) => {
-                              //   e.preventDefault();
-                              //   handleExportRack();
-                              // }}
-                              className="hidden items-center w-9 px-0 flex-none h-9 border-sky-400 text-black bg-sky-100 hover:bg-sky-200 disabled:opacity-100 disabled:hover:bg-sky-200 disabled:pointer-events-auto disabled:cursor-not-allowed"
-                              // disabled={isPendingExportRack}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleExportRack();
+                              }}
+                              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black bg-sky-100 hover:bg-sky-200 disabled:opacity-100 disabled:hover:bg-sky-200 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                              disabled={isPendingExportRack}
                               variant={"outline"}
                             >
-                              {/* {isPendingExportRack ? (
+                              {isPendingExportRack ? (
                                 <Loader2
                                   className={cn("w-4 h-4 animate-spin")}
                                 />
-                              ) : ( */}
-                              <FileDown className={cn("w-4 h-4")} />
-                              {/* )} */}
+                              ) : (
+                                <FileDown className={cn("w-4 h-4")} />
+                              )}
                             </Button>
                           </TooltipProviderPage>
                           <Button
@@ -1288,11 +1303,20 @@ export const Client = () => {
                           </Button>
                           <Button
                             asChild
-                            className="bg-sky-400 hover:bg-sky-400/80 text-black hidden"
+                            className="bg-sky-400 hover:bg-sky-400/80 text-black"
                           >
-                            <Link href={`/inventory/product/rack/history`}>
+                            <Link href={`/inventory/product/color/history`}>
                               <HistoryIcon className="w-4 h-4 ml-2" />
                               History Rack
+                            </Link>
+                          </Button>
+                          <Button
+                            asChild
+                            className="bg-sky-400 hover:bg-sky-400/80 text-black"
+                          >
+                            <Link href={`/inventory/product/color/scan`}>
+                              <Scan className="w-4 h-4 ml-2" />
+                              Scan
                             </Link>
                           </Button>
                         </div>
