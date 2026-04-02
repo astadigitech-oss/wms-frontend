@@ -1,12 +1,19 @@
 "use client";
 
 import {
+  FileDown,
+  HistoryIcon,
   Loader2,
+  Pencil,
+  PlusCircle,
+  Printer,
   ReceiptText,
   RefreshCw,
+  Scan,
   Trash2,
+  Truck,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { alertError, cn, formatRupiah, setPaginate } from "@/lib/utils";
 import {
   Breadcrumb,
@@ -16,7 +23,12 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { parseAsBoolean, parseAsInteger, useQueryState } from "nuqs";
+import {
+  parseAsBoolean,
+  parseAsInteger,
+  parseAsString,
+  useQueryState,
+} from "nuqs";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
@@ -29,13 +41,21 @@ import { useConfirm } from "@/hooks/use-confirm";
 import { useGetListProductColorWMS } from "../_api/use-get-list-product-color-wms";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Tabs, TabsContent} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetListProductColorAPK } from "../_api/use-get-list-product-color-apk";
 import { Badge } from "@/components/ui/badge";
 import Pagination from "@/components/pagination";
 import { useDeleteProductColor } from "../_api/use-delete-product-color";
 import { useGetProductColorDetail } from "../_api/use-get-product-color-detail";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useGetListRacks } from "../_api/use-get-list-racks";
+import DialogBarcode from "./dialog-barcode";
+import DialogCreateEdit from "./dialog-create-edit";
+import { useCreateRack } from "../_api/use-create-rack";
+import { useUpdateRack } from "../_api/use-update-rack";
+import { useToMigrate } from "../_api/use-to-migrate";
+import { useExportColorRack } from "../_api/use-export-color-rack";
 
 const DialogDetail = dynamic(() => import("./dialog-detail"), {
   ssr: false,
@@ -43,18 +63,32 @@ const DialogDetail = dynamic(() => import("./dialog-detail"), {
 
 export const Client = () => {
   const queryClient = useQueryClient();
+  const [isOpen, setIsOpen] = useQueryState(
+    "dialog",
+    parseAsString.withDefault(""),
+  );
+  // const [barcodeOpen, setBarcodeOpen] = useState(false);
+  const [selectedNameRack, setSelectedNameRack] = useState("");
+  const [selectedBarcode, setSelectedBarcode] = useState("");
+  const [selectedTotalProduct, setSelectedTotalProduct] = useState("");
+  const [rackId, setRackId] = useState<string | null>(null);
+  const [input, setInput] = useState<any>({ name: "" });
+
+  // dialog to migrate
+  const [ToMigrateDialog, confirmToMigrate] = useConfirm(
+    "To Migrate Rack",
+    "This action cannot be undone",
+    "destructive",
+  );
 
   // type color APK || WMS
-  const [isApk] = useQueryState(
-    "apk",
-    parseAsBoolean.withDefault(false),
-  );
+  const [isApk] = useQueryState("apk", parseAsBoolean.withDefault(false));
 
-  // dialog edit
-  const [openDialog, setOpenDialog] = useQueryState(
-    "dialog",
-    parseAsBoolean.withDefault(false),
-  );
+  // // dialog edit
+  // const [openDialog, setOpenDialog] = useQueryState(
+  //   "dialog",
+  //   parseAsBoolean.withDefault(false),
+  // );
 
   // color ID Edit
   const [productId, setProductId] = useQueryState("productId", {
@@ -71,6 +105,22 @@ export const Client = () => {
     parseAsInteger.withDefault(1),
   );
   const [metaPageWMS, setMetaPageWMS] = useState({
+    last: 1, //page terakhir
+    from: 1, //data dimulai dari (untuk memulai penomoran tabel)
+    total: 1, //total data
+    perPage: 1,
+  });
+
+  const [dataSearchRackWMS, setDataSearchRackWMS] = useQueryState("q", {
+    defaultValue: "",
+  });
+  const searchValueRackWMS = useDebounce(dataSearchRackWMS);
+
+  const [pageRackWms, setPageRackWms] = useQueryState(
+    "p",
+    parseAsInteger.withDefault(1),
+  );
+  const [metaPageRackWms, setMetaPageRackWms] = useState({
     last: 1, //page terakhir
     from: 1, //data dimulai dari (untuk memulai penomoran tabel)
     total: 1, //total data
@@ -103,6 +153,11 @@ export const Client = () => {
   // mutate DELETE, UPDATE, CREATE
   const { mutate: mutateDelete, isPending: isPendingDelete } =
     useDeleteProductColor();
+  const { mutate: mutateCreate, isPending: isPendingCreate } = useCreateRack();
+  const { mutate: mutateUpdate, isPending: isPendingUpdate } = useUpdateRack();
+  const { mutate: mutateToMigrate, isPending: isPendingToMigrate } =
+    useToMigrate();
+  const { mutate: mutateExportRack, isPending: isPendingExportRack } = useExportColorRack();
 
   // data WMS
   const {
@@ -127,6 +182,18 @@ export const Client = () => {
     error: errorAPK,
     isError: isErrorAPK,
   } = useGetListProductColorAPK({ p: pageAPK, q: searchValueAPK });
+
+  // data WMS
+  const {
+    data: dataRacksWMS,
+    refetch: refetchRacksWMS,
+    isLoading: isLoadingRacksWMS,
+    isRefetching: isRefetchingRacksWMS,
+    isSuccess: isSuccessRacksWMS,
+    isPending: isPendingRacksWMS,
+    error: errorRacksWMS,
+    isError: isErrorRacksWMS,
+  } = useGetListRacks({ p: pageRackWms, q: searchValueRackWMS });
 
   // data detail
   const {
@@ -185,6 +252,13 @@ export const Client = () => {
     return dataAPK?.data.data.resource.data_sku;
   }, [dataAPK]);
 
+  // data memo Racks WMS
+  const dataListRacksWMS: any[] = useMemo(() => {
+    return dataRacksWMS?.data.data.resource.racks.data;
+  }, [dataRacksWMS]);
+
+  console.log("dataListRacksWMS:", dataListRacksWMS);
+
   // loading WMS APK
   const loadingWMS = isLoadingWMS || isRefetchingWMS || isPendingWMS;
   const loadingAPK = isLoadingAPK || isRefetchingAPK || isPendingAPK;
@@ -209,6 +283,16 @@ export const Client = () => {
       setMetaPage: setMetaPageAPK,
     });
   }, [dataAPK]);
+
+  useEffect(() => {
+    setPaginate({
+      isSuccess: isSuccessRacksWMS,
+      data: dataRacksWMS,
+      dataPaginate: dataRacksWMS?.data.data.resource.racks,
+      setPage: setPageRackWms,
+      setMetaPage: setMetaPageRackWms,
+    });
+  }, [dataRacksWMS]);
 
   useEffect(() => {
     alertError({
@@ -238,6 +322,16 @@ export const Client = () => {
       method: "GET",
     });
   }, [isErrorProduct, errorProduct]);
+
+  useEffect(() => {
+    alertError({
+      isError: isErrorRacksWMS,
+      error: errorRacksWMS as AxiosError,
+      data: "Data Racks WMS",
+      action: "get data",
+      method: "GET",
+    });
+  }, [isErrorRacksWMS, errorRacksWMS]);
 
   // handle delete color
   const handleDelete = async (id: any) => {
@@ -275,6 +369,66 @@ export const Client = () => {
               err,
             );
           }
+        },
+      },
+    );
+  };
+
+  const handleToMigrate = async (id: any) => {
+    const ok = await confirmToMigrate();
+
+    if (!ok) return;
+    mutateToMigrate({ id });
+  };
+
+    const handleExportRack = async () => {
+    mutateExportRack("", {
+      onSuccess: (res) => {
+        const link = document.createElement("a");
+        link.href = res.data.data.resource.download_url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      },
+    });
+  };
+
+  // handle close
+  const handleClose = () => {
+    setIsOpen("");
+    setInput((prev: any) => ({
+      ...prev,
+      name: "",
+    }));
+  };
+
+  // handle create
+  const handleCreate = (e: FormEvent) => {
+    e.preventDefault();
+    const body = {
+      name: input.name,
+    };
+    mutateCreate(
+      { body },
+      {
+        onSuccess: () => {
+          handleClose();
+        },
+      },
+    );
+  };
+
+  // handle update
+  const handleUpdate = (e: FormEvent) => {
+    e.preventDefault();
+    const body = {
+      name: input.name,
+    };
+    mutateUpdate(
+      { id: rackId as string, body },
+      {
+        onSuccess: () => {
+          handleClose();
         },
       },
     );
@@ -408,10 +562,9 @@ export const Client = () => {
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isLoadingProduct}
-              onClick={(e) => {
-                e.preventDefault();
+              onClick={() => {
                 setProductId(row.original.id);
-                setOpenDialog(true);
+                setIsOpen("detail");
               }}
             >
               {isLoadingProduct ? (
@@ -498,10 +651,9 @@ export const Client = () => {
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isLoadingProduct}
-              onClick={(e) => {
-                e.preventDefault();
+              onClick={() => {
                 setProductId(row.original.id);
-                setOpenDialog(true);
+                setIsOpen("detail");
               }}
             >
               {isLoadingProduct ? (
@@ -587,10 +739,9 @@ export const Client = () => {
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isLoadingProduct}
-              onClick={(e) => {
-                e.preventDefault();
+              onClick={() => {
                 setProductId(row.original.id);
-                setOpenDialog(true);
+                setIsOpen("detail");
               }}
             >
               {isLoadingProduct ? (
@@ -676,10 +827,9 @@ export const Client = () => {
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
               disabled={isLoadingProduct}
-              onClick={(e) => {
-                e.preventDefault();
+              onClick={() => {
                 setProductId(row.original.id);
-                setOpenDialog(true);
+                setIsOpen("detail");
               }}
             >
               {isLoadingProduct ? (
@@ -710,6 +860,171 @@ export const Client = () => {
       ),
     },
   ];
+  const columnRackColor = ({ metaPage }: any): ColumnDef<any>[] => [
+    {
+      header: () => <div className="text-center">No</div>,
+      id: "id",
+      cell: ({ row }) => (
+        <div className="text-center tabular-nums">
+          {(metaPage.from + row.index).toLocaleString()}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "new_barcode_product||old_barcode_product",
+      header: "Barcode",
+      cell: ({ row }) => row.original.barcode ?? "-",
+    },
+    {
+      accessorKey: "name",
+      header: "Name Rack ",
+      cell: ({ row }) => (
+        <div className="max-w-[400px] break-all">{row.original.name}</div>
+      ),
+    },
+    {
+      accessorKey: "total_items",
+      header: "Total Data",
+      cell: ({ row }) => row.original.total_items ?? "-",
+    },
+    {
+      accessorKey: "total_old_price",
+      header: "Old Price",
+      cell: ({ row }) => (
+        <div className="tabular-nums">
+          {formatRupiah(row.original.total_old_price ?? 0)}
+        </div>
+      ),
+    },
+    // {
+    //   accessorKey: "status_so",
+    //   header: "Status SO",
+    //   cell: ({ row }) => {
+    //     const status = row.original.status_so;
+    //     return (
+    //       <Badge
+    //         className={cn(
+    //           "shadow-none font-normal rounded-full capitalize text-black",
+    //           status === "Sudah SO" && "bg-green-400/80 hover:bg-green-400/80",
+    //           status === "Belum SO" && "bg-red-400/80 hover:bg-red-400/80",
+    //         )}
+    //       >
+    //         {status}
+    //       </Badge>
+    //     );
+    //   },
+    // },
+    {
+      accessorKey: "action",
+      header: () => <div className="text-center">Action</div>,
+      cell: ({ row }) => (
+        <div className="flex gap-4 justify-center items-center">
+          <TooltipProviderPage value={<p>Detail</p>}>
+            <Button
+              asChild
+              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+              variant={"outline"}
+            >
+              <Link
+                href={`/inventory/product/color/details/${row.original.id}`}
+              >
+                <ReceiptText className="w-4 h-4" />
+              </Link>
+            </Button>
+          </TooltipProviderPage>
+          <TooltipProviderPage value={<p>Edit</p>}>
+            <Button
+              className="items-center w-9 px-0 flex-none h-9 border-yellow-400 text-yellow-700 hover:text-yellow-700 hover:bg-yellow-50"
+              variant={"outline"}
+              onClick={(e) => {
+                e.preventDefault();
+
+                // set id rack yang mau di edit
+                setRackId(row.original.id);
+
+                // karena sekarang hanya pakai name
+                setInput({
+                  name: row.original.name ?? "",
+                });
+
+                // buka dialog
+                setIsOpen("create-edit");
+              }}
+            >
+              <Pencil className="w-4 h-4" />
+            </Button>
+          </TooltipProviderPage>
+          <TooltipProviderPage value={<p>Print</p>}>
+            <Button
+              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+              variant={"outline"}
+              disabled={isPendingRacksWMS}
+              onClick={() => {
+                setSelectedBarcode(row.original.barcode);
+                setSelectedNameRack(row.original.name);
+                setSelectedTotalProduct(row.original.total_items);
+                setIsOpen("barcode");
+              }}
+            >
+              {isPendingRacksWMS ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Printer className="w-4 h-4" />
+              )}
+            </Button>
+          </TooltipProviderPage>
+          <TooltipProviderPage value={<p>To Migrate</p>}>
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                handleToMigrate(row.original.id);
+              }}
+              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+              variant={"outline"}
+              asChild
+              disabled={isPendingToMigrate}
+            >
+              <Truck className="w-4 h-4" />
+            </Button>
+          </TooltipProviderPage>
+          {/* <TooltipProviderPage value={<p>Delete</p>}>
+            <Button
+              className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+              variant={"outline"}
+              disabled={isPendingDelete}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete(row.original.id);
+              }}
+            >
+              {isPendingDelete ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+            </Button>
+          </TooltipProviderPage> */}
+          {/* <TooltipProviderPage value={<p>Stock Opname</p>}>
+            <Button
+              className="hidden items-center w-9 px-0 flex-none h-9 border-yellow-400 text-yellow-700 hover:text-yellow-700 hover:bg-yellow-50 disabled:opacity-100 disabled:hover:bg-yellow-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+              variant={"outline"}
+              disabled={isPendingStockOpname}
+              onClick={(e) => {
+                e.preventDefault();
+                handleStockOpname(row.original.id);
+              }}
+            >
+              {isPendingStockOpname ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <BookMarked className="w-4 h-4" />
+              )}
+            </Button>
+          </TooltipProviderPage> */}
+        </div>
+      ),
+    },
+  ];
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -735,7 +1050,8 @@ export const Client = () => {
   return (
     <div className="flex flex-col items-start bg-gray-100 w-full relative px-4 gap-4 py-4">
       <DeleteDialog />
-      <DialogDetail
+      <ToMigrateDialog />
+      {/* <DialogDetail
         open={openDialog}
         onCloseModal={() => {
           if (openDialog) {
@@ -744,6 +1060,68 @@ export const Client = () => {
         }}
         data={dataDetail}
         isLoading={isLoadingProduct}
+      />
+      <DialogBarcode
+        onCloseModal={() => {
+          if (barcodeOpen) {
+            setBarcodeOpen(false);
+          }
+        }}
+        open={barcodeOpen}
+        barcode={selectedBarcode}
+        qty={selectedTotalProduct}
+        name={selectedNameRack}
+        handleCancel={() => {
+          setBarcodeOpen(false);
+        }}
+      /> */}
+      <DialogDetail
+        open={isOpen === "detail"}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsOpen("");
+          } else {
+            setIsOpen("detail");
+          }
+        }}
+        data={dataDetail}
+        isLoading={isLoadingProduct}
+      />
+      <DialogBarcode
+        open={isOpen === "barcode"}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsOpen("");
+            setSelectedBarcode("");
+            setSelectedNameRack("");
+            setSelectedTotalProduct("");
+          } else {
+            setIsOpen("barcode");
+          }
+        }}
+        barcode={selectedBarcode}
+        qty={selectedTotalProduct}
+        name={selectedNameRack}
+        handleCancel={() => {
+          setIsOpen("");
+        }}
+      />
+      <DialogCreateEdit
+        open={isOpen === "create-edit"}
+        onOpenChange={() => {
+          if (isOpen === "create-edit") {
+            setIsOpen("");
+            setRackId(null);
+            setInput({ name: "" });
+          }
+        }}
+        rackId={rackId}
+        input={input}
+        setInput={setInput}
+        handleCreate={handleCreate}
+        handleUpdate={handleUpdate}
+        isPendingCreate={isPendingCreate}
+        isPendingUpdate={isPendingUpdate}
       />
       <Tabs defaultValue={isApk ? "apk" : "wms"} className="w-full">
         <TabsContent value="wms">
@@ -839,50 +1217,176 @@ export const Client = () => {
                 />
               </div>
             </div>
-            <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-10 flex-col">
-              <h2 className="text-xl font-bold">List Product Colors WMS</h2>
-              <div className="flex flex-col w-full gap-4">
-                <div className="flex gap-2 items-center w-full justify-between">
-                  <div className="flex items-center gap-3 w-full">
-                    <Input
-                      className="w-2/5 border-sky-400/80 focus-visible:ring-sky-400"
-                      value={dataSearchWMS}
-                      onChange={(e) => setDataSearchWMS(e.target.value)}
-                      placeholder="Search..."
-                      autoFocus
-                    />
-                    <TooltipProviderPage value={"Reload Data"}>
-                      <Button
-                        onClick={() => refetchWMS()}
-                        className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
-                        variant={"outline"}
-                      >
-                        <RefreshCw
-                          className={cn(
-                            "w-4 h-4",
-                            loadingWMS ? "animate-spin" : "",
-                          )}
+            <Tabs className="w-full mt-14" defaultValue="rack">
+              <div className="relative w-full flex justify-center">
+                <TabsList className="absolute -top-12 p-1 h-auto border-2 border-white shadow bg-gray-200">
+                  <TabsTrigger
+                    className="px-5 py-2 data-[state=active]:text-black text-gray-700"
+                    value="rack"
+                  >
+                    List Rak
+                  </TabsTrigger>
+                  <TabsTrigger
+                    className="px-5 py-2 data-[state=active]:text-black text-gray-700"
+                    value="product"
+                  >
+                    List Product
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              <TabsContent value="rack" className="w-full gap-4 flex flex-col">
+                <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-10 flex-col">
+                  <h2 className="text-xl font-bold">List Rak Colors WMS</h2>
+                  <div className="flex flex-col w-full gap-4">
+                    <div className="w-full flex flex-col gap-4">
+                      <div className="flex items-center gap-3 w-full">
+                        <Input
+                          className="w-2/5 border-sky-400/80 focus-visible:ring-sky-400"
+                          value={searchValueRackWMS}
+                          onChange={(e) => {
+                            setDataSearchRackWMS(e.target.value);
+                          }}
+                          placeholder="Search..."
+                          autoFocus
                         />
-                      </Button>
-                    </TooltipProviderPage>
+                        <TooltipProviderPage value={"Reload Data"}>
+                          <Button
+                            onClick={() => refetchRacksWMS()}
+                            className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
+                            variant={"outline"}
+                          >
+                            <RefreshCw
+                              className={cn(
+                                "w-4 h-4",
+                                isLoadingRacksWMS || isRefetchingRacksWMS
+                                  ? "animate-spin"
+                                  : "",
+                              )}
+                            />
+                          </Button>
+                        </TooltipProviderPage>
+                        <div className="flex gap-4 items-center ml-auto">
+                          <TooltipProviderPage
+                            value={"Export Rack"}
+                            side="left"
+                          >
+                            <Button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleExportRack();
+                              }}
+                              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black bg-sky-100 hover:bg-sky-200 disabled:opacity-100 disabled:hover:bg-sky-200 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                              disabled={isPendingExportRack}
+                              variant={"outline"}
+                            >
+                              {isPendingExportRack ? (
+                                <Loader2
+                                  className={cn("w-4 h-4 animate-spin")}
+                                />
+                              ) : (
+                                <FileDown className={cn("w-4 h-4")} />
+                              )}
+                            </Button>
+                          </TooltipProviderPage>
+                          <Button
+                            onClick={() => setIsOpen("create-edit")}
+                            className="items-center flex-none h-9 bg-sky-400/80 hover:bg-sky-400 text-black disabled:opacity-100 disabled:hover:bg-sky-400 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                            variant={"outline"}
+                            disabled={
+                              isPendingRacksWMS ||
+                              isRefetchingRacksWMS ||
+                              isPendingCreate
+                            }
+                          >
+                            <PlusCircle className={"w-4 h-4 mr-1"} />
+                            Add Rack
+                          </Button>
+                          <Button
+                            asChild
+                            className="bg-sky-400 hover:bg-sky-400/80 text-black"
+                          >
+                            <Link href={`/inventory/product/color/history`}>
+                              <HistoryIcon className="w-4 h-4 ml-2" />
+                              History Rack
+                            </Link>
+                          </Button>
+                          <Button
+                            asChild
+                            className="bg-sky-400 hover:bg-sky-400/80 text-black"
+                          >
+                            <Link href={`/inventory/product/color/scan`}>
+                              <Scan className="w-4 h-4 ml-2" />
+                              Scan
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <DataTable
+                      columns={columnRackColor({
+                        metaPage: metaPageRackWms,
+                        setPage: setPageRackWms,
+                      })}
+                      data={dataListRacksWMS ?? []}
+                      isLoading={loadingWMS}
+                    />
+                    <Pagination
+                      pagination={{ ...metaPageWMS, current: pageWMS }}
+                      setPagination={setPageWMS}
+                    />
                   </div>
                 </div>
-                <DataTable
-                  columns={columnListProductColorWMS}
-                  data={dataListWMS ?? []}
-                  isLoading={loadingWMS}
-                />
-                <DataTable
-                  columns={columnListProductSkuWMS}
-                  data={dataListSkuWMS ?? []}
-                  isLoading={loadingWMS}
-                />
-                <Pagination
-                  pagination={{ ...metaPageWMS, current: pageWMS }}
-                  setPagination={setPageWMS}
-                />
-              </div>
-            </div>
+              </TabsContent>
+              <TabsContent
+                value="product"
+                className="w-full gap-4 flex flex-col"
+              >
+                <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-10 flex-col">
+                  <h2 className="text-xl font-bold">List Product Colors WMS</h2>
+                  <div className="flex flex-col w-full gap-4">
+                    <div className="flex gap-2 items-center w-full justify-between">
+                      <div className="flex items-center gap-3 w-full">
+                        <Input
+                          className="w-2/5 border-sky-400/80 focus-visible:ring-sky-400"
+                          value={dataSearchWMS}
+                          onChange={(e) => setDataSearchWMS(e.target.value)}
+                          placeholder="Search..."
+                          autoFocus
+                        />
+                        <TooltipProviderPage value={"Reload Data"}>
+                          <Button
+                            onClick={() => refetchWMS()}
+                            className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
+                            variant={"outline"}
+                          >
+                            <RefreshCw
+                              className={cn(
+                                "w-4 h-4",
+                                loadingWMS ? "animate-spin" : "",
+                              )}
+                            />
+                          </Button>
+                        </TooltipProviderPage>
+                      </div>
+                    </div>
+                    <DataTable
+                      columns={columnListProductColorWMS}
+                      data={dataListWMS ?? []}
+                      isLoading={loadingWMS}
+                    />
+                    <DataTable
+                      columns={columnListProductSkuWMS}
+                      data={dataListSkuWMS ?? []}
+                      isLoading={loadingWMS}
+                    />
+                    <Pagination
+                      pagination={{ ...metaPageWMS, current: pageWMS }}
+                      setPagination={setPageWMS}
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
         </TabsContent>
         <TabsContent value="apk">
