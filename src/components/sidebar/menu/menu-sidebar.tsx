@@ -108,7 +108,7 @@
 //         sub_menu: [
 //           {
 //             title: "Product combined",
-//             href: "/dashboard/summary-report/product-combined",
+//             href: "/dashboard/summary-report-new",
 //             roles: [
 //               "ADMIN",
 //               "SPV",
@@ -696,7 +696,7 @@ const sidebarMenu = [
       //   sub_menu: [
       //     {
       //       title: "Product combined",
-      //       href: "/dashboard/summary-report/product-combined",
+      //       href: "/dashboard/summary-report-new",
       //     },
       //     // {
       //     //   title: "Product Inbound",
