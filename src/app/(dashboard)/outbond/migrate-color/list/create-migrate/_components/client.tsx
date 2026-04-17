@@ -164,11 +164,11 @@ export const Client = () => {
             <BreadcrumbLink href="/">Home</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbItem>Inventory</BreadcrumbItem>
+          <BreadcrumbItem>Outbound</BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink href="/inventory/slow-moving-product/bkl">
-              BKL
+              Migrate Color
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -185,7 +185,7 @@ export const Client = () => {
                 <ArrowLeft className="w-5 h-5 text-black" />
               </Button>
             </Link>
-            <h1 className="text-2xl font-semibold">Create BKL</h1>
+            <h1 className="text-2xl font-semibold">Create Migrate Color</h1>
           </div>
 
           {/* Form Inputs */}
