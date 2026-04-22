@@ -95,8 +95,11 @@ export const Client = () => {
     return data?.data.data.resource.data;
   }, [data]);
 
+  console.log("dataList", dataList);
+
   const dataListDestination: any[] = useMemo(() => {
-    return dataSelect?.data.data.resource.destinations;
+    const destinations = dataSelect?.data?.data?.resource?.destinations;
+    return destinations ?? [];
   }, [dataSelect]);
 
   const dataListColor: any[] = useMemo(() => {
@@ -192,7 +195,7 @@ export const Client = () => {
       header: () => <div className="text-center">Total</div>,
       cell: ({ row }) => (
         <div className="text-center">
-          {row.original.product_total.toLocaleString()}
+          {(row.original.product_total ?? 0).toLocaleString()}
         </div>
       ),
     },
@@ -478,12 +481,12 @@ export const Client = () => {
                           <div className="flex flex-col">
                             <p className="font-semibold">{item.name}</p>
                             <p className="text-xs text-muted-foreground">
-                              {item.qty.toLocaleString()} Products
+                              {(item.qty ?? 0).toLocaleString()} Products
                             </p>
                           </div>
 
                           <p className="text-sm font-bold">
-                            Rp {item.fixed_price.toLocaleString("id-ID")}
+                            Rp {(item.fixed_price ?? 0).toLocaleString("id-ID")}
                           </p>
                         </div>
                       </CommandItem>
