@@ -95,8 +95,6 @@ export const Client = () => {
     return data?.data.data.resource.data;
   }, [data]);
 
-  console.log("dataList", dataList);
-
   const dataListDestination: any[] = useMemo(() => {
     const destinations = dataSelect?.data?.data?.resource?.destinations;
     return destinations ?? [];

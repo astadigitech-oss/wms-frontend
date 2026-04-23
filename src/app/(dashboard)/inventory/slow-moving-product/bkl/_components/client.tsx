@@ -2,7 +2,7 @@
 
 import { Edit2, PlusCircle, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { alertError, cn, setPaginate } from "@/lib/utils";
+import { alertError, cn, formatRupiah, setPaginate } from "@/lib/utils";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -25,8 +25,11 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { useGetListBKL } from "../_api/use-get-list-bkl";
+import { useCreateBKL } from "../_api/use-create-bkl";
+import { useRouter } from "next/navigation";
 
 export const Client = () => {
+  const router = useRouter();
   // data search, page
   const [dataSearch, setDataSearch] = useQueryState("q", { defaultValue: "" });
   const searchValue = useDebounce(dataSearch);
@@ -50,20 +53,50 @@ export const Client = () => {
     isSuccess,
   } = useGetListBKL({ p: page, q: searchValue });
 
+  // create bkl
+  const {
+    mutate: createBKL,
+    isPending: isCreating,
+    // isSuccess: isCreateSuccess,
+  } = useCreateBKL();
+
   // memo data utama
   const dataList: any[] = useMemo(() => {
-    return data?.data.data.resource.data;
+    return data?.data.data.resource.documents?.data;
+  }, [data]);
+
+  const dataDetail = useMemo(() => {
+    return data?.data.data.resource?.summary;
   }, [data]);
 
   // load data
   const loading = isLoading || isRefetching || isPending;
+
+  const handleCreate = () => {
+    createBKL(
+      {},
+      {
+        onSuccess: (res: any) => {
+          const id = res?.data?.data?.resource?.id;
+          if (id) {
+            router.push(`/inventory/slow-moving-product/bkl/create-bkl/${id}`);
+          } else {
+            console.error("ID tidak ditemukan di response:", res);
+          }
+        },
+        onError: (err) => {
+          console.error("Create BKL gagal:", err);
+        },
+      },
+    );
+  };
 
   // get pagetination
   useEffect(() => {
     setPaginate({
       isSuccess,
       data,
-      dataPaginate: data?.data.data.resource,
+      dataPaginate: data?.data.data.resource?.documents,
       setPage,
       setMetaPage,
     });
@@ -93,6 +126,21 @@ export const Client = () => {
     {
       accessorKey: "code_document_bkl",
       header: "Code Document",
+    },
+    {
+      accessorKey: "destination_name",
+      header: "Destination",
+    },
+   {
+      accessorKey: "total_display_qty",
+      header: "Qty",
+    },
+    {
+      accessorKey: "total_display_price",
+      header: "Price",
+      cell: ({ row }) => (
+        <div>{formatRupiah(row.original.total_display_price)}</div>
+      ),
     },
     {
       accessorKey: "status",
@@ -132,7 +180,7 @@ export const Client = () => {
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : ( */}
               <Link
-                href={`/inventory/slow-moving-product/bkl/detail/${row.original.id}`}
+                href={`/inventory/slow-moving-product/bkl/create-bkl/${row.original.id}`}
               >
                 <Edit2 className="w-4 h-4" />
               </Link>
@@ -180,13 +228,13 @@ export const Client = () => {
         <Card className="border-slate-200">
           <CardContent>
             <CardTitle className="pt-4">Total Qty</CardTitle>
-            <p className="mt-4 text-3xl font-bold">1,234</p>
+            <p className="mt-4 text-3xl font-bold">{dataDetail?.grand_total_qty || 0}</p>
           </CardContent>
         </Card>
         <Card className="border-slate-200">
           <CardContent>
             <CardTitle className="pt-4">Total Price</CardTitle>
-            <p className="mt-4 text-3xl font-bold">Rp 125.000.000</p>
+            <p className="mt-4 text-3xl font-bold">{formatRupiah(dataDetail?.grand_total_price) || "Rp 0"}</p>
           </CardContent>
         </Card>
       </div>
@@ -214,11 +262,13 @@ export const Client = () => {
                 </Button>
               </TooltipProviderPage>
             </div>
-            <Button variant={"liquid"} asChild>
-              <Link href="/inventory/slow-moving-product/bkl/create/list">
-                <PlusCircle className="size-4" />
-                Create BKL
-              </Link>
+            <Button
+              variant={"liquid"}
+              onClick={handleCreate}
+              disabled={isCreating}
+            >
+              <PlusCircle className="size-4" />
+              {isCreating ? "Creating..." : "Create BKL"}
             </Button>
           </div>
           <DataTable columns={columnBKL} data={dataList ?? []} />

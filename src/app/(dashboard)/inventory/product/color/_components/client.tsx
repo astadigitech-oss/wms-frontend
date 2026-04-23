@@ -256,9 +256,6 @@ export const Client = () => {
   const dataListRacksWMS: any[] = useMemo(() => {
     return dataRacksWMS?.data.data.resource.racks.data;
   }, [dataRacksWMS]);
-
-  console.log("dataListRacksWMS:", dataListRacksWMS);
-
   // loading WMS APK
   const loadingWMS = isLoadingWMS || isRefetchingWMS || isPendingWMS;
   const loadingAPK = isLoadingAPK || isRefetchingAPK || isPendingAPK;
