@@ -239,9 +239,20 @@ export const Client = () => {
       ),
     },
     {
-      accessorKey: "product_color",
-      header: "Product Color",
+      accessorKey: "barcode",
+      header: "Barcode Rack",
+      cell: ({ row }) => (
+        <div>{row.original.color_rack.barcode.toLocaleString()}</div>
+      ),
     },
+    {
+      accessorKey: "name",
+      header: "Name Rack",
+      cell: ({ row }) => (
+        <div>{row.original.color_rack.name.toLocaleString()}</div>
+      ),
+    },
+
     {
       accessorKey: "product_total",
       header: () => <div className="text-center">Qty</div>,
@@ -314,17 +325,52 @@ export const Client = () => {
           <BreadcrumbItem>List</BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <h2 className="text-xl font-bold">Statistics Stock</h2>
+      <div className="w-full bg-white rounded-md shadow p-4">
+        {/* Header */}
+        <div className="flex gap-2 justify-start items-center pb-3 mb-3 border-b border-gray-500">
+          <h2 className="text-xl font-bold">Statistics Stock</h2>
+        </div>
 
-      <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* ================= PRODUCT STICKER ================= */}
+        {/* Content */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* ================= TOTAL QUANTITY ================= */}
+          <Card className="bg-sky-200 rounded-md shadow border-0">
+            <CardHeader>
+              <CardTitle>Total Quantity</CardTitle>
+            </CardHeader>
+
+            <CardContent>
+              <p className="text-2xl font-bold">
+                {dataStatisticsStockMemo?.product_sticker?.grand_total_qty?.toLocaleString() ||
+                  0}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ================= TOTAL VALUE ================= */}
+          <Card className="bg-sky-200 rounded-md shadow border-0">
+            <CardHeader>
+              <CardTitle>Total Value</CardTitle>
+            </CardHeader>
+
+            <CardContent>
+              <p className="text-2xl font-bold">
+                {formatRupiah(
+                  dataStatisticsStockMemo?.product_sticker?.grand_total_value ||
+                    0,
+                )}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+      {/* <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-white rounded-md shadow border-0">
           <CardHeader>
             <CardTitle>Product Sticker</CardTitle>
           </CardHeader>
 
           <CardContent className="flex flex-col gap-6">
-            {/* GRAND TOTAL */}
             <div className="flex justify-between">
               <div>
                 <p className="text-sm text-gray-500">Total Quantity</p>
@@ -343,7 +389,6 @@ export const Client = () => {
               </div>
             </div>
 
-            {/* DETAILS PER COLOR */}
             <div className="flex flex-col gap-2 border-t pt-4">
               {Object.entries(
                 dataStatisticsStockMemo?.product_sticker?.details_per_color ||
@@ -363,7 +408,6 @@ export const Client = () => {
           </CardContent>
         </Card>
 
-        {/* ================= BKL PRODUCTS ================= */}
         <Card className="bg-white rounded-md shadow border-0">
           <CardHeader>
             <CardTitle>BKL Products</CardTitle>
@@ -406,7 +450,6 @@ export const Client = () => {
           </CardContent>
         </Card>
 
-        {/* ================= OLSERA STOCK ================= */}
         <Card className="bg-white rounded-md shadow border-0">
           <CardHeader>
             <CardTitle>Olsera Stock</CardTitle>
@@ -452,7 +495,7 @@ export const Client = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-10 flex-col">
         <h2 className="text-xl font-bold">List Migrate</h2>
@@ -483,7 +526,9 @@ export const Client = () => {
                   className="items-center flex-none h-9 bg-sky-400/80 hover:bg-sky-400 text-black disabled:opacity-100 disabled:hover:bg-sky-400 disabled:pointer-events-auto disabled:cursor-not-allowed"
                   variant={"outline"}
                 >
-                  <Link href={"/outbond/migrate-color/list/create"}>
+                  <Link
+                    href={"/outbond/migrate-color/list/create-migrate-color"}
+                  >
                     <PlusCircle className={"w-4 h-4 mr-1"} />
                     New Migrate
                   </Link>

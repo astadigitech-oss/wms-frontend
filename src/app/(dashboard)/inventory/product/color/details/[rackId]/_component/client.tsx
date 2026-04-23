@@ -37,7 +37,7 @@ import { useAddProduct } from "../_api/use-add-product";
 import { useRemoveProduct } from "../_api/use-remove-product";
 import { useGetListProduct } from "../_api/use-get-list-product";
 import { useGetDetailRacks } from "../_api/use-get-detail-rack";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { usePagination } from "@/lib/pagination";
 import { useScanSOProduct } from "../_api/use-scan-so-product";
@@ -54,6 +54,7 @@ const DialogProduct = dynamic(() => import("./dialog-product"), {
 });
 
 export const Client = () => {
+  const router = useRouter();
   const { rackId } = useParams();
   const [isProduct, setIsProduct] = useState(false);
   const addRef = useRef<HTMLInputElement | null>(null);
@@ -163,7 +164,16 @@ export const Client = () => {
     const ok = await confirmToMigrate();
 
     if (!ok) return;
-    mutateMigrate({ id });
+
+    mutateMigrate(
+      { id },
+      {
+        onSuccess: (res) => {
+          console.log("Migrate berhasil:", res);
+          router.push("/inventory/product/color");
+        },
+      },
+    );
   };
 
   const handleAddProduct = (barcode: string) => {

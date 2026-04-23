@@ -3,12 +3,12 @@ import axios from "axios";
 import { baseUrl } from "@/lib/baseUrl";
 import { getCookie } from "cookies-next/client";
 
-export const useGetListProducts = ({ p, q, id }: any) => {
+export const useGetSelect = () => {
   const accessToken = getCookie("accessToken");
   const query = useQuery({
-    queryKey: ["list-product-cargo", { p, q, id }],
+    queryKey: ["list-select-migrate-color"],
     queryFn: async () => {
-      const res = await axios.get(`${baseUrl}/bulky-products-cargo?bulky_document_id=${id}&page=${p}&q=${q}`, {
+      const res = await axios.get(`${baseUrl}/colorDestination`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

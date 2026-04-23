@@ -6,11 +6,12 @@ import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
 import { MouseEvent } from "react";
 
 export type BKLProduct = {
+  new_tag_product: any;
+  item_name: any;
   id: string;
   barcode: string;
   product_name: string;
-  category: string;
-  price: number;
+  item_price: number;
 };
 interface ButtonActionProps {
   isLoading: boolean;
@@ -35,7 +36,7 @@ const ButtonAction = ({
       "border-yellow-400 text-yellow-700 hover:text-yellow-700 hover:bg-yellow-50 disabled:hover:bg-yellow-50",
     sky: "border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:hover:bg-sky-50",
   };
-return (
+  return (
     <TooltipProviderPage value={label}>
       <Button
         className={cn(
@@ -61,9 +62,11 @@ return (
 export const columnBKL = ({
   handleRemoveProduct,
   isLoading,
+  isPendingRemoveProduct,
 }: {
   handleRemoveProduct: (id: string) => void;
   isLoading: boolean;
+  isPendingRemoveProduct: boolean;
 }): ColumnDef<BKLProduct>[] => [
   {
     accessorKey: "no",
@@ -76,36 +79,44 @@ export const columnBKL = ({
     cell: ({ row }) => row.original.barcode,
   },
   {
-    accessorKey: "product_name",
-    header: "Product Name",
-    cell: ({ row }) => row.original.product_name,
+    accessorKey: "item_name",
+    header: "Name",
+    cell: ({ row }) => row.original.item_name,
   },
   {
-    accessorKey: "category",
-    header: "Category",
-    cell: ({ row }) => row.original.category,
+    accessorKey: "new_tag_product",
+    header: "Tag",
+    cell: ({ row }) => row.original.new_tag_product,
   },
   {
-    accessorKey: "price",
+    accessorKey: "item_price",
     header: "Price",
-    cell: ({ row }) => formatRupiah(row.original.price),
+    cell: ({ row }) => formatRupiah(row.original.item_price),
   },
   {
     id: "actions",
     header: "Action",
     cell: ({ row }) => (
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => handleRemoveProduct(row.original.id)}
-        disabled={isLoading}
-      >
-        <Trash2 className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
-      </Button>
+      <div className="flex gap-4 justify-center items-center">
+        <TooltipProviderPage value={<p>Remove</p>}>
+          <Button
+            className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+            variant="ghost"
+            size="icon"
+            onClick={() => handleRemoveProduct(row.original.id)}
+            disabled={isLoading || isPendingRemoveProduct}
+          >
+            {isPendingRemoveProduct ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}{" "}
+          </Button>
+        </TooltipProviderPage>
+      </div>
     ),
   },
 ];
-
 
 export const columnProducts = ({
   metaPage,
@@ -129,7 +140,7 @@ export const columnProducts = ({
     accessorKey: "name",
     header: "Product Name",
     cell: ({ row }) => (
-      <div className="max-w-[500px] break-all">{row.original.name}</div>
+      <div className="max-w-[500px] break-all">{row.original.item_name}</div>
     ),
   },
   {

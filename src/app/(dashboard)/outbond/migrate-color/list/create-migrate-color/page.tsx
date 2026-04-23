@@ -1,15 +1,15 @@
 import React from "react";
 import { Metadata } from "next";
+import { Client } from "./_components/client";
 import { protect } from "@/lib/protect";
 import { redirect } from "next/navigation";
 import { Footer } from "@/components/footer";
-import { Client } from "./_components/client";
 
 export const metadata: Metadata = {
-  title: "Create BKL",
+  title: "Create Migrate Color",
 };
 
-const CreateBKLPage = async () => {
+const CreateMigrateColorPage = async () => {
   const user = await protect();
 
   if (!user) redirect("/login");
@@ -21,4 +21,4 @@ const CreateBKLPage = async () => {
   );
 };
 
-export default CreateBKLPage;
+export default CreateMigrateColorPage;
