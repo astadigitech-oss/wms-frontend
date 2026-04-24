@@ -30,6 +30,9 @@ export const useRemoveMigrateColor = () => {
         queryKey: ["list-select-migrate-color"],
       });
       queryClient.invalidateQueries({ queryKey: ["list-color-migrate"] });
+      queryClient.invalidateQueries({
+        queryKey: ["list-rack-migrate-color-to-pos"],
+      });
     },
     onError: (err) => {
       if (err.status === 403) {

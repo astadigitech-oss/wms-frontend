@@ -110,7 +110,7 @@ export const Client = () => {
   }, [dataSelect]);
 
   const dataListRack: any[] = useMemo(() => {
-    return dataRack?.data?.data?.resource ?? [];
+    return dataRack?.data?.data?.resource?.data ?? [];
   }, [dataRack]);
 
   const metaPageRack: any = useMemo(() => {
@@ -501,43 +501,50 @@ export const Client = () => {
           </div>
           <div className="flex w-full items-center gap-3">
             <div className="flex-1 bg-white rounded-md shadow p-3 relative">
-              <Label
-                htmlFor="rack-search"
-                className="flex gap-2 absolute left-3 top-1/2 -translate-y-1/2 items-center"
+              <div
+                className={cn(
+                  "w-full flex justify-between items-center relative group",
+                  "cursor-not-allowed",
+                )}
               >
-                <Badge className="bg-black text-xs rounded-full text-white">
-                  Add Rack
-                </Badge>
-              </Label>
-              <Input
-                id="rack-search"
-                className="w-full pl-28 border-sky-400/80 focus-visible:ring-sky-400"
-                placeholder="Search rack..."
-                value={rackSearch}
-                onChange={(e) => setRackSearch(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                <Label
+                  htmlFor="rack-search"
+                  className="flex gap-2 absolute left-2 items-center"
+                >
+                  <Badge className="bg-black text-xs rounded-full text-white">
+                    Add Rack
+                  </Badge>
+                </Label>
+                <Input
+                  id="rack-search"
+                  className="rounded-r-none border-r-0 pl-28 focus-visible:ring-0 focus-visible:border focus-visible:border-sky-300 border-sky-300/80 disabled:opacity-100"
+                  placeholder="Search rack..."
+                  value={rackSearch}
+                  onChange={(e) => setRackSearch(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      if (rackSearch.trim()) {
+                        handleAddRack(rackSearch.trim());
+                      } else {
+                        setIsOpenRack(true);
+                      }
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  onClick={() => {
                     if (rackSearch.trim()) {
                       handleAddRack(rackSearch.trim());
                     } else {
                       setIsOpenRack(true);
                     }
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                onClick={() => {
-                  if (rackSearch.trim()) {
-                    handleAddRack(rackSearch.trim());
-                  } else {
-                    setIsOpenRack(true);
-                  }
-                }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 bg-sky-300/80 text-black rounded-full border border-sky-300/80 hover:bg-sky-300"
-              >
-                <Search className="w-4 h-4" />
-              </Button>
+                  }}
+                  className="bg-sky-300/80 w-10 p-0 hover:bg-sky-300 text-black rounded-l-none border border-sky-300/80 hover:border-sky-300 focus-visible:ring-0 disabled:opacity-100"
+                >
+                  <Search className="w-3 h-3" />
+                </Button>
+              </div>
             </div>
           </div>
           <DialogRack
