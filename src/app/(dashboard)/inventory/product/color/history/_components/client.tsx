@@ -29,13 +29,13 @@ export const Client = () => {
   const { page, metaPage, setPage, setPagination } = usePagination("pFilter");
   const { search, searchValue, setSearch } = useSearch();
 
-  const { data, refetch, error, isSuccess, isError, isRefetching, isPending } =
+  const { data, refetch, error, isSuccess, isError, isRefetching, isPending, isLoading: isLoadingRack } =
     useGetListHistoryRackColor({
       p: page,
       q: searchValue,
     });
 
-  const isLoading = isPendingExport || isRefetching || isPending;
+  const isLoading = isPendingExport || isRefetching || isPending || isLoadingRack;
 
   const dataListHistoryRack: any[] = useMemo(() => {
     return data?.data.data?.resource.data;

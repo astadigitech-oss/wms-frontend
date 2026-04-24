@@ -157,7 +157,8 @@ export const Client = () => {
   const { mutate: mutateUpdate, isPending: isPendingUpdate } = useUpdateRack();
   const { mutate: mutateToMigrate, isPending: isPendingToMigrate } =
     useToMigrate();
-  const { mutate: mutateExportRack, isPending: isPendingExportRack } = useExportColorRack();
+  const { mutate: mutateExportRack, isPending: isPendingExportRack } =
+    useExportColorRack();
 
   // data WMS
   const {
@@ -378,7 +379,7 @@ export const Client = () => {
     mutateToMigrate({ id });
   };
 
-    const handleExportRack = async () => {
+  const handleExportRack = async () => {
     mutateExportRack("", {
       onSuccess: (res) => {
         const link = document.createElement("a");
@@ -687,7 +688,8 @@ export const Client = () => {
       id: "id",
       cell: ({ row }) => (
         <div className="text-center tabular-nums">
-          {(metaPageWMS.from + row.index).toLocaleString()}
+          {/* {(metaPageWMS.from + row.index).toLocaleString()} */}
+          {(1 + row.index).toLocaleString()}
         </div>
       ),
     },
@@ -1328,8 +1330,8 @@ export const Client = () => {
                       isLoading={loadingWMS}
                     />
                     <Pagination
-                      pagination={{ ...metaPageWMS, current: pageWMS }}
-                      setPagination={setPageWMS}
+                      pagination={{ ...metaPageRackWms, current: pageRackWms }}
+                      setPagination={setPageRackWms}
                     />
                   </div>
                 </div>
