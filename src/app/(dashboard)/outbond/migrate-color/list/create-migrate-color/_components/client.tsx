@@ -7,9 +7,11 @@ import {
   Loader2,
   PlusCircle,
   RefreshCw,
+  Search,
   Send,
   Trash2,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { alertError, cn, formatRupiah } from "@/lib/utils";
 import {
@@ -51,20 +53,30 @@ import {
 } from "@/components/ui/command";
 import { useRemoveMigrateColor } from "../_api/use-remove-migrate-color";
 import { useConfirm } from "@/hooks/use-confirm";
+import { Label } from "@radix-ui/react-label";
+import { useDebounce } from "@/hooks/use-debounce";
+
+const DialogRack = dynamic(() => import("./dialog-rack"), {
+  ssr: false,
+});
 
 export const Client = () => {
   const [isOpenDestination, setIsOpenDestination] = useState(false);
+  const [isOpenRack, setIsOpenRack] = useState(false);
 
   const [input, setInput] = useState({
     destination: "",
     barcode: "",
   });
 
+  const [rackSearch, setRackSearch] = useState("");
+  const [rackPage, setRackPage] = useState(1);
+  const searchRackValue = useDebounce(rackSearch);
+
   const { mutate: mutateRemoveColor, isPending: isPendingRemoveColor } =
     useRemoveMigrateColor();
   const { mutate: mutateSubmit, isPending: isSubmit } = useSubmitMigrateColor();
-  const { mutate: mutateAddRack, isPending: isPendingAddRack } =
-    useAddRackMigrate();
+  const { mutate: mutateAddRack } = useAddRackMigrate();
 
   const [DeleteMigrateDialog, confirmDeleteMigrate] = useConfirm(
     "Delete Migrate",
@@ -82,7 +94,11 @@ export const Client = () => {
     error: errorSelect,
   } = useGetSelect();
 
-  useGetListRackMigrateToPos({ p: 1, q: input.barcode });
+  const {
+    data: dataRack,
+    refetch: refetchRack,
+    isRefetching: isRefetchingRack,
+  } = useGetListRackMigrateToPos({ p: rackPage, q: searchRackValue });
 
   const dataList: any = useMemo(() => {
     return data?.data.data.resource.data;
@@ -92,6 +108,21 @@ export const Client = () => {
     const destinations = dataSelect?.data?.data?.resource?.destinations;
     return destinations ?? [];
   }, [dataSelect]);
+
+  const dataListRack: any[] = useMemo(() => {
+    return dataRack?.data?.data?.resource ?? [];
+  }, [dataRack]);
+
+  const metaPageRack: any = useMemo(() => {
+    const resource = dataRack?.data?.data?.resource;
+    return {
+      current: resource?.current_page ?? 1,
+      last: resource?.last_page ?? 1,
+      from: resource?.from ?? 0,
+      total: resource?.total ?? 0,
+      perPage: resource?.per_page ?? 10,
+    };
+  }, [dataRack]);
 
   useEffect(() => {
     alertError({
@@ -122,17 +153,24 @@ export const Client = () => {
     }
   }, [dataList?.destiny_document_migrate]);
 
-  const handleAddRack = () => {
+  const handleAddRack = (barcode?: string) => {
+    const targetBarcode = barcode ?? input.barcode;
     const body = {
-      barcode: input.barcode,
-      destiny_document_migrate:
-        input.destination || dataList?.destiny_document_migrate,
+      barcode: targetBarcode,
+      destiny_document_migrate: input.destination,
     };
     mutateAddRack(body, {
       onSuccess: () => {
         setInput((prev) => ({ ...prev, barcode: "" }));
+        setRackSearch("");
       },
     });
+  };
+
+  const handleSelectRack = (rack: any) => {
+    setInput((prev) => ({ ...prev, barcode: rack.barcode }));
+    handleAddRack(rack.barcode);
+    setIsOpenRack(false);
   };
 
   const handleRemoveColor = async (id: any) => {
@@ -217,6 +255,60 @@ export const Client = () => {
     },
   ];
 
+  const columnRack: ColumnDef<any>[] = [
+    {
+      header: () => <div className="text-center">No</div>,
+      id: "id",
+      cell: ({ row }) => (
+        <div className="text-center tabular-nums">
+          {(1 + row.index).toLocaleString()}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "barcode",
+      header: "Rack Barcode",
+    },
+    {
+      accessorKey: "name",
+      header: "Name Rack",
+    },
+    {
+      accessorKey: "total_items",
+      header: () => <div className="text-center">Total Qty</div>,
+      cell: ({ row }) => (
+        <div className="text-center">
+          {(row.original.total_items ?? 0).toLocaleString()}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "total_new_price",
+      header: "Total Price",
+      cell: ({ row }) => formatRupiah(row.original.total_new_price ?? 0),
+    },
+    {
+      accessorKey: "action",
+      header: () => <div className="text-center">Action</div>,
+      cell: ({ row }) => (
+        <div className="flex gap-4 justify-center items-center">
+          <TooltipProviderPage value={"Add Rack"}>
+            <Button
+              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
+              variant={"outline"}
+              onClick={(e) => {
+                e.preventDefault();
+                handleSelectRack(row.original);
+              }}
+            >
+              <PlusCircle className="w-4 h-4" />
+            </Button>
+          </TooltipProviderPage>
+        </div>
+      ),
+    },
+  ];
+
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -270,9 +362,7 @@ export const Client = () => {
             {/* <div className="size-8 rounded-full flex items-center justify-center bg-sky-100 shadow">
               <Scan className="size-4" />
             </div> */}
-            <h5 className="font-bold">
-              Description
-            </h5>
+            <h5 className="font-bold">Description</h5>
           </div>
         </div>
 
@@ -410,43 +500,59 @@ export const Client = () => {
             </div>
           </div>
           <div className="flex w-full items-center gap-3">
-            <Input
-              value={input.barcode}
-              onChange={(e) => {
-                setInput((prev) => ({
-                  ...prev,
-                  barcode: e.target.value,
-                }));
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && input.barcode.trim()) {
-                  handleAddRack();
-                }
-              }}
-                className="w-full border-sky-400/80 focus-visible:ring-sky-400"
-              placeholder="Scan barcode..."
-              autoFocus
-            />
-            <Button
-              onClick={(e) => {
-                e.preventDefault();
-                handleAddRack();
-              }}
-              className="items-center flex-none border-sky-400 bg-sky-400 hover:bg-sky-300 text-white h-10"
-              disabled={!input.barcode || isPendingAddRack}
-            >
-              {isPendingAddRack ? (
-                <>
-                  <Loader2 className="size-3 mr-1 animate-spin" />
-                </>
-              ) : (
-                <>
-                  <PlusCircle className="size-4 mr-1" />
-                </>
-              )}
-              Add
-            </Button>
+            <div className="flex-1 bg-white rounded-md shadow p-3 relative">
+              <Label
+                htmlFor="rack-search"
+                className="flex gap-2 absolute left-3 top-1/2 -translate-y-1/2 items-center"
+              >
+                <Badge className="bg-black text-xs rounded-full text-white">
+                  Add Rack
+                </Badge>
+              </Label>
+              <Input
+                id="rack-search"
+                className="w-full pl-28 border-sky-400/80 focus-visible:ring-sky-400"
+                placeholder="Search rack..."
+                value={rackSearch}
+                onChange={(e) => setRackSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    if (rackSearch.trim()) {
+                      handleAddRack(rackSearch.trim());
+                    } else {
+                      setIsOpenRack(true);
+                    }
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                onClick={() => {
+                  if (rackSearch.trim()) {
+                    handleAddRack(rackSearch.trim());
+                  } else {
+                    setIsOpenRack(true);
+                  }
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 bg-sky-300/80 text-black rounded-full border border-sky-300/80 hover:bg-sky-300"
+              >
+                <Search className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
+          <DialogRack
+            open={isOpenRack}
+            onCloseModal={() => setIsOpenRack(false)}
+            search={rackSearch}
+            setSearch={setRackSearch}
+            refetch={refetchRack}
+            isRefetching={isRefetchingRack}
+            columns={columnRack}
+            dataTable={dataListRack}
+            page={rackPage}
+            metaPage={metaPageRack}
+            setPage={setRackPage}
+          />
           <DataTable
             columns={columnColorMigrate}
             data={dataList?.migrates ?? []}
