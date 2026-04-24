@@ -182,7 +182,7 @@ export const Client = () => {
                 className="self-end"
                 disabled={isLoadingBKL || isPendingSubmit || isDone}
               >
-                <SaveIcon className={isLoadingBKL ? "animate-spin" : ""} />
+                <SaveIcon />
                 Submit
               </Button>
             </div>
