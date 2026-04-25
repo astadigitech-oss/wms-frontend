@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertCircle,
   ArrowLeft,
   ArrowLeftRight,
   CheckCircle2,
@@ -84,7 +85,7 @@ export const Client = () => {
     "destructive",
   );
 
-  const { data, refetch, isRefetching, error, isError } =
+  const { data, refetch, isRefetching, isLoading, error, isError } =
     useGetListColorMigrate();
 
   const {
@@ -98,6 +99,7 @@ export const Client = () => {
     data: dataRack,
     refetch: refetchRack,
     isRefetching: isRefetchingRack,
+    isLoading: isLoadingRack,
   } = useGetListRackMigrateToPos({ p: rackPage, q: searchRackValue });
 
   const dataList: any = useMemo(() => {
@@ -367,6 +369,12 @@ export const Client = () => {
         </div>
 
         {/* Content */}
+        {!input.destination && (
+          <div className="w-full flex gap-2 items-center bg-yellow-300 rounded border border-yellow-500 text-sm p-3">
+            <AlertCircle className="size-4 flex-none" />
+            <p>Wajib memilih toko terlebih dahulu.</p>
+          </div>
+        )}
         <div className="flex gap-4 items-end">
           {/* Destination */}
           <div className="flex-1">
@@ -504,7 +512,7 @@ export const Client = () => {
               <div
                 className={cn(
                   "w-full flex justify-between items-center relative group",
-                  "cursor-not-allowed",
+                  !input.destination && "cursor-not-allowed",
                 )}
               >
                 <Label
@@ -521,8 +529,9 @@ export const Client = () => {
                   placeholder="Search rack..."
                   value={rackSearch}
                   onChange={(e) => setRackSearch(e.target.value)}
+                  disabled={!input.destination}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") {
+                    if (e.key === "Enter" && input.destination) {
                       if (rackSearch.trim()) {
                         handleAddRack(rackSearch.trim());
                       } else {
@@ -534,12 +543,15 @@ export const Client = () => {
                 <Button
                   type="button"
                   onClick={() => {
-                    if (rackSearch.trim()) {
-                      handleAddRack(rackSearch.trim());
-                    } else {
-                      setIsOpenRack(true);
+                    if (input.destination) {
+                      if (rackSearch.trim()) {
+                        handleAddRack(rackSearch.trim());
+                      } else {
+                        setIsOpenRack(true);
+                      }
                     }
                   }}
+                  disabled={!input.destination}
                   className="bg-sky-300/80 w-10 p-0 hover:bg-sky-300 text-black rounded-l-none border border-sky-300/80 hover:border-sky-300 focus-visible:ring-0 disabled:opacity-100"
                 >
                   <Search className="w-3 h-3" />
@@ -554,6 +566,7 @@ export const Client = () => {
             setSearch={setRackSearch}
             refetch={refetchRack}
             isRefetching={isRefetchingRack}
+            isLoading={isLoadingRack}
             columns={columnRack}
             dataTable={dataListRack}
             page={rackPage}
@@ -563,7 +576,9 @@ export const Client = () => {
           <DataTable
             columns={columnColorMigrate}
             data={dataList?.migrates ?? []}
-            isLoading={isRefetching || isSubmit || isPendingRemoveColor}
+            isLoading={
+              isLoading || isRefetching || isSubmit || isPendingRemoveColor
+            }
           />
         </div>
       </div>

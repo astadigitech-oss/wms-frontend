@@ -95,13 +95,13 @@ export const columnBKL = ({
   },
   {
     id: "actions",
-    header: "Action",
+    header: () => <div className="text-center">Action</div>,
     cell: ({ row }) => (
       <div className="flex gap-4 justify-center items-center">
         <TooltipProviderPage value={<p>Remove</p>}>
           <Button
             className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
-            variant="ghost"
+            variant={"outline"}
             size="icon"
             onClick={() => handleRemoveProduct(row.original.id)}
             disabled={isLoading || isPendingRemoveProduct}

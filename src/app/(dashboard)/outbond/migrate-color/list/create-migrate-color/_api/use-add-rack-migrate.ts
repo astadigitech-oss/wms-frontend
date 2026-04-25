@@ -33,7 +33,12 @@ export const useAddRackMigrate = () => {
       if (err.status === 403) {
         toast.error(`Error 403: Restricted Access`);
       } else {
-        toast.error(`ERROR ${err?.status}: Add rack failed`);
+        toast.error(
+          `ERROR ${err?.status}: ${
+            (err.response?.data as any).data.message ||
+            "Add rack failed"
+          } `,
+        );
         console.log("ERROR_ADD_RACK_MIGRATE:", err);
       }
     },

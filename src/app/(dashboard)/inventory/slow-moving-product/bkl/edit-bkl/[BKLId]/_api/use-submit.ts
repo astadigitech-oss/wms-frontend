@@ -20,7 +20,7 @@ export const useSubmitBKL = () => {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
-        }
+        },
       );
       return res;
     },
@@ -36,7 +36,11 @@ export const useSubmitBKL = () => {
       if (err.status === 403) {
         toast.error(`Error 403: Restricted Access`);
       } else {
-        toast.error(`ERROR ${err?.status}: BKL failed to create`);
+        toast.error(
+          `ERROR ${err?.status}: ${
+            (err.response?.data as any).data.message || "BKL failed to create"
+          } `,
+        );
         console.log("ERROR_CREATE_BKL:", err);
       }
     },

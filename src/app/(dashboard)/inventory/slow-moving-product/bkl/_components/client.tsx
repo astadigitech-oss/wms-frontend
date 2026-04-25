@@ -180,7 +180,7 @@ export const Client = () => {
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : ( */}
               <Link
-                href={`/inventory/slow-moving-product/bkl/create-bkl/${row.original.id}`}
+                href={`/inventory/slow-moving-product/bkl/edit-bkl/${row.original.id}`}
               >
                 <Edit2 className="w-4 h-4" />
               </Link>
