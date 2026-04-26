@@ -6,5 +6,5 @@ export default async function Home() {
 
   if (!user) redirect("/login");
 
-  return redirect("/dashboard/summary-report/product-combined");
+  return redirect("/dashboard/summary-report-new");
 }

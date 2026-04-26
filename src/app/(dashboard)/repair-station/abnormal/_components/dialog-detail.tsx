@@ -111,7 +111,7 @@ const DialogDetail = ({
         }));
       }
     }
-  }, [input.oldPrice, input.category, categories, isColorPrice]);
+  }, [input.oldPrice, input.category, categories, isColorPrice, color]);
 
   // selected category and its max price (used in confirmation dialog)
   const selectedCategory = categories?.find(

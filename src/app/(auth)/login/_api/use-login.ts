@@ -21,7 +21,7 @@ export const useLogin = () => {
       toast.success("Login Success");
       setCookie("accessToken", res.data.data.resource[0]);
       setCookie("profile", JSON.stringify(res.data.data.resource[1]));
-      invalidateQuery(queryClient, [["storage-report"], ["count-staging"]]);
+      invalidateQuery(queryClient, [["storage-report"], ["count-staging"], ["list-summary-both"]]);
       router.push("/");
     },
     onError: {

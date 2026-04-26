@@ -241,9 +241,9 @@ export const Client = () => {
               <div className="flex gap-4 items-center ml-auto">
                 <Button
                   asChild
-                  className="items-center flex-none h-9 bg-sky-400/80 hover:bg-sky-400 text-black disabled:opacity-100 disabled:hover:bg-sky-400 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                  className="hidden items-center flex-none h-9 bg-sky-400/80 hover:bg-sky-400 text-black disabled:opacity-100 disabled:hover:bg-sky-400 disabled:pointer-events-auto disabled:cursor-not-allowed"
                   variant={"outline"}
-                  onClick={handleOpenDialog} // Call to open the dialog
+                  onClick={handleOpenDialog} 
                 >
                   <div>
                     <RefreshCcw className={"w-4 h-4 mr-1"} />
