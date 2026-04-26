@@ -133,7 +133,7 @@ export const Client = () => {
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbItem>Create</BreadcrumbItem>
+          <BreadcrumbItem>Edit</BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 

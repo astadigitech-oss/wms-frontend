@@ -5,32 +5,30 @@ import { baseUrl } from "@/lib/baseUrl";
 import { toast } from "sonner";
 import { getCookie } from "cookies-next/client";
 
+type RequestType = {
+  id: string;
+};
+
 type Error = AxiosError;
 
-export const useSubmitMigrateColor = () => {
+export const useRemoveProduct = () => {
   const accessToken = getCookie("accessToken");
   const queryClient = useQueryClient();
 
-  const mutation = useMutation<AxiosResponse, Error, any>({
-    mutationFn: async () => {
-      const res = await axios.post(
-        `${baseUrl}/migrate-finish`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+  const mutation = useMutation<AxiosResponse, Error, RequestType>({
+    mutationFn: async ({ id }) => {
+      const res = await axios.delete(`${baseUrl}/bkl/scan/${id}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
       return res;
     },
     onSuccess: () => {
-      toast.success("Migrate Color successfully created");
+      toast.success("Product successfully removed");
       queryClient.invalidateQueries({
-        queryKey: ["list-select-migrate-color"],
+        queryKey: ["list-detail-bkl"],
       });
-      queryClient.invalidateQueries({ queryKey: ["list-color-migrate"] });
-      window.location.href = "/outbond/migrate-color/list";
     },
     onError: (err) => {
       if (err.status === 403) {
@@ -39,10 +37,10 @@ export const useSubmitMigrateColor = () => {
         toast.error(
           `ERROR ${err?.status}: ${
             (err.response?.data as any).data.message ||
-            "Migrate Color failed to create"
+            "Product failed to remove"
           } `,
         );
-        console.log("ERROR_CREATE_MIGRATE_COLOR:", err);
+        console.log("ERROR_REMOVE_PRODUCT:", err);
       }
     },
   });

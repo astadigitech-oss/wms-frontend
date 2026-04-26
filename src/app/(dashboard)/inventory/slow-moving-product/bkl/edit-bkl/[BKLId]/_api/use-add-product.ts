@@ -1,23 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios, { AxiosError } from "axios";
-import type { AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import { baseUrl } from "@/lib/baseUrl";
-import { toast } from "sonner";
 import { getCookie } from "cookies-next/client";
-
-type RequestType = {
-  id: string;
-};
+import { toast } from "sonner";
 
 type Error = AxiosError;
 
-export const useRemoveProduct = () => {
+export const useAddProduct = () => {
   const accessToken = getCookie("accessToken");
   const queryClient = useQueryClient();
 
-  const mutation = useMutation<AxiosResponse, Error, RequestType>({
-    mutationFn: async ({ id }) => {
-      const res = await axios.delete(`${baseUrl}/bkl/scan/${id}`, {
+  const mutation = useMutation<AxiosResponse, Error, any>({
+    mutationFn: async (body: any) => {
+      const res = await axios.post(`${baseUrl}/bkl/scan`, body, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -25,7 +20,6 @@ export const useRemoveProduct = () => {
       return res;
     },
     onSuccess: () => {
-      toast.success("Product successfully removed");
       queryClient.invalidateQueries({
         queryKey: ["list-detail-bkl"],
       });
@@ -34,10 +28,16 @@ export const useRemoveProduct = () => {
       if (err.status === 403) {
         toast.error(`Error 403: Restricted Access`);
       } else {
-        toast.error(`ERROR ${err?.status}: Product failed to remove`);
+        toast.error(
+          `ERROR ${err?.status}: ${
+            (err.response?.data as any).data.message ||
+            "Product failed to add"
+          } `,
+        );
         console.log("ERROR_REMOVE_PRODUCT:", err);
       }
     },
   });
+
   return mutation;
 };

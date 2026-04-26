@@ -30,10 +30,12 @@ export const useToMigrate = () => {
       return res;
     },
     onSuccess: () => {
-      toast.success("successfully updated rack to migrate");
-      invalidateQuery(queryClient, [["list-detail-rack-color"]]);
-      invalidateQuery(queryClient, [["list-racks-color"]]);
       router.push("/inventory/product/color");
+      toast.success("successfully updated rack to migrate");
+      setTimeout(() => {
+        invalidateQuery(queryClient, [["list-detail-rack-color"]]);
+        invalidateQuery(queryClient, [["list-racks-color"]]);
+      }, 100);
     },
     onError: (err) => {
       if (err.status === 403) {
@@ -42,7 +44,7 @@ export const useToMigrate = () => {
         console.log(err);
         toast.error(
           `ERROR ${err?.status}: ${
-            (err as any)?.response?.data.message ||
+            (err as any)?.response?.data.data.message ||
             "Rack failed update to migrate"
           }`,
         );
