@@ -56,6 +56,13 @@ import { useCreateRack } from "../_api/use-create-rack";
 import { useUpdateRack } from "../_api/use-update-rack";
 import { useToMigrate } from "../_api/use-to-migrate";
 import { useExportColorRack } from "../_api/use-export-color-rack";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useScanMigrateToDisplayProduct } from "../_api/use-scan-migrate-to-display-product";
 
 const DialogDetail = dynamic(() => import("./dialog-detail"), {
   ssr: false,
@@ -73,6 +80,10 @@ export const Client = () => {
   const [selectedTotalProduct, setSelectedTotalProduct] = useState("");
   const [rackId, setRackId] = useState<string | null>(null);
   const [input, setInput] = useState<any>({ name: "" });
+  const [MigrateToDisplayProductInput, setMigrateToDisplayProductInput] =
+    useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [openErrorDialog, setOpenErrorDialog] = useState(false);
 
   // dialog to migrate
   const [ToMigrateDialog, confirmToMigrate] = useConfirm(
@@ -159,6 +170,10 @@ export const Client = () => {
     useToMigrate();
   const { mutate: mutateExportRack, isPending: isPendingExportRack } =
     useExportColorRack();
+  const {
+    mutate: mutateScanProductMigrate,
+    isPending: isPendingScanProductMigrate,
+  } = useScanMigrateToDisplayProduct();
 
   // data WMS
   const {
@@ -389,6 +404,30 @@ export const Client = () => {
         document.body.removeChild(link);
       },
     });
+  };
+
+  // handle scan SO Barang
+  const handleScanProductMigrate = (e: FormEvent) => {
+    e.preventDefault();
+    if (!MigrateToDisplayProductInput.trim()) return;
+
+    mutateScanProductMigrate(
+      { barcode: MigrateToDisplayProductInput },
+      {
+        onSuccess: () => {
+          setMigrateToDisplayProductInput("");
+        },
+        onError: (error: any) => {
+          const message =
+            error?.response?.data?.message ||
+            error?.response?.data?.data?.message ||
+            "Barang gagal di-SO";
+
+          setErrorMessage(message);
+          setOpenErrorDialog(true);
+        },
+      },
+    );
   };
 
   // handle close
@@ -1122,6 +1161,24 @@ export const Client = () => {
         isPendingCreate={isPendingCreate}
         isPendingUpdate={isPendingUpdate}
       />
+      <Dialog open={openErrorDialog} onOpenChange={setOpenErrorDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Scan Gagal</DialogTitle>
+          </DialogHeader>
+
+          <div className="text-sm text-gray-700">{errorMessage}</div>
+
+          <div className="flex justify-end mt-4">
+            <Button
+              onClick={() => setOpenErrorDialog(false)}
+              className="bg-sky-400 hover:bg-sky-400/80 text-black"
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Tabs defaultValue={isApk ? "apk" : "wms"} className="w-full">
         <TabsContent value="wms">
           <Breadcrumb>
@@ -1343,6 +1400,48 @@ export const Client = () => {
                 <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-10 flex-col">
                   <h2 className="text-xl font-bold">List Product Colors WMS</h2>
                   <div className="flex flex-col w-full gap-4">
+                    <div className="bg-white shadow rounded-xl p-5 border border-gray-200 flex flex-col gap-4">
+                      <h3 className="text-lg font-semibold">
+                        Scan Product Migrate to Display
+                      </h3>
+                      <form
+                        onSubmit={handleScanProductMigrate}
+                        className="flex flex-col gap-3"
+                      >
+                        <div className="flex gap-3 items-end">
+                          <div className="flex-1">
+                            <label className="text-sm font-medium text-gray-700 block mb-2">
+                              Scan Barcode
+                            </label>
+                            <Input
+                              type="text"
+                              className="border-sky-400/80 focus-visible:ring-sky-400"
+                              value={MigrateToDisplayProductInput}
+                              onChange={(e) =>
+                                setMigrateToDisplayProductInput(e.target.value)
+                              }
+                              placeholder="Scan barcode here..."
+                              disabled={isPendingScanProductMigrate}
+                              autoFocus
+                            />
+                          </div>
+                          <Button
+                            type="submit"
+                            className="bg-sky-400 hover:bg-sky-400/80 text-black disabled:opacity-100 disabled:hover:bg-sky-400 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                            disabled={
+                              isPendingScanProductMigrate ||
+                              !MigrateToDisplayProductInput.trim()
+                            }
+                          >
+                            {isPendingScanProductMigrate ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              " Scan"
+                            )}
+                          </Button>
+                        </div>
+                      </form>
+                    </div>
                     <div className="flex gap-2 items-center w-full justify-between">
                       <div className="flex items-center gap-3 w-full">
                         <Input
