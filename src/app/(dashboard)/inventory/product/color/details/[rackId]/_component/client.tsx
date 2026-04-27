@@ -182,7 +182,6 @@ export const Client = () => {
             addRef.current.focus();
           }
           setAddProductSearch("");
-          handleCloseProduct();
         },
         onError: async (err: any) => {
           toast.error(
