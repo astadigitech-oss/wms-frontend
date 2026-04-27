@@ -165,10 +165,7 @@ export const Client = () => {
 
     if (!ok) return;
 
-    mutateMigrate(
-      { id },
-      
-    );
+    mutateMigrate({ id });
   };
 
   const handleAddProduct = (barcode: string) => {
@@ -185,7 +182,6 @@ export const Client = () => {
             addRef.current.focus();
           }
           setAddProductSearch("");
-          handleCloseProduct();
         },
         onError: async (err: any) => {
           toast.error(
@@ -287,8 +283,22 @@ export const Client = () => {
       ),
     },
     {
+      accessorKey: "old_barcode_product",
+      header: "Old Barcode",
+      cell: ({ row }) => (
+        <div className="max-w-[500px] break-all">
+          {row.original.old_barcode_product}
+        </div>
+      ),
+    },
+    {
       accessorKey: "new_barcode_product",
-      header: "Barcode",
+      header: "New Barcode",
+      cell: ({ row }) => (
+        <div className="max-w-[500px] break-all">
+          {row.original.new_barcode_product}
+        </div>
+      ),
     },
     {
       accessorKey: "new_name_product",
@@ -373,8 +383,22 @@ export const Client = () => {
       ),
     },
     {
+      accessorKey: "old_barcode_product",
+      header: "Old Barcode",
+      cell: ({ row }) => (
+        <div className="max-w-[500px] break-all">
+          {row.original.old_barcode_product}
+        </div>
+      ),
+    },
+    {
       accessorKey: "new_barcode_product",
-      header: "Barcode",
+      header: "New Barcode",
+      cell: ({ row }) => (
+        <div className="max-w-[500px] break-all">
+          {row.original.new_barcode_product}
+        </div>
+      ),
     },
     {
       accessorKey: "new_name_product",

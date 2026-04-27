@@ -40,6 +40,11 @@ const OnlyQRPrinted: React.FC<OnlyQRPrint> = ({
               <div className="mt-2 text-center text-sm font-semibold">
                 {name ? name : qr}
               </div>{" "}
+              {qr && (
+                <div className="mt-2 text-center text-sm font-semibold">
+                  {qr}
+                </div>
+              )}
             </div>
 
             {/* RIGHT SECTION (Qty, Batch) */}
