@@ -63,12 +63,12 @@ export const Client = () => {
 
   const [openDetail, setOpenDetail] = useQueryState(
     "dialog",
-    parseAsBoolean.withDefault(false)
+    parseAsBoolean.withDefault(false),
   );
 
   const [cEBarcode, setCEBarcode] = useQueryState(
     "create-edit-barcode",
-    parseAsBoolean.withDefault(false)
+    parseAsBoolean.withDefault(false),
   );
 
   const [dataSearch, setDataSearch] = useQueryState("q", { defaultValue: "" });
@@ -82,12 +82,12 @@ export const Client = () => {
   const [DeleteDialog, confirmDelete] = useConfirm(
     "Delete Product",
     "This action cannot be undone",
-    "destructive"
+    "destructive",
   );
   const [DeleteBarcodeDialog, confirmBarcodeDelete] = useConfirm(
     "Delete Barcode",
     "This action cannot be undone",
-    "destructive"
+    "destructive",
   );
 
   const [page, setPage] = useQueryState("p", parseAsInteger.withDefault(1));
@@ -186,8 +186,8 @@ export const Client = () => {
     const ok = await confirmDelete();
 
     if (!ok) return;
-
-    mutateDelete(id, {
+    console.log("id delete", id);
+    mutateDelete({ id }, {
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: ["detail-manifest-inbound", codeDocument],
@@ -195,6 +195,7 @@ export const Client = () => {
       },
     });
   };
+
   const handleDeleteBarcode = async () => {
     const ok = await confirmBarcodeDelete();
 
@@ -210,7 +211,7 @@ export const Client = () => {
             queryKey: ["detail-manifest-inbound", codeDocument],
           });
         },
-      }
+      },
     );
   };
 
@@ -229,7 +230,7 @@ export const Client = () => {
             queryKey: ["detail-manifest-inbound", codeDocument],
           });
         },
-      }
+      },
     );
   };
 
@@ -308,6 +309,7 @@ export const Client = () => {
               type="button"
               onClick={(e) => {
                 e.preventDefault();
+                console.log(row.original.id);
                 handleDelete(row.original.id);
               }}
             >
