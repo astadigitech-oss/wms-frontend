@@ -186,7 +186,6 @@ export const Client = () => {
     const ok = await confirmDelete();
 
     if (!ok) return;
-    console.log("id delete", id);
     mutateDelete({ id }, {
       onSuccess: () => {
         queryClient.invalidateQueries({
@@ -309,7 +308,6 @@ export const Client = () => {
               type="button"
               onClick={(e) => {
                 e.preventDefault();
-                console.log(row.original.id);
                 handleDelete(row.original.id);
               }}
             >
