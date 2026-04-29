@@ -84,6 +84,7 @@ export const Client = () => {
     color: "",
     total: "0",
     custom: "0",
+    discount: 0,
   });
 
   // search, debounce, paginate strat ----------------------------------------------------------------
@@ -105,7 +106,7 @@ export const Client = () => {
   const [DeleteProductDialog, confirmDeleteProduct] = useConfirm(
     "Delete Product",
     "This action cannot be undone",
-    "destructive"
+    "destructive",
   );
 
   // confirm end ----------------------------------------------------------------
@@ -170,9 +171,10 @@ export const Client = () => {
     setInput({
       name: dataResource?.name_bundle ?? "",
       color: dataResource?.name_color ?? "",
-      total: dataResource?.total_price_bundle ?? "0",
-      custom: Math.round(dataResource?.total_price_custom_bundle).toString(),
+      total: String(Math.round(dataResource?.total_price_bundle ?? 0)),
+      custom: String(Math.round(dataResource?.total_price_custom_bundle ?? 0)),
       category: dataResource?.category ?? "",
+      discount: dataResource?.discount_category ?? 0,
     });
   }, [data]);
 
@@ -185,6 +187,31 @@ export const Client = () => {
       setMetaPage: setMetaPageProduct,
     });
   }, [dataProduct]);
+
+  useEffect(() => {
+    if (!isEdit) return; // ⬅️ penting
+
+    const total = Number(input.total) || 0;
+    const discount = input.discount || 0;
+
+    const result = total - (total * discount) / 100;
+
+    setInput((prev) => ({
+      ...prev,
+      custom: Math.round(result).toString(),
+    }));
+  }, [input.total, input.discount, isEdit]);
+
+  const customPrice = useMemo(() => {
+    if (!isEdit) {
+      return Number(input.custom) || 0; // dari API
+    }
+
+    const total = Number(input.total) || 0;
+    const discount = input.discount || 0;
+
+    return Math.round(total - (total * discount) / 100);
+  }, [isEdit, input.total, input.discount, input.custom]);
 
   useEffect(() => {
     const dataResource = data?.data.data.resource;
@@ -204,7 +231,9 @@ export const Client = () => {
   const handleAddProduct = (productId: any, source: string) => {
     mutateAddProduct(
       {
-        productId, idDetail: bundleId, source,
+        productId,
+        idDetail: bundleId,
+        source,
       },
       {
         onSuccess: () => {
@@ -212,7 +241,7 @@ export const Client = () => {
             queryKey: ["list-detail-bundle", bundleId],
           });
         },
-      }
+      },
     );
   };
 
@@ -229,7 +258,7 @@ export const Client = () => {
             queryKey: ["list-detail-bundle", bundleId],
           });
         },
-      }
+      },
     );
   };
 
@@ -250,7 +279,7 @@ export const Client = () => {
           });
           setIsEdit(false);
         },
-      }
+      },
     );
   };
 
@@ -324,10 +353,14 @@ export const Client = () => {
       header: "Document Code",
     },
     {
-      accessorKey: "new_barcode_product??old_barcode_product",
-      header: "Barcode",
-      cell: ({ row }) =>
-        row.original.new_barcode_product ?? row.original.old_barcode_product,
+      accessorKey: "old_barcode_product",
+      header: "Old Barcode",
+      cell: ({ row }) => row.original.old_barcode_product,
+    },
+    {
+      accessorKey: "new_barcode_product",
+      header: "New Barcode",
+      cell: ({ row }) => row.original.new_barcode_product,
     },
     {
       accessorKey: "new_name_product",
@@ -626,11 +659,33 @@ export const Client = () => {
               <div className="w-full flex gap-4">
                 <div className="w-full flex flex-col gap-1">
                   <Label>Total Price</Label>
-                  <Input
-                    className="border-0 shadow-none focus-visible:ring-transparent focus-visible:outline-none rounded-none focus-visible:border-b focus-visible:border-sky-500 hover:underline hover:underline-offset-2 focus-visible:no-underline disabled:opacity-100 disabled:cursor-default"
-                    value={formatRupiah(parseFloat(input.total))}
-                    disabled
-                  />
+
+                  <div className="flex items-center gap-3 w-full">
+                    <Input
+                      className="flex-1 border-0 shadow-none focus-visible:ring-transparent focus-visible:outline-none rounded-none focus-visible:border-b focus-visible:border-sky-500 hover:underline hover:underline-offset-2 focus-visible:no-underline disabled:opacity-100 disabled:cursor-default"
+                      value={
+                        !isEdit
+                          ? formatRupiah(parseFloat(input.total))
+                          : input.total
+                      }
+                      type={isEdit ? "number" : "text"}
+                      disabled={!isEdit}
+                      onChange={(e) =>
+                        setInput((prev) => ({
+                          ...prev,
+                          total: e.target.value.startsWith("0")
+                            ? e.target.value.replace(/^0+/, "")
+                            : e.target.value,
+                        }))
+                      }
+                    />
+
+                    {isEdit && (
+                      <div className="text-sm px-3 py-1 rounded-md bg-gray-800 text-white whitespace-nowrap">
+                        {formatRupiah(parseFloat(input.total) || 0)}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="w-full flex flex-col gap-1">
                   <Label>{input.color ? "Tag Color" : "Category"}</Label>
@@ -675,11 +730,7 @@ export const Client = () => {
                                     setInput((prev) => ({
                                       ...prev,
                                       category: item.name_category,
-                                      custom: (
-                                        parseFloat(prev.total) -
-                                        (parseFloat(prev.total) / 100) *
-                                          item.discount_category
-                                      ).toString(),
+                                      discount: item.discount_category,
                                     }));
                                     setIsOpen(false);
                                   }}
@@ -698,7 +749,7 @@ export const Client = () => {
                                       {item.discount_category +
                                         "% - Max. " +
                                         (formatRupiah(
-                                          Math.round(item.max_price_category)
+                                          Math.round(item.max_price_category),
                                         ) ?? "Rp 0")}
                                     </p>
                                   </div>
@@ -718,27 +769,9 @@ export const Client = () => {
               <div className="flex items-center w-full relative">
                 <Input
                   className="border-0 shadow-none focus-visible:ring-transparent focus-visible:outline-none rounded-none focus-visible:border-b focus-visible:border-sky-500 hover:underline hover:underline-offset-2 focus-visible:no-underline disabled:opacity-100 disabled:cursor-default"
-                  value={
-                    !isEdit
-                      ? formatRupiah(parseFloat(input.custom))
-                      : input.custom
-                  }
-                  type={isEdit ? "number" : "text"}
-                  disabled={!isEdit}
-                  onChange={(e) =>
-                    setInput((prev) => ({
-                      ...prev,
-                      custom: e.target.value.startsWith("0")
-                        ? e.target.value.replace(/^0+/, "")
-                        : e.target.value,
-                    }))
-                  }
+                  value={formatRupiah(customPrice)}
+                  disabled
                 />
-                {isEdit && (
-                  <p className="text-sm right-3 bottom-1 absolute px-3 py-1 rounded-md bg-gray-800 text-white">
-                    {formatRupiah(parseFloat(input.custom))}
-                  </p>
-                )}
               </div>
             </div>
           </div>
@@ -758,7 +791,7 @@ export const Client = () => {
                     <RefreshCw
                       className={cn(
                         "w-4 h-4",
-                        isRefetching ? "animate-spin" : ""
+                        isRefetching ? "animate-spin" : "",
                       )}
                     />
                   </Button>
