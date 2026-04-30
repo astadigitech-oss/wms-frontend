@@ -140,15 +140,21 @@ export const Client = () => {
         if (nameRef.current) {
           nameRef.current.focus();
         }
-        if (data.data.data.resource?.new_category_product) {
+
+        const resource = data.data.data.resource;
+        const barcodeValue = resource?.new_barcode_product;
+        const categoryValue =
+          resource?.new_category_product ?? resource?.new_tag_product ?? "";
+
+        if (barcodeValue) {
           setBarcodeOpen(true);
           setMetaBarcode({
-            barcode: data.data.data.resource.new_barcode_product,
-            newPrice: data.data.data.resource.new_price_product,
-            newName: data.data.data.resource.new_name_product,
-            oldPrice: data.data.data.resource.old_price_product,
-            category: data.data.data.resource.new_category_product,
-            discount: data.data.data.resource.discount_category,
+            barcode: barcodeValue,
+            newPrice: resource?.new_price_product,
+            newName: resource?.new_name_product,
+            oldPrice: resource?.old_price_product,
+            category: categoryValue,
+            discount: resource?.discount_category,
           });
         }
       },
