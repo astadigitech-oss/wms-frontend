@@ -557,6 +557,12 @@ export const Client = () => {
     {
       accessorKey: "old_barcode_product",
       header: "Old Barcode",
+      cell: ({ row }) => row.original.old_barcode_product ?? "-",
+    },
+    {
+      accessorKey: "new_barcode_product",
+      header: "New Barcode",
+      cell: ({ row }) => row.original.new_barcode_product ?? "-",
     },
     {
       accessorKey: "new_name_product",
@@ -735,6 +741,12 @@ export const Client = () => {
     {
       accessorKey: "old_barcode_product",
       header: "Old Barcode",
+      cell: ({ row }) => row.original.old_barcode_product ?? "-",
+    },
+    {
+      accessorKey: "new_barcode_product",
+      header: "New Barcode",
+      cell: ({ row }) => row.original.new_barcode_product ?? "-",
     },
     {
       accessorKey: "new_name_product",
