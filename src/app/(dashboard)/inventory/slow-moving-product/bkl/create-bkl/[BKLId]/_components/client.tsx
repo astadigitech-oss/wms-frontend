@@ -32,6 +32,13 @@ import { useSubmitBKL } from "../_api/use-submit";
 import Link from "next/link";
 import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 export const Client = () => {
   const { BKLId } = useParams();
   const [isMounted, setIsMounted] = useState(false);
@@ -44,6 +51,10 @@ export const Client = () => {
     "This action cannot be undone",
     "destructive",
   );
+
+  const [errorMessage, setErrorMessage] = useState("");
+  const [errorData, setErrorData] = useState<string[]>([]);
+  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
 
   const {
     data: detailBKL,
@@ -89,7 +100,17 @@ export const Client = () => {
   };
 
   const handleSubmit = async () => {
-    mutateSubmit(BKLId as string);
+    mutateSubmit(BKLId as string, {
+      onError: (error: any) => {
+        setErrorMessage(
+          error?.response?.data?.message ||
+            error.message ||
+            "An error occurred",
+        );
+        setErrorData(error?.response?.data?.data || []);
+        setIsErrorDialogOpen(true);
+      },
+    });
   };
   // useEffect(() => {
   //   if (searchValue) {
@@ -108,6 +129,26 @@ export const Client = () => {
   return (
     <div className="flex flex-col justify-center bg-gray-100 w-full relative px-4 gap-4 py-4">
       <RemoveDialog />
+      <Dialog open={isErrorDialogOpen} onOpenChange={setIsErrorDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Error</DialogTitle>
+            <DialogDescription>{errorMessage}</DialogDescription>
+          </DialogHeader>
+          {errorData.length > 0 && (
+            <div className="mt-4">
+              <p>
+                <strong>Barcode yang sudah terjual:</strong>
+              </p>
+              <ul className="list-disc list-inside">
+                {errorData.map((barcode, index) => (
+                  <li key={index}>{barcode}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       <DialogProduct
         open={dialog === "product"}
         onOpenChange={() => {
