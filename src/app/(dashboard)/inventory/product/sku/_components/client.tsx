@@ -16,24 +16,67 @@ import Pagination from "@/components/pagination";
 import { Input } from "@/components/ui/input";
 import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
 import { Button } from "@/components/ui/button";
-import { Loader2, ReceiptText, RefreshCw } from "lucide-react";
+import { CalendarIcon, ChevronDown, FileDown, Loader2, ReceiptText, RefreshCw, XCircle } from "lucide-react";
 import { useSearchQuery } from "@/lib/search";
 import { usePagination } from "@/lib/pagination";
 import { cn } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { useExportHistorySku } from "../_api/use-export-history-sku";
+import { format, subDays } from "date-fns";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import { Calendar } from "@/components/ui/calendar";
+import { DateRange } from "react-day-picker";
 
 export const Client = () => {
   const { search, searchValue, setSearch } = useSearchQuery();
   const { metaPage, page, setPage, setPagination } = usePagination("p");
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  });
+  const [isOpen, setIsOpen] = useState(false);
 
-  const { data, refetch, isLoading, isRefetching, isSuccess, isPending, error, isError } =
-    useGetListDocumentsSku({ q: searchValue, p: page });
+  const {
+    data,
+    refetch,
+    isLoading,
+    isRefetching,
+    isSuccess,
+    isPending,
+    error,
+    isError,
+  } = useGetListDocumentsSku({ q: searchValue, p: page });
+  const { mutate: mutateExport, isPending: isPendingExport } =
+    useExportHistorySku({
+      start_date: date?.from ? format(date.from, "yyyy-MM-dd") : "",
+      end_date: date?.to ? format(date.to, "yyyy-MM-dd") : "",
+    });
 
   const dataList: any[] = useMemo(() => {
     return data?.data.data.resource.data;
   }, [data]);
+
+  const handleExport = async () => {
+    mutateExport("", {
+      onSuccess: (res) => {
+        const link = document.createElement("a");
+        link.href = res.data.data.resource.download_url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      },
+    });
+  };
+
+  /* ================= CLEAR DATE ================= */
+  const clearRange = (e: any) => {
+    e.preventDefault();
+    setDate({ from: undefined, to: undefined });
+  };
 
   const columnApprovementDisplay: ColumnDef<any>[] = [
     {
@@ -181,6 +224,128 @@ export const Client = () => {
                   />
                 </Button>
               </TooltipProviderPage>
+            </div>
+            {/* RIGHT SECTION */}
+            <div className="flex items-center gap-3 ml-auto">
+              {/* DATE PICKER */}
+              <div className="flex items-center gap-3 px-3 h-10 border rounded text-sm border-gray-500 min-w-[240px] w-[260px] justify-between">
+                {" "}
+                {/* DATE TEXT */}
+                <p>
+                  {(date?.from && format(date.from, "dd MMM yyyy")) ?? "Start"}{" "}
+                  - {(date?.to && format(date.to, "dd MMM yyyy")) ?? "End"}
+                </p>
+                {/* CLEAR BUTTON */}
+                {(date?.from || date?.to) && (
+                  <button onClick={clearRange}>
+                    <XCircle className="w-4 h-4 text-red-500" />
+                  </button>
+                )}
+                {/* DIALOG */}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button>
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+                  </DialogTrigger>
+
+                  <DialogContent className="w-auto max-w-5xl p-3">
+                    <DialogHeader>
+                      <DialogTitle>Pick Date Range</DialogTitle>
+                    </DialogHeader>
+
+                    {/* QUICK SELECT */}
+                    <div className="flex gap-2 mb-2">
+                      <div className="w-full items-center flex justify-start px-3 border border-sky-400/80 rounded h-9">
+                        <CalendarIcon className="size-4 mr-2" />
+                        {(date?.from && format(date.from, "MMMM dd, yyyy")) ??
+                          "Pick a date"}{" "}
+                        -{" "}
+                        {(date?.to && format(date.to, "MMMM dd, yyyy")) ??
+                          "Pick a date"}
+                      </div>
+                      <Popover open={isOpen} onOpenChange={setIsOpen}>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="icon">
+                            <ChevronDown className="size-4" />
+                          </Button>
+                        </PopoverTrigger>
+
+                        <PopoverContent className="p-0 w-fit">
+                          <Command>
+                            <CommandList>
+                              <CommandGroup>
+                                <CommandItem
+                                  onSelect={() => {
+                                    setDate({
+                                      from: subDays(new Date(), 7),
+                                      to: new Date(),
+                                    });
+                                    setIsOpen(false);
+                                  }}
+                                >
+                                  Last Week
+                                </CommandItem>
+
+                                <CommandItem
+                                  onSelect={() => {
+                                    setDate({
+                                      from: subDays(new Date(), 30),
+                                      to: new Date(),
+                                    });
+                                    setIsOpen(false);
+                                  }}
+                                >
+                                  Last Month
+                                </CommandItem>
+
+                                <CommandItem
+                                  onSelect={() => {
+                                    setDate({
+                                      from: subDays(new Date(), 90),
+                                      to: new Date(),
+                                    });
+                                    setIsOpen(false);
+                                  }}
+                                >
+                                  3 Months
+                                </CommandItem>
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* CALENDAR */}
+                    <div className="border rounded p-2">
+                      <Calendar
+                        mode="range"
+                        selected={date}
+                        onSelect={setDate}
+                        numberOfMonths={2}
+                      />
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              {/* EXPORT */}
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleExport();
+                }}
+                type="button"
+                className="bg-sky-400/80 hover:bg-sky-400 text-black"
+                disabled={isPendingExport}
+              >
+                {isPendingExport ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <FileDown className="w-4 h-4 mr-2" />
+                )}
+                Export
+              </Button>
             </div>
           </div>
           <DataTable
