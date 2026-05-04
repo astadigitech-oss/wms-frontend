@@ -1,11 +1,15 @@
 "use client";
 
 import {
+  CalendarIcon,
+  ChevronDown,
+  FileDown,
   Loader2,
   PackageOpen,
   PlusCircle,
   ReceiptText,
   RefreshCw,
+  XCircle,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { alertError, cn, formatRupiah, setPaginate } from "@/lib/utils";
@@ -32,6 +36,28 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { useUnbundleBundle } from "../_api/use-unbundle-bundle";
 import { useConfirm } from "@/hooks/use-confirm";
+import { useExportBundle } from "../_api/use-export-bundle";
+import { DateRange } from "react-day-picker";
+import { format, subDays } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Calendar } from "@/components/ui/calendar";
 
 export const Client = () => {
   // data search, page
@@ -44,6 +70,11 @@ export const Client = () => {
     total: 1, //total data
     perPage: 1,
   });
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  });
+  const [isOpen, setIsOpen] = useState(false);
 
   const [UnbundleDialog, confirmUnbundle] = useConfirm(
     "Unbundle Bundle",
@@ -53,6 +84,8 @@ export const Client = () => {
 
   const { mutate: mutateUnbundle, isPending: isPendingUnbundle } =
     useUnbundleBundle();
+  const { mutate: mutateExport, isPending: isPendingExport } =
+    useExportBundle();
 
   // get data utama
   const {
@@ -103,6 +136,18 @@ export const Client = () => {
     mutateUnbundle({ id });
   };
 
+  const handleExport = async () => {
+    mutateExport("", {
+      onSuccess: (res) => {
+        const link = document.createElement("a");
+        link.href = res.data.data.resource.download_url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      },
+    });
+  };
+
   // column data
   const columnListBundle: ColumnDef<any>[] = [
     {
@@ -125,6 +170,13 @@ export const Client = () => {
         <div className="break-all max-w-[500px]">
           {row.original.name_bundle}
         </div>
+      ),
+    },
+    {
+      accessorKey: "user",
+      header: "User",
+      cell: ({ row }) => (
+        <div className="break-all max-w-[500px]">{row.original.user}</div>
       ),
     },
     {
@@ -201,6 +253,11 @@ export const Client = () => {
     },
   ];
 
+  const clearRange = (e: any) => {
+    e.preventDefault();
+    setDate({ from: undefined, to: undefined });
+  };
+
   // loading
   const [isMounted, setIsMounted] = useState(false);
 
@@ -260,6 +317,130 @@ export const Client = () => {
                 </Button>
               </TooltipProviderPage>
               <div className="flex gap-4 items-center ml-auto">
+                {/* RIGHT SECTION */}
+                <div className="flex items-center gap-3 ml-auto">
+                  {/* DATE PICKER */}
+                  <div className="flex items-center gap-3 px-3 h-10 border rounded text-sm border-gray-500 min-w-[240px] w-[260px] justify-between">
+                    {" "}
+                    {/* DATE TEXT */}
+                    <p>
+                      {(date?.from && format(date.from, "dd MMM yyyy")) ??
+                        "Start"}{" "}
+                      - {(date?.to && format(date.to, "dd MMM yyyy")) ?? "End"}
+                    </p>
+                    {/* CLEAR BUTTON */}
+                    {(date?.from || date?.to) && (
+                      <button onClick={clearRange}>
+                        <XCircle className="w-4 h-4 text-red-500" />
+                      </button>
+                    )}
+                    {/* DIALOG */}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <button>
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+                      </DialogTrigger>
+
+                      <DialogContent className="w-auto max-w-5xl p-3">
+                        <DialogHeader>
+                          <DialogTitle>Pick Date Range</DialogTitle>
+                        </DialogHeader>
+
+                        {/* QUICK SELECT */}
+                        <div className="flex gap-2 mb-2">
+                          <div className="w-full items-center flex justify-start px-3 border border-sky-400/80 rounded h-9">
+                            <CalendarIcon className="size-4 mr-2" />
+                            {(date?.from &&
+                              format(date.from, "MMMM dd, yyyy")) ??
+                              "Pick a date"}{" "}
+                            -{" "}
+                            {(date?.to && format(date.to, "MMMM dd, yyyy")) ??
+                              "Pick a date"}
+                          </div>
+                          <Popover open={isOpen} onOpenChange={setIsOpen}>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="icon">
+                                <ChevronDown className="size-4" />
+                              </Button>
+                            </PopoverTrigger>
+
+                            <PopoverContent className="p-0 w-fit">
+                              <Command>
+                                <CommandList>
+                                  <CommandGroup>
+                                    <CommandItem
+                                      onSelect={() => {
+                                        setDate({
+                                          from: subDays(new Date(), 7),
+                                          to: new Date(),
+                                        });
+                                        setIsOpen(false);
+                                      }}
+                                    >
+                                      Last Week
+                                    </CommandItem>
+
+                                    <CommandItem
+                                      onSelect={() => {
+                                        setDate({
+                                          from: subDays(new Date(), 30),
+                                          to: new Date(),
+                                        });
+                                        setIsOpen(false);
+                                      }}
+                                    >
+                                      Last Month
+                                    </CommandItem>
+
+                                    <CommandItem
+                                      onSelect={() => {
+                                        setDate({
+                                          from: subDays(new Date(), 90),
+                                          to: new Date(),
+                                        });
+                                        setIsOpen(false);
+                                      }}
+                                    >
+                                      3 Months
+                                    </CommandItem>
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+
+                        {/* CALENDAR */}
+                        <div className="border rounded p-2">
+                          <Calendar
+                            mode="range"
+                            selected={date}
+                            onSelect={setDate}
+                            numberOfMonths={2}
+                          />
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  {/* EXPORT */}
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleExport();
+                    }}
+                    type="button"
+                    className="bg-sky-400/80 hover:bg-sky-400 text-black"
+                    disabled={isPendingExport}
+                  >
+                    {isPendingExport ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <FileDown className="w-4 h-4 mr-2" />
+                    )}
+                    Export
+                  </Button>
+                </div>
                 <Button
                   asChild
                   className="items-center flex-none h-9 bg-sky-400/80 hover:bg-sky-400 text-black disabled:opacity-100 disabled:hover:bg-sky-400 disabled:pointer-events-auto disabled:cursor-not-allowed"

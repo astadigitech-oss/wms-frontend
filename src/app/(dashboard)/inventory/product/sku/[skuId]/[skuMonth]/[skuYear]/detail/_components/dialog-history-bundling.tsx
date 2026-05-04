@@ -12,8 +12,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
-import { RefreshCw, X } from "lucide-react";
+import { FileDown, Loader2, RefreshCw, X } from "lucide-react";
 import React from "react";
+import { useExportHistorySku } from "../_api/use-export-history-sku";
 
 const DialogHistoryBundling = ({
   open,
@@ -35,13 +36,27 @@ const DialogHistoryBundling = ({
   setSearch: any;
   refetch: any;
   isRefetching: any;
-  isLoading: any
+  isLoading: any;
   columns: any;
   dataTable: any;
   page: any;
   metaPage: any;
   setPage: any;
 }) => {
+  const { mutate: mutateExport, isPending: isPendingExport } =
+    useExportHistorySku();
+
+  const handleExport = async () => {
+    mutateExport("", {
+      onSuccess: (res) => {
+        const link = document.createElement("a");
+        link.href = res.data.data.resource.download_url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      },
+    });
+  };
   return (
     <div>
       <Dialog open={open} onOpenChange={onCloseModal}>
@@ -81,11 +96,29 @@ const DialogHistoryBundling = ({
                   <RefreshCw
                     className={cn(
                       "w-4 h-4",
-                      isRefetching ? "animate-spin" : ""
+                      isRefetching ? "animate-spin" : "",
                     )}
                   />
                 </Button>
               </TooltipProviderPage>
+              <div className="flex gap-4 items-center ml-auto">
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleExport();
+                  }}
+                  className="items-center flex-none h-9 bg-sky-400/80 hover:bg-sky-400 text-black ml-auto disabled:opacity-100 disabled:hover:bg-sky-400 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                  disabled={isPendingExport}
+                  variant={"outline"}
+                >
+                  {isPendingExport ? (
+                    <Loader2 className={"w-4 h-4 mr-1 animate-spin"} />
+                  ) : (
+                    <FileDown className={"w-4 h-4 mr-1"} />
+                  )}
+                  Export Data
+                </Button>
+              </div>
             </div>
             <DataTable
               isSticky

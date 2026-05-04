@@ -633,19 +633,17 @@ export const Client = () => {
           <h2 className="text-xl font-bold">List of Document Data</h2>
 
           <div className="flex gap-4 items-center">
-            <Button
-              onClick={(e) => {
-                e.preventDefault();
-                setIsHistoryBundling(true);
-              }}
-              className="items-center flex h-9 bg-sky-400/80 hover:bg-sky-400 text-black
-        disabled:opacity-100 disabled:hover:bg-sky-400
-        disabled:pointer-events-auto disabled:cursor-not-allowed"
-              variant="outline"
+            <Link
+              href={`/inventory/product/sku/${codeDocument}/detail/history`}
             >
-              <ReceiptText className="w-4 h-4 mr-1" />
-              History
-            </Button>
+              <Button
+                className="items-center flex h-9 bg-sky-400/80 hover:bg-sky-400 text-black"
+                variant="outline"
+              >
+                <ReceiptText className="w-4 h-4 mr-1" />
+                History
+              </Button>
+            </Link>
           </div>
         </div>
         <div className="flex flex-col w-full gap-4">
