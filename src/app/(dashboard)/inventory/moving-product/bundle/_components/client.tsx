@@ -33,7 +33,6 @@ import { DataTable } from "@/components/data-table";
 import { useGetListBundle } from "../_api/use-get-list-bundle";
 import Pagination from "@/components/pagination";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { useUnbundleBundle } from "../_api/use-unbundle-bundle";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useExportBundle } from "../_api/use-export-bundle";
@@ -193,25 +192,25 @@ export const Client = () => {
       header: "Price",
       cell: ({ row }) => formatRupiah(row.original.total_price_custom_bundle),
     },
-    {
-      accessorKey: "product_status",
-      header: "Status",
-      cell: ({ row }) => {
-        const status = row.original.product_status?.toLowerCase();
+    // {
+    //   accessorKey: "product_status",
+    //   header: "Status",
+    //   cell: ({ row }) => {
+    //     const status = row.original.product_status?.toLowerCase();
 
-        return (
-          <Badge
-            className={`rounded text-black font-normal capitalize hover:opacity-90 ${
-              status === "sale"
-                ? "bg-green-400/80 hover:bg-green-400/80"
-                : "bg-gray-200 hover:bg-gray-200"
-            }`}
-          >
-            {row.original.product_status}
-          </Badge>
-        );
-      },
-    },
+    //     return (
+    //       <Badge
+    //         className={`rounded text-black font-normal capitalize hover:opacity-90 ${
+    //           status === "sale"
+    //             ? "bg-green-400/80 hover:bg-green-400/80"
+    //             : "bg-gray-200 hover:bg-gray-200"
+    //         }`}
+    //       >
+    //         {row.original.product_status}
+    //       </Badge>
+    //     );
+    //   },
+    // },
     {
       accessorKey: "action",
       header: () => <div className="text-center">Action</div>,
