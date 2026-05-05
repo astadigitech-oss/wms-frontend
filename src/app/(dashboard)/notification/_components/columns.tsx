@@ -15,6 +15,7 @@ interface ColumnNotificationProps {
   setUserId: (value: string | null) => Promise<URLSearchParams>;
   setSaleId: (value: string | null) => Promise<URLSearchParams>;
   setOpenDialog: (value: string | null) => Promise<URLSearchParams>;
+  setMiId: (value: string | null) => Promise<URLSearchParams>;
   isLoading: boolean;
 }
 
@@ -32,6 +33,7 @@ const BadgeStatus = ({
   item,
   setSaleId,
   setUserId,
+  setMiId,
   setOpenDialog,
   isLoading,
 }: any) => {
@@ -41,6 +43,21 @@ const BadgeStatus = ({
         onClick={(e) => {
           e.preventDefault();
           setUserId(item.user_id);
+          setOpenDialog(item.status);
+        }}
+        disabled={isLoading}
+        className="text-black bg-sky-400/80 hover:bg-sky-400 h-7 px-3 [&_svg]:size-3 gap-1"
+      >
+        <p className="text-xs">Check</p>
+        {isLoading ? <Loader2 className="animate-spin" /> : <ArrowUpRight />}
+      </Button>
+    );
+  } else if (item.approved === "0" && item.status === "manual_inbound") {
+    return (
+      <Button
+        onClick={(e) => {
+          e.preventDefault();
+          setMiId(item.id);
           setOpenDialog(item.status);
         }}
         disabled={isLoading}
@@ -86,6 +103,7 @@ export const columnNotification = ({
   metaPage,
   setSaleId,
   setUserId,
+  setMiId,
   setOpenDialog,
   isLoading,
 }: ColumnNotificationProps): ColumnDef<any>[] => [
@@ -119,7 +137,9 @@ export const columnNotification = ({
             row.original.status.toLowerCase() === "staging" &&
               "bg-rose-300 hover:bg-rose-300",
             row.original.status.toLowerCase() === "palet" &&
-              "bg-purple-500 hover:bg-purple-500 text-white"
+              "bg-purple-500 hover:bg-purple-500 text-white",
+            row.original.status.toLowerCase() === "manual_inbound" &&
+              "bg-red-400 hover:bg-red-400 text-white",
           )}
         >
           {row.original.status}
@@ -149,6 +169,7 @@ export const columnNotification = ({
           item={row.original}
           setSaleId={setSaleId}
           setUserId={setUserId}
+          setMiId={setMiId}
           setOpenDialog={setOpenDialog}
           isLoading={isLoading}
         />

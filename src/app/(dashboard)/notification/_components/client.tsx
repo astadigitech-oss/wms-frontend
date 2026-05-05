@@ -44,38 +44,45 @@ import { usePagination } from "@/lib/pagination";
 import { DialogDetailProduct } from "./dialogs/dialog-detail-product";
 import { DialogDetailPalet } from "./dialogs/dialog-detail-palet";
 import { useGetDetailApprovePalet } from "../_api/use-get-detail-approve-palet";
+import { useSearchQuery } from "@/lib/search";
+import { Input } from "@/components/ui/input";
+import { useGetDetailApproveMI } from "../_api/use-get-detail-approve-mi";
+import { DialogDetailProductManualInbound } from "./dialogs/dialog-detail-product-manual-inbound";
 
 export const Client = () => {
   const [isStatus, setIsStatus] = useState(false);
   const [openDialog, setOpenDialog] = useQueryState(
     "dialog",
-    parseAsString.withDefault("")
+    parseAsString.withDefault(""),
   );
 
   // data search, page
   const [saleId, setSaleId] = useQueryState(
     "saleId",
-    parseAsString.withDefault("")
+    parseAsString.withDefault(""),
   );
+  const [miId, setMiId] = useQueryState("miId", parseAsString.withDefault(""));
   // data search, page
   const [status, setStatus] = useQueryState(
     "status",
-    parseAsString.withDefault("")
+    parseAsString.withDefault(""),
   );
 
   const [userId, setUserId] = useQueryState(
     "userId",
-    parseAsString.withDefault("")
+    parseAsString.withDefault(""),
   );
 
+  const { search, searchValue, setSearch } = useSearchQuery();
   const { page, setPage, metaPage, setPagination } = usePagination("p");
 
   // get data utama
   const { data, refetch, isLoading, isRefetching, error, isError, isSuccess } =
-    useGetListNotification({ p: page, q: status });
+    useGetListNotification({ p: page, q: status, search: searchValue });
 
   const dataDetail = useGetDetailApprove({ id: saleId, status: openDialog });
   const dataDetailPalet = useGetDetailApprovePalet({ id: userId });
+  const dataDetailMI = useGetDetailApproveMI({ id: miId });
 
   // memo data utama
   const dataList: any[] = useMemo(() => {
@@ -164,6 +171,20 @@ export const Client = () => {
         openDialog={openDialog}
         setOpenDialog={setOpenDialog}
       />
+      <DialogDetailProductManualInbound
+        open={openDialog === "manual_inbound"} // open modal
+        onCloseModal={() => {
+          if (openDialog === "manual_inbound") {
+            setOpenDialog("");
+            setMiId("");
+          }
+        }}
+        miId={miId}
+        setmiId={setMiId}
+        baseData={dataDetailMI}
+        openDialog={openDialog}
+        setOpenDialog={setOpenDialog}
+      />
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -178,6 +199,13 @@ export const Client = () => {
         <div className="flex flex-col w-full gap-4">
           <div className="flex gap-2 items-center w-full justify-between">
             <div className="flex items-center gap-3 w-full">
+              <Input
+                className="w-2/5 border-sky-400/80 focus-visible:ring-sky-400"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search..."
+                autoFocus
+              />
               <TooltipProviderPage value={"Reload Data"}>
                 <Button
                   onClick={() => refetch()}
@@ -218,7 +246,9 @@ export const Client = () => {
                             status === "staging" &&
                               "bg-rose-300 hover:bg-rose-300",
                             status === "palet" &&
-                              "bg-purple-500 hover:bg-purple-500 text-white"
+                              "bg-purple-500 hover:bg-purple-500 text-white",
+                            status === "manual_inbound" &&
+                              "bg-red-400 hover:bg-red-400 text-white",
                           )}
                         >
                           {status}
@@ -342,6 +372,22 @@ export const Client = () => {
                             />
                             Palet
                           </CommandItem>
+                          <CommandItem
+                            onSelect={() => {
+                              setStatus("manual_inbound");
+                              setIsStatus(false);
+                            }}
+                          >
+                            <Checkbox
+                              className="w-4 h-4 mr-2"
+                              checked={status === "manual_inbound"}
+                              onCheckedChange={() => {
+                                setStatus("manual_inbound");
+                                setIsStatus(false);
+                              }}
+                            />
+                            Manual Inbound
+                          </CommandItem>
                         </CommandList>
                       </CommandGroup>
                     </Command>
@@ -366,6 +412,7 @@ export const Client = () => {
               setSaleId,
               setOpenDialog,
               setUserId,
+              setMiId,
               isLoading: dataDetail.isLoading,
             })}
             data={dataList ?? []}
