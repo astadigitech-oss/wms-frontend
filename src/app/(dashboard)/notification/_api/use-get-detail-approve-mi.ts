@@ -3,13 +3,13 @@ import axios from "axios";
 import { baseUrl } from "@/lib/baseUrl";
 import { getCookie } from "cookies-next/client";
 
-export const useGetListNotification = ({ p, q, search }: any) => {
+export const useGetDetailApproveMI = ({ id }: any) => {
   const accessToken = getCookie("accessToken");
   const query = useQuery({
-    queryKey: ["list-list-notif", { p, q, search }],
+    queryKey: ["detail-mi-approve", { id }],
     queryFn: async () => {
       const res = await axios.get(
-        `${baseUrl}/notificationByRole?page=${p}&q=${q}&search=${search}`,
+        `${baseUrl}/notifications/manual-product/${id}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -18,6 +18,7 @@ export const useGetListNotification = ({ p, q, search }: any) => {
       );
       return res;
     },
+    enabled: !!id,
   });
   return query;
 };

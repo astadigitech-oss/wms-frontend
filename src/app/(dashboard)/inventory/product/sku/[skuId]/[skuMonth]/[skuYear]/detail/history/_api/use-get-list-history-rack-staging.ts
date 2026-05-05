@@ -3,13 +3,13 @@ import axios from "axios";
 import { baseUrl } from "@/lib/baseUrl";
 import { getCookie } from "cookies-next/client";
 
-export const useGetListNotification = ({ p, q, search }: any) => {
+export const useGetListHistoryBundling = ({ code_documents, p, q }: any) => {
   const accessToken = getCookie("accessToken");
   const query = useQuery({
-    queryKey: ["list-list-notif", { p, q, search }],
+    queryKey: ["list-history-bundling-sku", { code_documents,p, q }],
     queryFn: async () => {
       const res = await axios.get(
-        `${baseUrl}/notificationByRole?page=${p}&q=${q}&search=${search}`,
+        `${baseUrl}/sku-products/history-bundling?code_document=${code_documents}&page=${p}&q=${q}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
