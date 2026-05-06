@@ -48,6 +48,8 @@ export const Client = () => {
   const [barcodeOpen, setBarcodeOpen] = useState(false);
   const [selectedBarcodeBag, setSelectedBarcodeBag] = useState("");
   const [selectedTotalProductBag, setSelectedTotalProductBag] = useState("");
+  const [selectedNameBag, setSelectedNameBag] = useState("");
+  // const [selectedBatchBag, setSelectedBatchBag] = useState("");
 
   const [openDetail, setOpenDetail] = useQueryState(
     "dialog",
@@ -218,6 +220,13 @@ export const Client = () => {
                 e.preventDefault();
                 setSelectedBarcodeBag(row.original.barcode_bag);
                 setSelectedTotalProductBag(row.original.total_product);
+                setSelectedNameBag(row.original.name_bag ?? "");
+                // setSelectedBatchBag(
+                //   row.original.batch ??
+                //     row.original.batch_bag ??
+                //     row.original.category_bag ??
+                //     ""
+                // );
                 setBarcodeOpen(true);
               }}
             >
@@ -287,6 +296,8 @@ export const Client = () => {
         open={barcodeOpen}
         barcode={selectedBarcodeBag}
         qty={selectedTotalProductBag}
+        name={selectedNameBag}
+        // batch={selectedBatchBag}
         handleCancel={() => {
           setBarcodeOpen(false);
         }}
