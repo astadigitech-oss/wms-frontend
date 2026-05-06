@@ -20,6 +20,8 @@ const OnlyQRPrinted: React.FC<OnlyQRPrint> = ({
   cancel,
 }) => {
   const componentRef = useRef<HTMLDivElement>(null);
+  const displayName = name?.trim();
+  const displayBatch = batch?.trim();
 
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
@@ -37,9 +39,11 @@ const OnlyQRPrinted: React.FC<OnlyQRPrint> = ({
             {/* QR SECTION - CENTERED */}
             <div className="flex flex-col items-center justify-center">
               {qr && <QRCode value={qr} size={80} level="H" />}
-              <div className="mt-2 text-center text-sm font-semibold">
-                {name ? name : qr}
-              </div>{" "}
+              {displayName && (
+                <div className="mt-2 text-center text-sm font-semibold">
+                  {displayName}
+                </div>
+              )}
               {qr && (
                 <div className="mt-2 text-center text-sm font-semibold">
                   {qr}
@@ -58,11 +62,11 @@ const OnlyQRPrinted: React.FC<OnlyQRPrint> = ({
               </div>
 
               {/* BATCH (Only show if exists) */}
-              {batch && (
+              {displayBatch && (
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-base">Batch :</span>
                   <div className="border border-black w-16 h-8 flex items-center justify-center text-lg font-bold">
-                    {batch}
+                    {displayBatch}
                   </div>
                 </div>
               )}

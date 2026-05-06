@@ -14,12 +14,16 @@ const DialogBarcode = ({
   onCloseModal,
   barcode,
   qty,
+  batch,
+  name,
   handleCancel,
 }: {
   open: boolean;
   onCloseModal: () => void;
   barcode: any;
   qty: any;
+  batch?: any;
+  name?: any;
   handleCancel: () => void;
 }) => {
   return (
@@ -31,7 +35,8 @@ const DialogBarcode = ({
         <OnlyQRPrinted
           qr={barcode ?? ""}
           qty={qty ?? ""}
-          batch={" "}
+          batch={batch ?? ""}
+          name={name ?? ""}
           cancel={handleCancel}
         />
       </DialogContent>
