@@ -83,8 +83,10 @@ export const Client = () => {
 
   const { mutate: mutateUnbundle, isPending: isPendingUnbundle } =
     useUnbundleBundle();
-  const { mutate: mutateExport, isPending: isPendingExport } =
-    useExportBundle();
+  const { mutate: mutateExport, isPending: isPendingExport } = useExportBundle({
+    start_date: date?.from ? format(date.from, "yyyy-MM-dd") : "",
+    end_date: date?.to ? format(date.to, "yyyy-MM-dd") : "",
+  });
 
   // get data utama
   const {
