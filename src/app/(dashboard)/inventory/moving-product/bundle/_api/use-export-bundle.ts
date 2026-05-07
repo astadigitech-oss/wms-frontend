@@ -32,11 +32,13 @@ export const useExportBundle = ({ start_date, end_date }: any) => {
     onSuccess: () => {
       toast.success("File Successfully Exported");
     },
-    onError: (err) => {
+    onError: (err: AxiosError<any>) => {
       if (err.status === 403) {
         toast.error(`Error 403: Restricted Access`);
       } else {
-        toast.error(`ERROR ${err?.status}: Bundle failed to export`);
+        const message =
+          err?.response?.data?.data?.message || "Bundle failed to export";
+        toast.error(`ERROR ${err?.status}: ${message}`);
         console.log("ERROR_EXPORT_BUNDLE:", err);
       }
     },
