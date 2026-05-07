@@ -7,18 +7,25 @@ import { getCookie } from "cookies-next/client";
 
 type Error = AxiosError;
 
-export const useExportBundle = () => {
+export const useExportBundle = ({ start_date, end_date }: any) => {
   const accessToken = getCookie("accessToken");
 
   const mutation = useMutation<AxiosResponse, Error, "">({
     mutationFn: async () => {
+      const query = new URLSearchParams();
+
+      if (start_date) query.append("start_date", start_date);
+      if (end_date) query.append("end_date", end_date);
+
       const res = await axios.get(
-        `${baseUrl}/exportBundles`,
+        `${baseUrl}/exportBundles${
+          query.toString() ? `?${query.toString()}` : ""
+        }`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
-        }
+        },
       );
       return res;
     },
