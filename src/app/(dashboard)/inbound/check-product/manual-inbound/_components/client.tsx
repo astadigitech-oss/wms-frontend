@@ -148,13 +148,16 @@ export const Client = () => {
 
         if (barcodeValue) {
           setBarcodeOpen(true);
+          const isUnder100k =
+            parseFloat(resource?.old_price_product ?? "0") < 100000;
+
           setMetaBarcode({
             barcode: barcodeValue,
-            newPrice: resource?.new_price_product,
-            newName: resource?.new_name_product,
+            newPrice: isUnder100k ? "" : resource?.new_price_product,
+            newName: isUnder100k ? "" : resource?.new_name_product,
             oldPrice: resource?.old_price_product,
-            category: categoryValue,
-            discount: resource?.discount_category,
+            category: isUnder100k ? "" : categoryValue,
+            discount: isUnder100k ? "" : resource?.discount_category,
           });
         }
       },
