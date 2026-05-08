@@ -54,48 +54,52 @@ const BarcodePrinted: React.FC<BarcodePrint> = ({
                   height={50}
                 />
               )}
-              <div className="border w-[80] py-1 px-2 text-center border-black">
-                <p className="font-bold text-[10px] leading-3 break-all">
-                  {colorHex && (
-                    <span
-                      className="inline-block mr-1"
-                      style={{
-                        display: "inline-block",
-                        width: "12px",
-                        height: "12px",
-                        backgroundColor: colorHex,
-                        borderRadius: "50%",
-                        border: "1px solid #000",
-                      }}
-                    />
-                  )}
-                  {category}{" "}
-                  {discount && (
-                    <span className="whitespace-nowrap">({discount}%)</span>
-                  )}
-                </p>
-              </div>
+              {category && (
+                <div className="border w-[80] py-1 px-2 text-center border-black">
+                  <p className="font-bold text-[10px] leading-3 break-all">
+                    {colorHex && (
+                      <span
+                        className="inline-block mr-1"
+                        style={{
+                          display: "inline-block",
+                          width: "12px",
+                          height: "12px",
+                          backgroundColor: colorHex,
+                          borderRadius: "50%",
+                          border: "1px solid #000",
+                        }}
+                      />
+                    )}
+                    {category}{" "}
+                    {discount && (
+                      <span className="whitespace-nowrap">({discount}%)</span>
+                    )}
+                  </p>
+                </div>
+              )}
             </div>
             {description && (
               <div className="text-[11px] font-semibold mt-1 line-clamp-2 leading-tight">
                 {description}
               </div>
             )}
-            <div className="flex text-base font-semibold gap-1">
-              <div className="flex flex-col">
-                <p>{!isBundle ? "Harga Retail" : "Total Awal"}</p>
-                <p>{!isBundle ? "Harga Diskon" : "Custom Display"}</p>
+            {newPrice && (
+              <div className="flex text-base font-semibold gap-1">
+                <div className="flex flex-col">
+                  <p>{!isBundle ? "Harga Retail" : "Total Awal"}</p>
+                  <p>{!isBundle ? "Harga Diskon" : "Custom Display"}</p>
+                </div>
+                <div className="flex flex-col">
+                  <p>
+                    :{" "}
+                    <span className="line-through">
+                      {formatRupiah(parseFloat(oldPrice))}
+                    </span>
+                  </p>
+                  <p>: {formatRupiah(parseFloat(newPrice))}</p>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <p>
-                  :{" "}
-                  <span className="line-through">
-                    {formatRupiah(parseFloat(oldPrice))}
-                  </span>
-                </p>
-                <p>: {formatRupiah(parseFloat(newPrice))}</p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

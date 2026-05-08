@@ -25,7 +25,7 @@ export const useExportHistorySku = ({ start_date, end_date }: any) => {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
-        }
+        },
       );
 
       return res;
@@ -35,13 +35,15 @@ export const useExportHistorySku = ({ start_date, end_date }: any) => {
       toast.success("File Successfully Exported");
     },
 
-    onError: (err) => {
+    onError: (err: AxiosError<any>) => {
       if (err.status === 403) {
         toast.error(`Error 403: Restricted Access`);
       } else {
-        toast.error(
-          `ERROR ${err?.status}: History Rack Staging failed to export`
-        );
+        const message =
+          err?.response?.data?.data?.message || "Bundle failed to export";
+
+        toast.error(`ERROR ${err?.status}: ${message}`);
+
         console.log("ERROR_EXPORT_HISTORY_STAGING:", err);
       }
     },
