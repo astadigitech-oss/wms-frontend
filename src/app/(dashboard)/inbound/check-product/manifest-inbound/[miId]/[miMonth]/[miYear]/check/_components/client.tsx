@@ -63,6 +63,7 @@ export const Client = () => {
     damaged: "",
     non: "",
     name: "",
+    newName: "",
     discount: 0,
     qty: "0",
   });
@@ -169,6 +170,7 @@ export const Client = () => {
           damaged: "",
           non: "",
           discount: 0,
+          newName: "",
           name: "",
           qty: "0",
         });
@@ -194,7 +196,7 @@ export const Client = () => {
       code_document: codeDocument,
       old_barcode_product: barcodeData?.old_barcode_product,
       new_barcode_product: "",
-      new_name_product: barcodeData?.old_name_product,
+      new_name_product: metaData.newName,
       old_name_product: barcodeData?.old_name_product,
       new_quantity_product: metaData.qty,
       new_price_product:
@@ -232,6 +234,7 @@ export const Client = () => {
             damaged: "",
             non: "",
             discount: 0,
+            newName: "",
             name: "",
             qty: "0",
           });
@@ -277,6 +280,7 @@ export const Client = () => {
         qty: Math.round(
           dataBarcode?.data.data.resource.product.old_quantity_product,
         ).toString(),
+        newName: dataBarcode?.data.data.resource.product.old_name_product ?? "",
       }));
     }
   }, [dataBarcode]);
@@ -500,8 +504,13 @@ export const Client = () => {
                     <div className="flex flex-col w-full gap-1">
                       <Label>Name</Label>
                       <Input
-                        value={barcodeData?.old_name_product}
-                        disabled
+                        value={metaData.newName}
+                        onChange={(e) =>
+                          setMetaData((prev) => ({
+                            ...prev,
+                            newName: e.target.value,
+                          }))
+                        }
                         className="w-full border-sky-400/80 focus-visible:ring-sky-400 disabled:opacity-100 disabled:cursor-default"
                       />
                     </div>

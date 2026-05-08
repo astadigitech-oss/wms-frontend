@@ -242,7 +242,7 @@ export const Client = () => {
       { id: dataResDetail?.id, source: dataResDetail?.source, body },
       {
         onSuccess: () => {
-          toast.success("Successfully updated to display");
+          toast.success("Successfully updated to staging");
           queryClient.invalidateQueries({
             queryKey: ["list-abn"],
           });
@@ -380,7 +380,7 @@ export const Client = () => {
       header: () => <div className="text-center">Action</div>,
       cell: ({ row }) => (
         <div className="flex gap-4 justify-center items-center">
-          <TooltipProviderPage value={<p>To Display</p>}>
+          <TooltipProviderPage value={<p>To Staging</p>}>
             <Button
               className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
