@@ -131,7 +131,7 @@ const DialogDetail = ({
         <DialogHeader>
           <DialogTitle className="justify-between flex items-center">
             <div className="flex items-center gap-4">
-              To Display Product
+              To Staging Product
               {!isLoading && (
                 <div className="flex items-center gap-2">
                   <Badge
@@ -519,7 +519,7 @@ const DialogDetail = ({
                 className="bg-sky-400/80 hover:bg-sky-400 text-black"
                 type="submit"
               >
-                To Display
+                To Staging
               </Button>
             </form>
             <div className="w-fit flex flex-none flex-col gap-4">
