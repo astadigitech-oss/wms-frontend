@@ -554,14 +554,29 @@ export const Client = () => {
                 <div className="flex w-full bg-white rounded-md overflow-hidden shadow p-5 gap-6 flex-col">
                   <h2 className="text-xl font-bold">New Data</h2>
                   <div className="flex w-full items-center gap-4 flex-col">
-                    <div className="flex flex-col w-full gap-1">
-                      <Label>Tag Color</Label>
-                      <div className="flex w-full gap-2 items-center border rounded-md border-sky-500 px-5 h-9 cursor-default">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ background: tagColor?.hexa_code_color }}
+                    <div className="w-full flex gap-4">
+                      <div className="flex flex-col w-full gap-1">
+                        <Label>Tag Color</Label>
+                        <div className="flex w-full gap-2 items-center border rounded-md border-sky-500 px-5 h-9 cursor-default">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ background: tagColor?.hexa_code_color }}
+                          />
+                          <p className="text-sm">{tagColor?.name_color}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col w-full gap-1">
+                        <Label>Name</Label>
+                        <Input
+                          value={metaData.newName}
+                          onChange={(e) =>
+                            setMetaData((prev) => ({
+                              ...prev,
+                              newName: e.target.value,
+                            }))
+                          }
+                          className="w-full border-sky-400/80 focus-visible:ring-sky-400"
                         />
-                        <p className="text-sm">{tagColor?.name_color}</p>
                       </div>
                     </div>
                     <div className="w-full flex gap-4">
