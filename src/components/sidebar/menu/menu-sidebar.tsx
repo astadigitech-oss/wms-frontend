@@ -648,7 +648,6 @@ import {
   Truck,
   User,
   Warehouse,
-  SquareLibrary,
 } from "lucide-react";
 
 interface MenuInboundProps {
@@ -791,12 +790,12 @@ const sidebarMenu = [
       //   icon: <Layers3 className="w-5 h-5 stroke-[1.5]" />,
       //   sub_menu: [],
       // },
-      {
-        title: "Approvement Stagging",
-        href: "/stagging/approvement",
-        icon: <SquareLibrary className="w-5 h-5 stroke-[1.5]" />,
-        sub_menu: [],
-      },
+      // {
+      //   title: "Approvement Stagging",
+      //   href: "/stagging/approvement",
+      //   icon: <SquareLibrary className="w-5 h-5 stroke-[1.5]" />,
+      //   sub_menu: [],
+      // },
       {
         title: "Stagging",
         href: "/stagging/rack",

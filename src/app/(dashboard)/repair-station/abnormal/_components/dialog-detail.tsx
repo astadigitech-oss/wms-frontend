@@ -526,7 +526,7 @@ const DialogDetail = ({
               {!dataColor ? (
                 <BarcodePrinted
                   barcode={input.barcode}
-                  description={input.newName}
+                  description={input.name}
                   newPrice={input.price}
                   oldPrice={input.oldPrice}
                   category={isColorPrice ? color?.name_color : input.category}
