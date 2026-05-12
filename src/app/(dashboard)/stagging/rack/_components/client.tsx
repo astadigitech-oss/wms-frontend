@@ -8,6 +8,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import {
+  ArrowRightCircle,
   // ArrowRightCircle,
   FileDown,
   HistoryIcon,
@@ -1056,13 +1057,13 @@ export const Client = () => {
                       )}
                     </Button>
                   </TooltipProviderPage>
-                  {/* <Button
+                  <Button
                     onClick={() => setIsOpen("filtered")}
                     className="bg-sky-400 hover:bg-sky-400/80 text-black"
                   >
                     Filtered Products
                     <ArrowRightCircle className="w-4 h-4 ml-2" />
-                  </Button> */}
+                  </Button>
                 </div>
               </div>
 
