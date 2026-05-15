@@ -4,12 +4,14 @@ import {
   FileDown,
   HistoryIcon,
   Loader2,
+  MoreHorizontal,
   Pencil,
   PlusCircle,
   Printer,
   ReceiptText,
   RefreshCw,
   Scan,
+  Shield,
   Trash2,
   Truck,
 } from "lucide-react";
@@ -56,6 +58,7 @@ import { useCreateRack } from "../_api/use-create-rack";
 import { useUpdateRack } from "../_api/use-update-rack";
 import { useToMigrate } from "../_api/use-to-migrate";
 import { useExportColorRack } from "../_api/use-export-color-rack";
+import { useExportDetailColorRack } from "../_api/use-export-detail-color-rack";
 import {
   Dialog,
   DialogContent,
@@ -63,6 +66,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useScanMigrateToDisplayProduct } from "../_api/use-scan-migrate-to-display-product";
+import { useToDamaged } from "../_api/use-to-damaged";
+import { DialogDamaged } from "./dialog-damaged";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const DialogDetail = dynamic(() => import("./dialog-detail"), {
   ssr: false,
@@ -84,6 +95,11 @@ export const Client = () => {
     useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [openErrorDialog, setOpenErrorDialog] = useState(false);
+  const [isOpenDamaged, setIsOpenDamaged] = useState(false);
+  const [damagedDescription, setDamagedDescription] = useState("");
+  const [damagedProductId, setDamagedProductId] = useState("");
+  const [source, setSource] = useState("");
+  const [damagedBarcode, setDamagedBarcode] = useState("");
 
   // dialog to migrate
   const [ToMigrateDialog, confirmToMigrate] = useConfirm(
@@ -171,9 +187,14 @@ export const Client = () => {
   const { mutate: mutateExportRack, isPending: isPendingExportRack } =
     useExportColorRack();
   const {
+    mutate: mutateExportDetailRack,
+    isPending: isPendingExportDetailRack,
+  } = useExportDetailColorRack();
+  const {
     mutate: mutateScanProductMigrate,
     isPending: isPendingScanProductMigrate,
   } = useScanMigrateToDisplayProduct();
+  const { mutate: mutateDamaged, isPending: isPendingDamaged } = useToDamaged();
 
   // data WMS
   const {
@@ -406,6 +427,42 @@ export const Client = () => {
     });
   };
 
+  const handleExportDetailRack = async (id: any) => {
+    mutateExportDetailRack(
+      { id },
+      {
+        onSuccess: (res) => {
+          const link = document.createElement("a");
+          link.href = res.data.data.resource.download_url;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        },
+      },
+    );
+  };
+
+  // handle to damaged
+  const handleSubmitDamaged = () => {
+    mutateDamaged(
+      {
+        body: {
+          description: damagedDescription,
+          product_id: damagedProductId,
+          source: source,
+        },
+      },
+      {
+        onSuccess: () => {
+          setIsOpenDamaged(false);
+          setDamagedDescription("");
+          setDamagedProductId("");
+          setSource("");
+        },
+      },
+    );
+  };
+
   // handle scan SO Barang
   const handleScanProductMigrate = (e: FormEvent) => {
     e.preventDefault();
@@ -588,7 +645,7 @@ export const Client = () => {
     },
     {
       accessorKey: "new_status_product",
-      header: "New Price",
+      header: "Status",
       cell: ({ row }) => (
         <Badge className="bg-sky-400/80 hover:bg-sky-400/80 text-black font-normal capitalize">
           {row.original.new_status_product}
@@ -598,44 +655,78 @@ export const Client = () => {
     {
       accessorKey: "action",
       header: () => <div className="text-center">Action</div>,
-      cell: ({ row }) => (
-        <div className="flex gap-4 justify-center items-center">
-          <TooltipProviderPage value={<p>Detail</p>}>
-            <Button
-              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
-              variant={"outline"}
-              disabled={isLoadingProduct}
-              onClick={() => {
-                setProductId(row.original.id);
-                setIsOpen("detail");
-              }}
-            >
-              {isLoadingProduct ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <ReceiptText className="w-4 h-4" />
-              )}
-            </Button>
-          </TooltipProviderPage>
-          <TooltipProviderPage value={<p>Delete</p>}>
-            <Button
-              className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
-              variant={"outline"}
-              disabled={isPendingDelete}
-              onClick={(e) => {
-                e.preventDefault();
-                handleDelete(row.original.id);
-              }}
-            >
-              {isPendingDelete ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Trash2 className="w-4 h-4" />
-              )}
-            </Button>
-          </TooltipProviderPage>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const isBundle = row.original.source === "bundle";
+
+        if (isBundle) return <div className="text-center">-</div>;
+
+        return (
+          <div className="flex justify-center items-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-9 h-9 p-0">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="center" className="w-40">
+                {/* DETAIL */}
+                <DropdownMenuItem
+                  onClick={() => {
+                    setProductId(row.original.id);
+                    setIsOpen("detail");
+                  }}
+                >
+                  {isLoadingProduct ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <ReceiptText className="w-4 h-4 mr-2 text-sky-600" />
+                  )}
+                  Detail
+                </DropdownMenuItem>
+
+                {/* DAMAGED */}
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setDamagedProductId(row.original.id);
+                    setDamagedBarcode(
+                      row.original.new_barcode_product ??
+                        row.original.old_barcode_product ??
+                        "-",
+                    );
+                    setSource(row.original.source ?? "");
+                    setIsOpenDamaged(true);
+                  }}
+                >
+                  {isPendingDamaged ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Shield className="w-4 h-4 mr-2 text-orange-600" />
+                  )}
+                  Damaged
+                </DropdownMenuItem>
+
+                {/* DELETE */}
+                <DropdownMenuItem
+                  className="text-red-600 focus:text-red-600"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleDelete(row.original.id);
+                  }}
+                >
+                  {isPendingDelete ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 mr-2" />
+                  )}
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
     },
   ];
   const columnListProductColorAPK: ColumnDef<any>[] = [
@@ -772,54 +863,148 @@ export const Client = () => {
     },
     {
       accessorKey: "new_status_product",
-      header: "New Price",
+      header: "Status",
       cell: ({ row }) => (
         <Badge className="bg-sky-400/80 hover:bg-sky-400/80 text-black font-normal capitalize">
           {row.original.new_status_product}
         </Badge>
       ),
     },
+    // {
+    //   accessorKey: "action",
+    //   header: () => <div className="text-center">Action</div>,
+    //   cell: ({ row }) => {
+    //     const isBundle = row.original.source === "bundle";
+
+    //     return (
+    //       <div className="flex gap-4 justify-center items-center">
+    //         {!isBundle && (
+    //           <>
+    //             {" "}
+    //             <TooltipProviderPage value={<p>Detail</p>}>
+    //               <Button
+    //                 className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+    //                 variant={"outline"}
+    //                 disabled={isLoadingProduct}
+    //                 onClick={() => {
+    //                   setProductId(row.original.id);
+    //                   setIsOpen("detail");
+    //                 }}
+    //               >
+    //                 {isLoadingProduct ? (
+    //                   <Loader2 className="w-4 h-4 animate-spin" />
+    //                 ) : (
+    //                   <ReceiptText className="w-4 h-4" />
+    //                 )}
+    //               </Button>
+    //             </TooltipProviderPage>
+    //             <TooltipProviderPage value={<p>Delete</p>}>
+    //               <Button
+    //                 className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+    //                 variant={"outline"}
+    //                 disabled={isPendingDelete}
+    //                 onClick={(e) => {
+    //                   e.preventDefault();
+    //                   handleDelete(row.original.id);
+    //                 }}
+    //               >
+    //                 {isPendingDelete ? (
+    //                   <Loader2 className="w-4 h-4 animate-spin" />
+    //                 ) : (
+    //                   <Trash2 className="w-4 h-4" />
+    //                 )}
+    //               </Button>
+    //             </TooltipProviderPage>
+    //             <TooltipProviderPage value={<p>Damaged</p>}>
+    //               <Button
+    //                 className="items-center w-9 px-0 flex-none h-9 border-orange-400 text-orange-700 hover:text-orange-700 hover:bg-orange-50 disabled:opacity-100 disabled:hover:bg-orange-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+    //                 variant={"outline"}
+    //                 disabled={isPendingDamaged}
+    //                 onClick={(e) => {
+    //                   e.preventDefault();
+    //                   setDamagedProductId(row.original.id);
+    //                   setDamagedBarcode(
+    //                     row.original.new_barcode_product ??
+    //                       row.original.old_barcode_product ??
+    //                       "-",
+    //                   );
+    //                   setSource(row.original.source ?? "");
+    //                   setIsOpenDamaged(true);
+    //                 }}
+    //               >
+    //                 {isPendingDamaged ? (
+    //                   <Loader2 className="w-4 h-4 animate-spin" />
+    //                 ) : (
+    //                   <Shield className="w-4 h-4" />
+    //                 )}
+    //               </Button>
+    //             </TooltipProviderPage>
+    //           </>
+    //         )}
+    //       </div>
+    //     );
+    //   },
+    // },
     {
       accessorKey: "action",
       header: () => <div className="text-center">Action</div>,
-      cell: ({ row }) => (
-        <div className="flex gap-4 justify-center items-center">
-          <TooltipProviderPage value={<p>Detail</p>}>
-            <Button
-              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
-              variant={"outline"}
-              disabled={isLoadingProduct}
-              onClick={() => {
-                setProductId(row.original.id);
-                setIsOpen("detail");
-              }}
-            >
-              {isLoadingProduct ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <ReceiptText className="w-4 h-4" />
-              )}
-            </Button>
-          </TooltipProviderPage>
-          <TooltipProviderPage value={<p>Delete</p>}>
-            <Button
-              className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
-              variant={"outline"}
-              disabled={isPendingDelete}
-              onClick={(e) => {
-                e.preventDefault();
-                handleDelete(row.original.id);
-              }}
-            >
-              {isPendingDelete ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Trash2 className="w-4 h-4" />
-              )}
-            </Button>
-          </TooltipProviderPage>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const isBundle = row.original.source === "bundle";
+
+        if (isBundle) return null;
+
+        return (
+          <div className="flex justify-center items-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-9 h-9 p-0">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="center">
+                <DropdownMenuItem
+                  onClick={() => {
+                    setProductId(row.original.id);
+                    setIsOpen("detail");
+                  }}
+                >
+                  <ReceiptText className="w-4 h-4 mr-2 text-sky-600" />
+                  Detail
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setDamagedProductId(row.original.id);
+                    setDamagedBarcode(
+                      row.original.new_barcode_product ??
+                        row.original.old_barcode_product ??
+                        "-",
+                    );
+                    setSource(row.original.source ?? "");
+                    setIsOpenDamaged(true);
+                  }}
+                >
+                  <Shield className="w-4 h-4 mr-2 text-orange-600" />
+                  Damaged
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  className="text-red-600 focus:text-red-600"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleDelete(row.original.id);
+                  }}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
     },
   ];
   const columnListProductSkuAPK: ColumnDef<any>[] = [
@@ -980,6 +1165,23 @@ export const Client = () => {
               >
                 <ReceiptText className="w-4 h-4" />
               </Link>
+            </Button>
+          </TooltipProviderPage>
+          <TooltipProviderPage value={<p>Export</p>}>
+            <Button
+              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+              variant={"outline"}
+              disabled={isPendingExportDetailRack}
+              onClick={(e) => {
+                e.preventDefault();
+                handleExportDetailRack(row.original.id);
+              }}
+            >
+              {isPendingExportDetailRack ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileDown className="w-4 h-4" />
+              )}
             </Button>
           </TooltipProviderPage>
           <TooltipProviderPage value={<p>Edit</p>}>
@@ -1172,6 +1374,15 @@ export const Client = () => {
         handleUpdate={handleUpdate}
         isPendingCreate={isPendingCreate}
         isPendingUpdate={isPendingUpdate}
+      />
+      <DialogDamaged
+        isOpen={isOpenDamaged}
+        handleClose={() => setIsOpenDamaged(false)}
+        barcode={damagedBarcode}
+        description={damagedDescription}
+        setDescription={setDamagedDescription}
+        isLoading={isPendingDamaged}
+        handleSubmit={handleSubmitDamaged}
       />
       <Dialog open={openErrorDialog} onOpenChange={setOpenErrorDialog}>
         <DialogContent className="max-w-md">
