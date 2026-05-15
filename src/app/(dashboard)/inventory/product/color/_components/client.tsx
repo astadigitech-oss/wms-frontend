@@ -138,13 +138,13 @@ export const Client = () => {
     perPage: 1,
   });
 
-  const [dataSearchRackWMS, setDataSearchRackWMS] = useQueryState("q", {
+  const [dataSearchRackWMS, setDataSearchRackWMS] = useQueryState("qRack", {
     defaultValue: "",
   });
   const searchValueRackWMS = useDebounce(dataSearchRackWMS);
 
   const [pageRackWms, setPageRackWms] = useQueryState(
-    "p",
+    "pRack",
     parseAsInteger.withDefault(1),
   );
   const [metaPageRackWms, setMetaPageRackWms] = useState({
