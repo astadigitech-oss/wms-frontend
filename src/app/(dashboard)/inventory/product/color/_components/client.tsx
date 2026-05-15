@@ -58,6 +58,7 @@ import { useCreateRack } from "../_api/use-create-rack";
 import { useUpdateRack } from "../_api/use-update-rack";
 import { useToMigrate } from "../_api/use-to-migrate";
 import { useExportColorRack } from "../_api/use-export-color-rack";
+import { useExportDetailColorRack } from "../_api/use-export-detail-color-rack";
 import {
   Dialog,
   DialogContent,
@@ -185,6 +186,10 @@ export const Client = () => {
     useToMigrate();
   const { mutate: mutateExportRack, isPending: isPendingExportRack } =
     useExportColorRack();
+  const {
+    mutate: mutateExportDetailRack,
+    isPending: isPendingExportDetailRack,
+  } = useExportDetailColorRack();
   const {
     mutate: mutateScanProductMigrate,
     isPending: isPendingScanProductMigrate,
@@ -420,6 +425,21 @@ export const Client = () => {
         document.body.removeChild(link);
       },
     });
+  };
+
+  const handleExportDetailRack = async (id: any) => {
+    mutateExportDetailRack(
+      { id },
+      {
+        onSuccess: (res) => {
+          const link = document.createElement("a");
+          link.href = res.data.data.resource.download_url;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        },
+      },
+    );
   };
 
   // handle to damaged
@@ -1145,6 +1165,23 @@ export const Client = () => {
               >
                 <ReceiptText className="w-4 h-4" />
               </Link>
+            </Button>
+          </TooltipProviderPage>
+          <TooltipProviderPage value={<p>Export</p>}>
+            <Button
+              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+              variant={"outline"}
+              disabled={isPendingExportDetailRack}
+              onClick={(e) => {
+                e.preventDefault();
+                handleExportDetailRack(row.original.id);
+              }}
+            >
+              {isPendingExportDetailRack ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileDown className="w-4 h-4" />
+              )}
             </Button>
           </TooltipProviderPage>
           <TooltipProviderPage value={<p>Edit</p>}>
