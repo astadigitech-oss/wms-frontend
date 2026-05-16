@@ -48,6 +48,8 @@ import { useSearchQuery } from "@/lib/search";
 import { Input } from "@/components/ui/input";
 import { useGetDetailApproveMI } from "../_api/use-get-detail-approve-mi";
 import { DialogDetailProductManualInbound } from "./dialogs/dialog-detail-product-manual-inbound";
+import { DialogDetailProductPendingApproval } from "./dialogs/dialog-detail-product-pending-approval";
+import { useGetDetailPendingApproval } from "../_api/use-get-detail-pending-approval";
 
 export const Client = () => {
   const [isStatus, setIsStatus] = useState(false);
@@ -82,7 +84,12 @@ export const Client = () => {
 
   const dataDetail = useGetDetailApprove({ id: saleId, status: openDialog });
   const dataDetailPalet = useGetDetailApprovePalet({ id: userId });
-  const dataDetailMI = useGetDetailApproveMI({ id: miId });
+  const dataDetailMI = useGetDetailApproveMI({
+    id: openDialog === "manual_inbound" ? miId : "",
+  });
+  const dataDetailPendingApproval = useGetDetailPendingApproval({
+    id: openDialog === "pending_approval" ? miId : "",
+  });
 
   // memo data utama
   const dataList: any[] = useMemo(() => {
@@ -185,6 +192,20 @@ export const Client = () => {
         openDialog={openDialog}
         setOpenDialog={setOpenDialog}
       />
+        <DialogDetailProductPendingApproval
+        open={openDialog === "pending_approval"} // open modal
+        onCloseModal={() => {
+          if (openDialog === "pending_approval") {
+            setOpenDialog("");
+            setMiId("");
+          }
+        }}
+        miId={miId}
+        setmiId={setMiId}
+        baseData={dataDetailPendingApproval}
+        openDialog={openDialog}
+        setOpenDialog={setOpenDialog}
+      />
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -249,6 +270,8 @@ export const Client = () => {
                               "bg-purple-500 hover:bg-purple-500 text-white",
                             status === "manual_inbound" &&
                               "bg-red-400 hover:bg-red-400 text-white",
+                              status === "pending_approval" &&
+                              "bg-emerald-600 hover:bg-emerald-600 text-white",
                           )}
                         >
                           {status}
@@ -387,6 +410,22 @@ export const Client = () => {
                               }}
                             />
                             Manual Inbound
+                          </CommandItem>
+                           <CommandItem
+                            onSelect={() => {
+                              setStatus("pending_approval");
+                              setIsStatus(false);
+                            }}
+                          >
+                            <Checkbox
+                              className="w-4 h-4 mr-2"
+                              checked={status === "pending_approval"}
+                              onCheckedChange={() => {
+                                setStatus("pending_approval");
+                                setIsStatus(false);
+                              }}
+                            />
+                            Pending Approval
                           </CommandItem>
                         </CommandList>
                       </CommandGroup>

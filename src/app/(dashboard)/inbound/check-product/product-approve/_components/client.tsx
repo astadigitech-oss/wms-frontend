@@ -20,6 +20,7 @@ import { alertError, cn, formatRupiah, setPaginate } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -82,8 +83,11 @@ export const Client = () => {
   });
   const [isOpenDetail, setIsOpenDetail] = useQueryState(
     "dialog",
-    parseAsBoolean.withDefault(false)
+    parseAsBoolean.withDefault(false),
   );
+  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [errorData, setErrorData] = useState<string[]>([]);
 
   const [dataSearch, setDataSearch] = useQueryState("q", { defaultValue: "" });
   const searchValue = useDebounce(dataSearch);
@@ -101,7 +105,7 @@ export const Client = () => {
   const searchValueDetail = useDebounce(dataSearchDetail);
   const [pageDetail, setPageDetail] = useQueryState(
     "p2",
-    parseAsInteger.withDefault(1)
+    parseAsInteger.withDefault(1),
   );
   const [metaPageDetail, setMetaPageDetail] = useState({
     last: 1, //page terakhir
@@ -113,17 +117,17 @@ export const Client = () => {
   const [PartialStagingDialog, confirmPartialStaging] = useConfirm(
     "To Partial Staging Document Product Approve",
     "This action cannot be undone",
-    "liquid"
+    "liquid",
   );
   const [DeleteDocumentDialog, confirmDeleteDocument] = useConfirm(
     "Delete Document Product Approve",
     "This action cannot be undone",
-    "destructive"
+    "destructive",
   );
   const [DeleteProductDialog, confirmDeleteProduct] = useConfirm(
     "Delete Product Approve",
     "The product will be moved to the scan list",
-    "destructive"
+    "destructive",
   );
 
   const { mutate: mutatePartialStaging, isPending: isPendingStaging } =
@@ -210,7 +214,39 @@ export const Client = () => {
 
     if (!ok) return;
 
-    mutatePartialStaging({ code_document: code });
+    mutatePartialStaging(
+      { code_document: code },
+      {
+        onSuccess: (res: any) => {
+          console.log("RES_PARTIAL_STAGING:", res);
+          const response = res?.data?.data;
+
+          if (!response?.status) {
+            setErrorMessage(response.message ?? "Terjadi kesalahan");
+            setErrorData(response.resource ?? []);
+
+            // tunggu confirm dialog tertutup dulu
+            setTimeout(() => {
+              setIsErrorDialogOpen(true);
+            }, 200);
+
+            return;
+          }
+        },
+
+        onError: (err: any) => {
+          const response = err?.response?.data?.data;
+
+          setErrorMessage(response?.message ?? "Terjadi kesalahan");
+
+          setErrorData(response?.resource ?? []);
+
+          setTimeout(() => {
+            setIsErrorDialogOpen(true);
+          }, 200);
+        },
+      },
+    );
   };
   const handleDeleteDocument = async (code: string) => {
     const ok = await confirmDeleteDocument();
@@ -232,7 +268,7 @@ export const Client = () => {
             queryKey: ["detail-product-approve", codeDocument],
           });
         },
-      }
+      },
     );
   };
 
@@ -240,11 +276,11 @@ export const Client = () => {
 
   const [isOpenCategory, setIsOpenCategory] = useQueryState(
     "categories",
-    parseAsBoolean.withDefault(false)
+    parseAsBoolean.withDefault(false),
   );
   const [isOpenDetailProduct, setIsOpenDetailProduct] = useQueryState(
     "dialog2",
-    parseAsBoolean.withDefault(false)
+    parseAsBoolean.withDefault(false),
   );
   const [productId, setProductId] = useQueryState("productId", {
     defaultValue: "",
@@ -295,7 +331,7 @@ export const Client = () => {
       const qualityObject = JSON.parse(v);
 
       const filteredEntries = Object.entries(qualityObject).find(
-        ([, value]) => value !== null
+        ([, value]) => value !== null,
       );
 
       return filteredEntries?.[0] ?? "";
@@ -318,7 +354,7 @@ export const Client = () => {
         (key) =>
           JSON.parse(dataDetailProduct?.new_quality)[
             key as keyof QualityData
-          ] !== null
+          ] !== null,
       ),
       new_category_product:
         input.category ?? dataDetailProduct?.new_category_product,
@@ -332,7 +368,7 @@ export const Client = () => {
             queryKey: ["product-detail-product-approve", dataDetailProduct.id],
           });
         },
-      }
+      },
     );
   };
 
@@ -402,7 +438,7 @@ export const Client = () => {
               row.original.status_document === "in progress" &&
                 "bg-yellow-400 hover:bg-yellow-400",
               row.original.status_document === "done" &&
-                "bg-green-400 hover:bg-green-400"
+                "bg-green-400 hover:bg-green-400",
             )}
           >
             {row.original.status_document}
@@ -574,6 +610,40 @@ export const Client = () => {
       <DeleteDocumentDialog />
       <DeleteProductDialog />
       <PartialStagingDialog />
+      <Dialog open={isErrorDialogOpen} onOpenChange={setIsErrorDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              Error
+            </DialogTitle>
+            <DialogDescription>{errorMessage}</DialogDescription>
+          </DialogHeader>
+
+          {errorData.length > 0 && (
+            <div className="mt-4">
+              <p className="font-semibold mb-2">
+                Barcode yang perlu di-approve:
+              </p>
+
+              <ul className="list-disc list-inside max-h-60 overflow-auto text-sm space-y-1">
+                {errorData.map((barcode, index) => (
+                  <li key={index}>{barcode}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 mt-6">
+            <Button
+              onClick={() => setIsErrorDialogOpen(false)}
+              className="bg-sky-400/80 hover:bg-sky-400 text-black"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -681,7 +751,7 @@ export const Client = () => {
               findNotNull(dataDetailProduct?.new_quality) !== "damaged" ||
               findNotNull(dataDetailProduct?.new_quality) !== "abnormal"
               ? "max-w-5xl"
-              : "max-w-6xl"
+              : "max-w-6xl",
           )}
         >
           <DialogHeader>
@@ -714,8 +784,8 @@ export const Client = () => {
                         <p className="text-sm text-gray-500 w-full overflow-hidden text-ellipsis whitespace-nowrap">
                           {formatRupiah(
                             parseFloat(
-                              dataDetailProduct?.old_price_product ?? "0"
-                            )
+                              dataDetailProduct?.old_price_product ?? "0",
+                            ),
                           )}
                         </p>
                       </div>
@@ -723,7 +793,7 @@ export const Client = () => {
                         <p className="text-xs font-medium">Qty</p>
                         <p className="text-sm text-gray-500 w-full overflow-hidden text-ellipsis whitespace-nowrap">
                           {parseFloat(
-                            dataDetailProduct?.new_quantity_product ?? "0"
+                            dataDetailProduct?.new_quantity_product ?? "0",
                           ).toLocaleString()}
                         </p>
                       </div>
@@ -755,7 +825,7 @@ export const Client = () => {
                                 "bg-red-200 hover:bg-red-200 border-red-700 text-red-700",
                               findNotNull(dataDetailProduct?.new_quality) ===
                                 "abnormal" &&
-                                "bg-orange-200 hover:bg-orange-200 border-orange-700 text-orange-700"
+                                "bg-orange-200 hover:bg-orange-200 border-orange-700 text-orange-700",
                             )}
                           >
                             {findNotNull(dataDetailProduct?.new_quality)}
@@ -951,7 +1021,7 @@ export const Client = () => {
             <h3
               className={cn(
                 "font-bold text-xl",
-                isOpenCategory ? "flex" : "hidden"
+                isOpenCategory ? "flex" : "hidden",
               )}
             >
               Select Category
@@ -959,13 +1029,13 @@ export const Client = () => {
             <ScrollArea
               className={cn(
                 "h-[500px] w-full border border-sky-500 p-2 rounded-md",
-                isOpenCategory ? "flex" : "hidden"
+                isOpenCategory ? "flex" : "hidden",
               )}
             >
               <RadioGroup
                 onValueChange={(e) => {
                   const selectedCategory = categories.find(
-                    (item) => item.name_category === e
+                    (item) => item.name_category === e,
                   );
                   setInput((prev) => ({
                     ...prev,
@@ -986,7 +1056,7 @@ export const Client = () => {
                       "flex items-center gap-4 w-full border px-4 py-2.5 rounded-md",
                       input.category === item.name_category
                         ? "border-gray-500 bg-sky-100"
-                        : "border-gray-300"
+                        : "border-gray-300",
                     )}
                   >
                     <RadioGroupItem
@@ -1004,7 +1074,7 @@ export const Client = () => {
                           "font-bold border-b pb-1.5 whitespace-nowrap text-ellipsis overflow-hidden w-full",
                           input.category === item.name_category
                             ? "border-gray-500"
-                            : "border-gray-300"
+                            : "border-gray-300",
                         )}
                       >
                         {item.name_category}
