@@ -67,6 +67,21 @@ const BadgeStatus = ({
         {isLoading ? <Loader2 className="animate-spin" /> : <ArrowUpRight />}
       </Button>
     );
+  } else if (item.approved === "0" && item.status === "pending_approval") {
+    return (
+      <Button
+        onClick={(e) => {
+          e.preventDefault();
+          setMiId(item.id);
+          setOpenDialog(item.status);
+        }}
+        disabled={isLoading}
+        className="text-black bg-sky-400/80 hover:bg-sky-400 h-7 px-3 [&_svg]:size-3 gap-1"
+      >
+        <p className="text-xs">Check</p>
+        {isLoading ? <Loader2 className="animate-spin" /> : <ArrowUpRight />}
+      </Button>
+    );
   } else if (item.approved === "0") {
     return (
       <Button
@@ -140,6 +155,8 @@ export const columnNotification = ({
               "bg-purple-500 hover:bg-purple-500 text-white",
             row.original.status.toLowerCase() === "manual_inbound" &&
               "bg-red-400 hover:bg-red-400 text-white",
+            row.original.status.toLowerCase() === "pending_approval" &&
+              "bg-emerald-600 hover:bg-emerald-600 text-white",
           )}
         >
           {row.original.status}
