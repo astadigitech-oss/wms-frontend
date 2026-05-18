@@ -48,6 +48,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToMigrate } from "../_api/use-to-migrate";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const DialogProduct = dynamic(() => import("./dialog-product"), {
   ssr: false,
@@ -60,6 +67,9 @@ export const Client = () => {
   const [SOProductInput, setSOProductInput] = useState("");
   const [openErrorDialog, setOpenErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [openTagDialog, setOpenTagDialog] = useState(false);
+  const [selectedTag, setSelectedTag] = useState("");
+  const [pendingBarcode, setPendingBarcode] = useState("");
 
   // search, debounce, paginate strat ----------------------------------------------------------------
 
@@ -168,12 +178,17 @@ export const Client = () => {
     mutateMigrate({ id });
   };
 
-  const handleAddProduct = (barcode: string) => {
-    const body = {
+  const handleAddProduct = (barcode: string, tag?: string) => {
+    const body: any = {
       rack_id: rackId,
-      barcode: barcode,
+      barcode,
       source: "display",
     };
+
+    if (tag) {
+      body.tag = tag;
+    }
+
     mutateAddProduct(
       { body },
       {
@@ -181,18 +196,56 @@ export const Client = () => {
           if (addRef.current) {
             addRef.current.focus();
           }
+
           setAddProductSearch("");
+          setOpenTagDialog(false);
+          setSelectedTag("");
+          setPendingBarcode("");
         },
-        onError: async (err: any) => {
-          toast.error(
-            `ERROR ${err?.status}: ${
-              (err.response?.data as any).message || "Product failed to add"
-            } `,
-          );
+
+        onError: (err: any) => {
+          const status = err?.response?.status;
+
+          const message =
+            err?.response?.data?.message || "Product failed to add";
+
+          if (status === 422) {
+            setPendingBarcode(barcode);
+            setOpenTagDialog(true);
+            return;
+          }
+
+          toast.error(`ERROR ${status}: ${message}`);
         },
       },
     );
   };
+
+  // const handleAddProduct = (barcode: string) => {
+  //   const body = {
+  //     rack_id: rackId,
+  //     barcode: barcode,
+  //     source: "display",
+  //   };
+  //   mutateAddProduct(
+  //     { body },
+  //     {
+  //       onSuccess: () => {
+  //         if (addRef.current) {
+  //           addRef.current.focus();
+  //         }
+  //         setAddProductSearch("");
+  //       },
+  //       onError: async (err: any) => {
+  //         toast.error(
+  //           `ERROR ${err?.status}: ${
+  //             (err.response?.data as any).message || "Product failed to add"
+  //           } `,
+  //         );
+  //       },
+  //     },
+  //   );
+  // };
 
   const handleRemoveProduct = async (rackId: any, productId: any) => {
     const ok = await confirmDeleteProduct();
@@ -318,12 +371,21 @@ export const Client = () => {
         </div>
       ),
     },
+    // {
+    //   accessorKey: "old_price_product",
+    //   header: "Old Price",
+    //   cell: ({ row }) => (
+    //     <div className="tabular-nums">
+    //       {formatRupiah(row.original.old_price_product)}
+    //     </div>
+    //   ),
+    // },
     {
-      accessorKey: "old_price_product",
-      header: "Old Price",
+      accessorKey: "new_price_product",
+      header: "New Price",
       cell: ({ row }) => (
         <div className="tabular-nums">
-          {formatRupiah(row.original.old_price_product)}
+          {formatRupiah(row.original.new_price_product)}
         </div>
       ),
     },
@@ -501,6 +563,59 @@ export const Client = () => {
             >
               OK
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={openTagDialog} onOpenChange={setOpenTagDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Tag Brown</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Karena produk memiliki tag Brown, silakan ubah tag menjadi Small
+              atau Big untuk melanjutkan penambahan produk ke rak dan pastikan
+              tag yang dipilih sudah sesuai.
+            </p>
+
+            <Select value={selectedTag} onValueChange={setSelectedTag}>
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih tag" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="Small">Small</SelectItem>
+
+                <SelectItem value="Big">Big</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setOpenTagDialog(false);
+                  setSelectedTag("");
+                }}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                className="bg-sky-400 hover:bg-sky-500 text-black"
+                disabled={!selectedTag || isPendingAddProduct}
+                onClick={() => {
+                  handleAddProduct(pendingBarcode, selectedTag);
+                }}
+              >
+                {isPendingAddProduct ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Submit"
+                )}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

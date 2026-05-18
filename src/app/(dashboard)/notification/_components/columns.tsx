@@ -321,3 +321,32 @@ export const columnPalet = ({}: ColumnPaletProps): ColumnDef<any>[] => [
     ),
   },
 ];
+
+export const columnFilteredProduct = ({}: any): ColumnDef<any>[] => [
+  {
+    header: () => <div className="text-center">No</div>,
+    id: "id",
+    cell: ({ row }) => (
+      <div className="text-center tabular-nums">
+        {(row.index + 1).toLocaleString()}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "new_barcode_product||old_barcode_product",
+    header: "Barcode",
+    cell: ({ row }) =>
+      row.original.new_barcode_product ??
+      row.original.old_barcode_product ??
+      "-",
+  },
+  {
+    accessorKey: "new_name_product",
+    header: "Product Name",
+    cell: ({ row }) => (
+      <div className="max-w-[500px] break-all">
+        {row.original.new_name_product}
+      </div>
+    ),
+  },
+];
