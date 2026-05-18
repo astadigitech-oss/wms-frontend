@@ -1123,11 +1123,11 @@ export const Client = () => {
       cell: ({ row }) => row.original.total_items ?? "-",
     },
     {
-      accessorKey: "total_old_price",
-      header: "Old Price",
+      accessorKey: "total_new_price",
+      header: "New Price",
       cell: ({ row }) => (
         <div className="tabular-nums">
-          {formatRupiah(row.original.total_old_price ?? 0)}
+          {formatRupiah(row.original.total_new_price ?? 0)}
         </div>
       ),
     },

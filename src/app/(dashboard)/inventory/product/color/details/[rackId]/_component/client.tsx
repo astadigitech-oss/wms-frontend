@@ -371,12 +371,21 @@ export const Client = () => {
         </div>
       ),
     },
+    // {
+    //   accessorKey: "old_price_product",
+    //   header: "Old Price",
+    //   cell: ({ row }) => (
+    //     <div className="tabular-nums">
+    //       {formatRupiah(row.original.old_price_product)}
+    //     </div>
+    //   ),
+    // },
     {
-      accessorKey: "old_price_product",
-      header: "Old Price",
+      accessorKey: "new_price_product",
+      header: "New Price",
       cell: ({ row }) => (
         <div className="tabular-nums">
-          {formatRupiah(row.original.old_price_product)}
+          {formatRupiah(row.original.new_price_product)}
         </div>
       ),
     },
