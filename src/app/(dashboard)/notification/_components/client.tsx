@@ -1,7 +1,12 @@
 "use client";
 
 import { useQueryState, parseAsString } from "nuqs";
-import { XCircle, RefreshCw, CircleFadingPlus } from "lucide-react";
+import {
+  XCircle,
+  RefreshCw,
+  CircleFadingPlus,
+  ArrowRightCircle,
+} from "lucide-react";
 import { AxiosError } from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { alertError, cn } from "@/lib/utils";
@@ -50,10 +55,15 @@ import { useGetDetailApproveMI } from "../_api/use-get-detail-approve-mi";
 import { DialogDetailProductManualInbound } from "./dialogs/dialog-detail-product-manual-inbound";
 import { DialogDetailProductPendingApproval } from "./dialogs/dialog-detail-product-pending-approval";
 import { useGetDetailPendingApproval } from "../_api/use-get-detail-pending-approval";
+import { DialogFiltered } from "./dialogs/dialog-filtered";
 
 export const Client = () => {
   const [isStatus, setIsStatus] = useState(false);
   const [openDialog, setOpenDialog] = useQueryState(
+    "dialog",
+    parseAsString.withDefault(""),
+  );
+  const [isOpen, setIsOpen] = useQueryState(
     "dialog",
     parseAsString.withDefault(""),
   );
@@ -192,7 +202,7 @@ export const Client = () => {
         openDialog={openDialog}
         setOpenDialog={setOpenDialog}
       />
-        <DialogDetailProductPendingApproval
+      <DialogDetailProductPendingApproval
         open={openDialog === "pending_approval"} // open modal
         onCloseModal={() => {
           if (openDialog === "pending_approval") {
@@ -205,6 +215,14 @@ export const Client = () => {
         baseData={dataDetailPendingApproval}
         openDialog={openDialog}
         setOpenDialog={setOpenDialog}
+      />
+      <DialogFiltered
+        open={isOpen === "filtered"}
+        onOpenChange={() => {
+          if (isOpen === "filtered") {
+            setIsOpen("");
+          }
+        }}
       />
       <Breadcrumb>
         <BreadcrumbList>
@@ -270,7 +288,7 @@ export const Client = () => {
                               "bg-purple-500 hover:bg-purple-500 text-white",
                             status === "manual_inbound" &&
                               "bg-red-400 hover:bg-red-400 text-white",
-                              status === "pending_approval" &&
+                            status === "pending_approval" &&
                               "bg-emerald-600 hover:bg-emerald-600 text-white",
                           )}
                         >
@@ -411,7 +429,7 @@ export const Client = () => {
                             />
                             Manual Inbound
                           </CommandItem>
-                           <CommandItem
+                          <CommandItem
                             onSelect={() => {
                               setStatus("pending_approval");
                               setIsStatus(false);
@@ -443,6 +461,15 @@ export const Client = () => {
                   </Button>
                 )}
               </div>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                onClick={() => setIsOpen("filtered")}
+                className="bg-sky-400 hover:bg-sky-400/80 text-black"
+              >
+                Filtered product
+                <ArrowRightCircle className="w-4 h-4 ml-2" />
+              </Button>
             </div>
           </div>
           <DataTable
