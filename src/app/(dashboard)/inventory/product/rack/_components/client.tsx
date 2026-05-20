@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import {
   BookMarked,
+  CircleFadingPlus,
   FileDown,
   HistoryIcon,
   Loader2,
@@ -16,6 +17,7 @@ import {
   ReceiptText,
   RefreshCw,
   Shield,
+  XCircle,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { alertError, cn, formatRupiah } from "@/lib/utils";
@@ -63,6 +65,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useExportRackCategory } from "../_api/use-export-rack-category";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Checkbox } from "@/components/ui/checkbox";
 const DialogCreateEdit = dynamic(() => import("./dialog-create-edit"), {
   ssr: false,
 });
@@ -91,6 +106,11 @@ export const Client = () => {
   const [rackId, setRackId] = useQueryState("rackId", {
     defaultValue: "",
   });
+  const [isRackStatus, setIsRackStatus] = useState(false);
+
+  const [rackStatus, setRackStatus] = useState<"null" | "not_null" | "">(
+    "not_null",
+  );
   const [productId, setProductId] = useQueryState("productId", {
     defaultValue: "",
   });
@@ -235,6 +255,7 @@ export const Client = () => {
     error: errorProducts,
     isSuccess: isSuccessProducts,
   } = useGetListProduct({
+    rack_status: rackStatus,
     p: pageProduct,
     q: searchValueProduct, // product tab has its own search input `dataSearch`
   });
@@ -1450,6 +1471,92 @@ export const Client = () => {
                       />
                     </Button>
                   </TooltipProviderPage>
+                  <div className="flex items-center gap-3">
+                    <Popover open={isRackStatus} onOpenChange={setIsRackStatus}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          className="
+          border-sky-400/80 
+          border 
+          text-black 
+          bg-transparent
+          border-dashed 
+          hover:bg-transparent 
+          flex px-3 
+          hover:border-sky-400
+        "
+                        >
+                          <CircleFadingPlus className="h-4 w-4 mr-2" />
+                          Rack Status
+                          {rackStatus && (
+                            <Separator
+                              orientation="vertical"
+                              className="mx-2 bg-gray-500 w-[1.5px]"
+                            />
+                          )}
+                          {rackStatus && (
+                            <Badge
+                              className={cn(
+                                "rounded px-3 text-black font-normal",
+                                rackStatus === "not_null" &&
+                                  "bg-green-300 hover:bg-green-300",
+
+                                rackStatus === "null" &&
+                                  "bg-yellow-300 hover:bg-yellow-300",
+                              )}
+                            >
+                              {rackStatus === "not_null" ? "Sudah" : "Belum"}
+                            </Badge>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+
+                      <PopoverContent className="p-0 w-56" align="start">
+                        <Command>
+                          <CommandGroup>
+                            <CommandList>
+                              <CommandItem
+                                onSelect={() => {
+                                  setRackStatus("not_null");
+                                  setIsRackStatus(false);
+                                }}
+                              >
+                                <Checkbox
+                                  className="mr-2 h-4 w-4"
+                                  checked={rackStatus === "not_null"}
+                                />
+                                Sudah Masuk Rack
+                              </CommandItem>
+
+                              <CommandItem
+                                onSelect={() => {
+                                  setRackStatus("null");
+                                  setIsRackStatus(false);
+                                }}
+                              >
+                                <Checkbox
+                                  className="mr-2 h-4 w-4"
+                                  checked={rackStatus === "null"}
+                                />
+                                Belum Masuk Rack
+                              </CommandItem>
+                            </CommandList>
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+
+                    {rackStatus && (
+                      <Button
+                        variant="ghost"
+                        className="flex px-3"
+                        onClick={() => setRackStatus("")}
+                      >
+                        Reset
+                        <XCircle className="w-4 h-4 ml-2" />
+                      </Button>
+                    )}
+                  </div>
                   <Button
                     onClick={(e) => {
                       e.preventDefault();
