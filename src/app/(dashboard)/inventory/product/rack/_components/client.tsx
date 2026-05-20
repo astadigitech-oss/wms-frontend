@@ -108,9 +108,7 @@ export const Client = () => {
   });
   const [isRackStatus, setIsRackStatus] = useState(false);
 
-  const [rackStatus, setRackStatus] = useState<"null" | "not_null" | "">(
-    "not_null",
-  );
+  const [rackStatus, setRackStatus] = useState<"null" | "not_null" | "">("");
   const [productId, setProductId] = useQueryState("productId", {
     defaultValue: "",
   });
