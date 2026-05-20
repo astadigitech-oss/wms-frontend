@@ -94,9 +94,7 @@ export const Client = () => {
   });
   const [isRackStatus, setIsRackStatus] = useState(false);
 
-  const [rackStatus, setRackStatus] = useState<"null" | "not_null" | "">(
-    "not_null",
-  );
+  const [rackStatus, setRackStatus] = useState<"null" | "not_null" | "">("");
   const [isMounted, setIsMounted] = useState(false);
   const [barcodeOpen, setBarcodeOpen] = useState(false);
   const [selectedNameRack, setSelectedNameRack] = useState("");
@@ -1093,9 +1091,7 @@ export const Client = () => {
                                   "bg-yellow-300 hover:bg-yellow-300",
                               )}
                             >
-                              {rackStatus === "not_null"
-                                ? "Sudah"
-                                : "Belum"}
+                              {rackStatus === "not_null" ? "Sudah" : "Belum"}
                             </Badge>
                           )}
                         </Button>
