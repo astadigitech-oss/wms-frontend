@@ -15,6 +15,7 @@ import {
   Edit3,
   FileDown,
   FileText,
+  HistoryIcon,
   // Gem,
   Loader2,
   RefreshCw,
@@ -100,7 +101,7 @@ export const Client = () => {
   const { historyId } = useParams();
   const [openEdit, setOpenEdit] = useQueryState(
     "dialog",
-    parseAsBoolean.withDefault(false)
+    parseAsBoolean.withDefault(false),
   );
   const [productId, setProductId] = useQueryState("productId", {
     defaultValue: "",
@@ -121,7 +122,7 @@ export const Client = () => {
       "abnormal",
       "discrepancy",
       "non",
-    ] as const).withDefault("good")
+    ] as const).withDefault("good"),
   );
   const [isFilter, setIsFilter] = useState(false);
   const queryClient = useQueryClient();
@@ -209,7 +210,7 @@ export const Client = () => {
       values: dataDetailCH?.total_data_abnormal ?? 0,
       fill: "var(--color-abnormal)",
     },
-      {
+    {
       dataType: "non",
       values: dataDetailCH?.total_data_non ?? 0,
       fill: "var(--color-non)",
@@ -261,7 +262,7 @@ export const Client = () => {
           link.click();
           document.body.removeChild(link);
         },
-      }
+      },
     );
   };
 
@@ -281,7 +282,7 @@ export const Client = () => {
             queryKey: ["detail-check-history", data.data.data.resource.id],
           });
         },
-      }
+      },
     );
   };
 
@@ -340,7 +341,7 @@ export const Client = () => {
         <div className="tabular-nums text-center">
           {Math.round(
             row.original.new_quantity_product ??
-              row.original.old_quantity_product
+              row.original.old_quantity_product,
           ).toLocaleString()}
         </div>
       ),
@@ -368,7 +369,7 @@ export const Client = () => {
                 let parsedQuality: any = {};
                 try {
                   parsedQuality = JSON.parse(
-                    row.original.actual_new_quality ?? "{}"
+                    row.original.actual_new_quality ?? "{}",
                   );
                 } catch {
                   parsedQuality = {};
@@ -380,7 +381,7 @@ export const Client = () => {
                   actual_old_price_product: row.original
                     .actual_old_price_product
                     ? Math.round(
-                        parseFloat(row.original.actual_old_price_product)
+                        parseFloat(row.original.actual_old_price_product),
                       ).toString()
                     : "0",
                   condition: String(activeQuality),
@@ -488,7 +489,7 @@ export const Client = () => {
             {dataDetailCH?.code_document}
           </Badge>
         </div>
-        <div className="w-fullflex flex-col gap-4 p-3 border border-sky-500 rounded-lg">
+        <div className="w-full flex flex-col gap-4 p-3 border border-sky-500 rounded-lg">
           <div className="w-full flex gap-2 items-center py-3">
             <div className="w-9 h-9 rounded-full border-[1.5px] border-sky-500 text-sky-500 flex items-center justify-center">
               <FileText className="w-5 h-5" />
@@ -561,7 +562,7 @@ export const Client = () => {
                         %
                       </td>
                     </tr>
-                      <tr className="text-left">
+                    <tr className="text-left">
                       <td>Non</td>
                       <td>
                         {(
@@ -571,10 +572,7 @@ export const Client = () => {
                         ).toLocaleString()}
                       </td>
                       <td>
-                        {(
-                          dataDetailCH?.percentage_non ?? 0
-                        ).toLocaleString()}{" "}
-                        %
+                        {(dataDetailCH?.percentage_non ?? 0).toLocaleString()} %
                       </td>
                     </tr>
                     <tr className="text-left">
@@ -635,7 +633,7 @@ export const Client = () => {
                       <td>Abnormal</td>
                       <td>
                         {formatRupiah(
-                          dataDetailCH?.abnormal?.total_old_price
+                          dataDetailCH?.abnormal?.total_old_price,
                         ) ?? "-"}
                       </td>
                       <td>
@@ -658,7 +656,7 @@ export const Client = () => {
                         %
                       </td>
                     </tr>
-                     <tr className="text-left">
+                    <tr className="text-left">
                       <td>Non</td>
                       <td>
                         {formatRupiah(dataDetailCH?.non?.total_old_price) ??
@@ -693,7 +691,8 @@ export const Client = () => {
                         {" "}
                         {(
                           dataDetailCH?.percentage_in ?? 0
-                        ).toLocaleString()} %{" "}
+                        ).toLocaleString()}{" "}
+                        %{" "}
                       </td>
                     </tr>
                     <tr className="text-left font-bold bg-sky-200">
@@ -1285,7 +1284,7 @@ export const Client = () => {
                   <RefreshCw
                     className={cn(
                       "w-4 h-4",
-                      loadingDetail ? "animate-spin" : ""
+                      loadingDetail ? "animate-spin" : "",
                     )}
                   />
                 </Button>
@@ -1315,8 +1314,8 @@ export const Client = () => {
                                 "bg-green-200 hover:bg-green-200",
                               filter === "discrepancy" &&
                                 "bg-yellow-200 hover:bg-yellow-200",
-                                filter === "non" &&
-                                "bg-purple-200 hover:bg-purple-200"
+                              filter === "non" &&
+                                "bg-purple-200 hover:bg-purple-200",
                             )}
                           >
                             {filter}
@@ -1416,24 +1415,35 @@ export const Client = () => {
                 </div>
               </div>
             </div>
-            <Button
-              type="button"
-              onClick={(e) => handleExport(e)}
-              className="bg-sky-400/80 hover:bg-sky-400 text-black disabled:opacity-100"
-              disabled={isPendingExport}
-            >
-              {isPendingExport ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                <>
-                  <FileDown className="w-4 h-4 mr-2" />
-                  Export
-                </>
-              )}
-            </Button>
+            <div className="flex gap-4 items-center ml-auto">
+              <Button
+                type="button"
+                onClick={(e) => handleExport(e)}
+                className="bg-sky-400/80 hover:bg-sky-400 text-black disabled:opacity-100"
+                disabled={isPendingExport}
+              >
+                {isPendingExport ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <FileDown className="w-4 h-4 mr-2" />
+                    Export
+                  </>
+                )}
+              </Button>
+              <Button
+                asChild
+                className="bg-sky-400 hover:bg-sky-400/80 text-black"
+              >
+                <Link href={`/inbound/check-history/${historyId}/history`}>
+                  <HistoryIcon className="w-4 h-4 ml-2" />
+                  History
+                </Link>
+              </Button>
+            </div>
           </div>
           <DataTable
             columns={columnDetailCheckHistory}
