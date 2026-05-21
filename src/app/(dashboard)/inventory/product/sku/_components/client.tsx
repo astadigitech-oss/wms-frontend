@@ -16,7 +16,15 @@ import Pagination from "@/components/pagination";
 import { Input } from "@/components/ui/input";
 import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, ChevronDown, FileDown, Loader2, ReceiptText, RefreshCw, XCircle } from "lucide-react";
+import {
+  CalendarIcon,
+  ChevronDown,
+  FileDown,
+  Loader2,
+  ReceiptText,
+  RefreshCw,
+  XCircle,
+} from "lucide-react";
 import { useSearchQuery } from "@/lib/search";
 import { usePagination } from "@/lib/pagination";
 import { cn } from "@/lib/utils";
@@ -25,11 +33,27 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useExportHistorySku } from "../_api/use-export-history-sku";
 import { format, subDays } from "date-fns";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Calendar } from "@/components/ui/calendar";
 import { DateRange } from "react-day-picker";
+import { useExportAllSku } from "../_api/use-export-all-sku";
 
 export const Client = () => {
   const { search, searchValue, setSearch } = useSearchQuery();
@@ -55,6 +79,8 @@ export const Client = () => {
       start_date: date?.from ? format(date.from, "yyyy-MM-dd") : "",
       end_date: date?.to ? format(date.to, "yyyy-MM-dd") : "",
     });
+  const { mutate: mutateExportAllSku, isPending: isPendingExportAllSku } =
+    useExportAllSku();
 
   const dataList: any[] = useMemo(() => {
     return data?.data.data.resource.data;
@@ -65,6 +91,19 @@ export const Client = () => {
       onSuccess: (res) => {
         const link = document.createElement("a");
         link.href = res.data.data.resource.download_url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      },
+    });
+  };
+
+  const handleExportAll = async () => {
+    mutateExportAllSku(undefined, {
+      onSuccess: (res: any) => {
+        const link = document.createElement("a");
+        link.href = res.data.data.resource;
+        link.target = "_blank"; // opsional
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -225,6 +264,7 @@ export const Client = () => {
                 </Button>
               </TooltipProviderPage>
             </div>
+
             {/* RIGHT SECTION */}
             <div className="flex items-center gap-3 ml-auto">
               {/* DATE PICKER */}
@@ -345,6 +385,22 @@ export const Client = () => {
                   <FileDown className="w-4 h-4 mr-2" />
                 )}
                 Export
+              </Button>
+                 <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleExportAll();
+                }}
+                type="button"
+                className="bg-sky-400/80 hover:bg-sky-400 text-black"
+                disabled={isPendingExportAllSku}
+              >
+                {isPendingExportAllSku ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <FileDown className="w-4 h-4 mr-2" />
+                )}
+                Export All
               </Button>
             </div>
           </div>
