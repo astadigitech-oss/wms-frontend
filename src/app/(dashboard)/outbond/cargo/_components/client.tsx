@@ -180,7 +180,7 @@ export const Client = () => {
     mutateExportAllCargo(undefined, {
       onSuccess: (res : any) => {
         const link = document.createElement("a");
-        link.href = res.data.data.resource.download_url;
+        link.href = res.data.data.resource;
         link.target = "_blank"; // opsional
         document.body.appendChild(link);
         link.click();

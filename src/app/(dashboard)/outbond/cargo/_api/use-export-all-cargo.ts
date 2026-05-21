@@ -13,7 +13,7 @@ export const useExportAllCargo = () => {
   const mutation = useMutation<AxiosResponse, Error, void>({
     mutationFn: async () => {
       const res = await axios.get(
-        `${baseUrl}/export-cargo`,
+        `${baseUrl}/export-cargo-products?status=proses`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
