@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  FileDown,
   Filter,
   Loader2,
   MoreVertical,
@@ -69,6 +70,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useExportAllCargo } from "../_api/use-export-all-cargo";
 
 const DialogDetail = dynamic(() => import("./dialog-detail"), {
   ssr: false,
@@ -119,6 +121,8 @@ export const Client = () => {
     useExportDetailDataCargo();
   const { mutate: mutateScanSO, isPending: isPendingScanSO } =
     useScanSODocument();
+  const { mutate: mutateExportAllCargo, isPending: isPendingExportAllCargo } =
+    useExportAllCargo();
 
   // get data utama
   const {
@@ -171,6 +175,19 @@ export const Client = () => {
   const dataResDetail: any = useMemo(() => {
     return dataDetail?.data.data.resource;
   }, [dataDetail]);
+
+  const handleExportAll = async () => {
+    mutateExportAllCargo(undefined, {
+      onSuccess: (res : any) => {
+        const link = document.createElement("a");
+        link.href = res.data.data.resource.download_url;
+        link.target = "_blank"; // opsional
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      },
+    });
+  };
 
   // load data
   const loading = isLoading || isRefetching || isPending;
@@ -807,6 +824,23 @@ export const Client = () => {
                 </Button>
               </TooltipProviderPage>
             </div>
+            <TooltipProviderPage value={"Export Data"} side="left">
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleExportAll();
+                }}
+                className="items-center flex-none h-9 px-0 w-9 bg-sky-100 border border-sky-400 hover:bg-sky-200 text-black disabled:opacity-100 disabled:hover:bg-sky-200 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                disabled={isPendingExportAllCargo}
+                variant={"outline"}
+              >
+                {isPendingExportAllCargo ? (
+                  <Loader2 className={"w-4 h-4 animate-spin"} />
+                ) : (
+                  <FileDown className={"w-4 h-4"} />
+                )}
+              </Button>
+            </TooltipProviderPage>
             <div className="w-40">
               <Select
                 value={type}

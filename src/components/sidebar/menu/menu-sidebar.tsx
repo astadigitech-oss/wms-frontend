@@ -642,7 +642,6 @@ import {
   Recycle,
   Shield,
   ShoppingBasket,
-  SwatchBook,
   Target,
   TriangleAlert,
   Truck,
@@ -982,37 +981,37 @@ const sidebarMenu = [
         icon: <Recycle className="w-5 h-5 stroke-[1.5]" />,
         sub_menu: [],
       },
-      {
-        title: "Pallet Bulky",
-        href: undefined,
-        icon: <SwatchBook className="w-5 h-5 stroke-[1.5]" />,
-        sub_menu: [
-          {
-            title: "list Pallet",
-            href: "/outbond/pallet/list",
-          },
-          // {
-          //   title: "Category Pallet",
-          //   href: "/outbond/pallet/category-pallet",
-          // },
-          // {
-          //   title: "Warehouse",
-          //   href: "/outbond/pallet/warehouse",
-          // },
-          {
-            title: "Condition",
-            href: "/outbond/pallet/condition",
-          },
-          {
-            title: "Status",
-            href: "/outbond/pallet/status",
-          },
-          {
-            title: "Brand",
-            href: "/outbond/pallet/brand",
-          },
-        ],
-      },
+      // {
+      //   title: "Pallet Bulky",
+      //   href: undefined,
+      //   icon: <SwatchBook className="w-5 h-5 stroke-[1.5]" />,
+      //   sub_menu: [
+      //     {
+      //       title: "list Pallet",
+      //       href: "/outbond/pallet/list",
+      //     },
+      //     // {
+      //     //   title: "Category Pallet",
+      //     //   href: "/outbond/pallet/category-pallet",
+      //     // },
+      //     // {
+      //     //   title: "Warehouse",
+      //     //   href: "/outbond/pallet/warehouse",
+      //     // },
+      //     {
+      //       title: "Condition",
+      //       href: "/outbond/pallet/condition",
+      //     },
+      //     {
+      //       title: "Status",
+      //       href: "/outbond/pallet/status",
+      //     },
+      //     {
+      //       title: "Brand",
+      //       href: "/outbond/pallet/brand",
+      //     },
+      //   ],
+      // },
     ],
   },
   {
