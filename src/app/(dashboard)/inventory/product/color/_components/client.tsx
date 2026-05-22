@@ -74,6 +74,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useExportAllColor } from "../_api/use-export-all-color";
 
 const DialogDetail = dynamic(() => import("./dialog-detail"), {
   ssr: false,
@@ -196,6 +197,10 @@ export const Client = () => {
   } = useScanMigrateToDisplayProduct();
   const { mutate: mutateDamaged, isPending: isPendingDamaged } = useToDamaged();
 
+  const {
+    mutate: mutateExportAllProductColor,
+    isPending: isPendingExportAllProductColor,
+  } = useExportAllColor();
   // data WMS
   const {
     data: dataWMS,
@@ -413,6 +418,19 @@ export const Client = () => {
 
     if (!ok) return;
     mutateToMigrate({ id });
+  };
+
+  const handleExportAllProductColor = async () => {
+    mutateExportAllProductColor(undefined, {
+      onSuccess: (res: any) => {
+        const link = document.createElement("a");
+        link.href = res.data.data.resource;
+        link.target = "_blank"; // opsional
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      },
+    });
   };
 
   const handleExportRack = async () => {
@@ -1688,6 +1706,24 @@ export const Client = () => {
                             />
                           </Button>
                         </TooltipProviderPage>
+                        <div className="flex items-center gap-3 ml-auto">
+                          <Button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleExportAllProductColor();
+                            }}
+                            type="button"
+                            className="bg-sky-400/80 hover:bg-sky-400 text-black"
+                            disabled={isPendingExportAllProductColor}
+                          >
+                            {isPendingExportAllProductColor ? (
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                              <FileDown className="w-4 h-4 mr-2" />
+                            )}
+                            Export All
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     <DataTable
