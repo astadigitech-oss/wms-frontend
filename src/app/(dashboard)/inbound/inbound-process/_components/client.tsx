@@ -78,8 +78,6 @@ export const Client = () => {
     return dataCogs?.data.data.resource;
   }, [dataCogs]);
 
-  console.log("Cogs:", Cogs);
-
   const {
     mutate: mutateUpload,
     isPending: isPendingUpload,
