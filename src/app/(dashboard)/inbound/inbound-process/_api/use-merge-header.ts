@@ -7,6 +7,7 @@ import { getCookie } from "cookies-next/client";
 
 type RequestType = {
   code_document: any;
+  channel_id: any;
   headerMappings: {
     old_barcode_product: string[];
     old_name_product: string[];
