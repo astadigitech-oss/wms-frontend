@@ -29,6 +29,13 @@ import {
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useAddBag, useGetListBag, useGetListCategory } from "../_api";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 type BagItem = {
   id: string;
@@ -374,6 +381,19 @@ export const Client = () => {
           </div>
         </DialogContent>
       </Dialog>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>Outbond</BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/outbond/cargo-new/bag">Bag</BreadcrumbLink>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="rounded-md border bg-white p-5 shadow-sm">

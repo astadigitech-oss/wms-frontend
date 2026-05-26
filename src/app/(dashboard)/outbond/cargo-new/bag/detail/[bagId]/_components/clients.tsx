@@ -27,6 +27,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   useAddProductBag,
   useGetDetailBag,
+  useGetInfoBag,
   useRemoveProductBag,
 } from "../_api";
 
@@ -139,6 +140,16 @@ export const Client = () => {
       p: page,
       q: searchValue,
     });
+  const {
+    data: dataInfo,
+    isPending: isPendingInfo,
+    isRefetching: isRefetchingInfo,
+    refetch: refetchInfo,
+    error: errorInfo,
+    isError: isErrorInfo,
+  } = useGetInfoBag({
+    id: bagId,
+  });
 
   const { mutate: addProduct, isPending: isPendingAddProduct } =
     useAddProductBag();
@@ -146,13 +157,21 @@ export const Client = () => {
     useRemoveProductBag();
 
   const dataResource = data?.data?.data?.resource;
-  console.log("dataResource", dataResource);
-  const bag = dataResource?.bag_product ?? {};
+  const dataInfoResource = dataInfo?.data?.data?.resource;
+  const bag =
+    dataInfoResource?.bag_product ??
+    dataInfoResource?.bag ??
+    dataInfoResource?.bag_info ??
+    dataInfoResource?.data ??
+    dataInfoResource ??
+    dataResource?.bag_product ??
+    {};
   const products: ProductBag[] = useMemo(() => {
     return dataResource?.data ?? [];
   }, [dataResource]);
 
   const isLoading = isPending || isRefetching;
+  const isInfoLoading = isPendingInfo || isRefetchingInfo;
   const isBagDone = bag?.status === "done";
 
   const handleAddProduct = (barcode: string) => {
@@ -170,6 +189,7 @@ export const Client = () => {
         onSuccess: () => {
           setScanValue("");
           refetch();
+          refetchInfo();
           scanRef.current?.focus();
         },
       },
@@ -190,6 +210,7 @@ export const Client = () => {
       {
         onSuccess: () => {
           refetch();
+          refetchInfo();
         },
       },
     );
@@ -215,11 +236,24 @@ export const Client = () => {
     });
   }, [isError, error]);
 
+  useEffect(() => {
+    alertError({
+      isError: isErrorInfo,
+      error: errorInfo as AxiosError,
+      data: "Info Detail Bag",
+      action: "get data",
+      method: "GET",
+    });
+  }, [isErrorInfo, errorInfo]);
+
   if (!isMounted) {
     return <Loading />;
   }
 
-  if (isError && (error as AxiosError)?.status === 403) {
+  if (
+    (isError && (error as AxiosError)?.status === 403) ||
+    (isErrorInfo && (errorInfo as AxiosError)?.status === 403)
+  ) {
     return (
       <div className="flex flex-col items-start h-full bg-gray-100 w-full relative p-4 gap-4">
         <Forbidden />
@@ -250,19 +284,25 @@ export const Client = () => {
         <div className="rounded-md border border-sky-400/80 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-4 pb-4">
             <div>
-              <h2 className="text-xl font-bold">Info Bag</h2>
+              <h2 className="text-xl font-bold">Detail Bag</h2>
               <p className="text-sm text-gray-500">
                 Detail informasi dan produk dalam bag.
               </p>
             </div>
             <TooltipProviderPage value="Reload Data">
               <Button
-                onClick={() => refetch()}
+                onClick={() => {
+                  refetch();
+                  refetchInfo();
+                }}
                 className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
                 variant="outline"
               >
                 <RefreshCw
-                  className={cn("w-4 h-4", isLoading ? "animate-spin" : "")}
+                  className={cn(
+                    "w-4 h-4",
+                    isLoading || isInfoLoading ? "animate-spin" : "",
+                  )}
                 />
               </Button>
             </TooltipProviderPage>
@@ -270,13 +310,13 @@ export const Client = () => {
 
           <div className="grid grid-cols-1 overflow-hidden rounded-md md:grid-cols-2">
             <div className="p-4 ">
-              <p className="text-xs text-gray-500">Code Bag</p>
+              <p className="text-xs text-gray-500">Barcode Bag</p>
               <p className="mt-1 break-all text-lg font-semibold">
                 {bag?.barcode_bag ?? "-"}
               </p>
             </div>
             <div className=" p-4 ">
-              <p className="text-xs text-gray-500">Nama</p>
+              <p className="text-xs text-gray-500">Name Bag</p>
               <p className="mt-1 break-all text-lg font-semibold capitalize">
                 {bag?.name_bag ?? "-"}
               </p>
@@ -294,7 +334,7 @@ export const Client = () => {
               <p className="text-xs text-gray-500">Total Price</p>
               <div className="mt-1 flex items-center justify-between gap-3">
                 <p className="text-lg font-semibold tabular-nums">
-                  {formatRupiah(bag?.price ?? 0)}
+                  {formatRupiah(bag?.total_old_price_bulky_sale ?? 0)}
                 </p>
                 {/* <WalletCards className="size-5 text-emerald-700" /> */}
               </div>
