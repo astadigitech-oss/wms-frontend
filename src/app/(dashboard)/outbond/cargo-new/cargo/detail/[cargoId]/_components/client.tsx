@@ -32,22 +32,28 @@ import { ColumnDef } from "@tanstack/react-table";
 import { AxiosError } from "axios";
 import {
   CheckCircle2,
+  FileDown,
   Loader2,
   Package,
+  Printer,
+  ReceiptText,
   Ruler,
   RefreshCw,
   ScanText,
   Search,
   ShoppingBag,
   ShoppingCart,
+  Tag,
   Trash2,
   WalletCards,
   X,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   useAddBagCargo,
+  useExportDetailDataCargo,
   useGetDetailCargo,
   useGetInfoCargo,
   useGetListBuyer,
@@ -56,6 +62,13 @@ import {
   useSetStatusCargo,
   useSetWeightCargo,
 } from "../_api";
+
+const DialogBarcode = dynamic(() => import("./dialog-barcode"), {
+  ssr: false,
+});
+const DialogDetail = dynamic(() => import("./dialog-detail"), {
+  ssr: false,
+});
 
 const getCargoTotalBag = (cargo: any | undefined, bags: any[]) =>
   cargo?.total_bag ?? bags.length ?? 0;
@@ -250,6 +263,12 @@ export const Client = () => {
   const [openWeight, setOpenWeight] = useState(false);
   const [openSale, setOpenSale] = useState(false);
   const [openBuyer, setOpenBuyer] = useState(false);
+  const [openDetail, setOpenDetail] = useState(false);
+  const [idBagCargo, setIdBagCargo] = useState("");
+  const [barcodeOpen, setBarcodeOpen] = useState(false);
+  const [selectedBarcodeBag, setSelectedBarcodeBag] = useState("");
+  const [selectedTotalProductBag, setSelectedTotalProductBag] = useState("");
+  const [selectedNameBag, setSelectedNameBag] = useState("");
   const [scanValue, setScanValue] = useState("");
   const [searchBag, setSearchBag] = useState("");
   const [weightInput, setWeightInput] = useState({
@@ -303,6 +322,8 @@ export const Client = () => {
     useSetStatusCargo();
   const { mutate: setSaleCargo, isPending: isPendingSetSale } =
     useSetSaleCargo();
+  const { mutate: exportDetailCargo, isPending: isPendingExport } =
+    useExportDetailDataCargo();
 
   const dataResource = data?.data?.data?.resource;
   const dataInfoResource = dataInfo?.data?.data?.resource;
@@ -326,11 +347,14 @@ export const Client = () => {
   const saleStatus = normalizeSaleStatus(cargo?.is_sale);
   const isCargoDone = statusCargo === "selesai" || statusCargo === "done";
   const isCargoProcess = statusCargo === "proses" || statusCargo === "process";
-  const isCargoNotSale = saleStatus === "not sale";
+  const canSetCargoSale = saleStatus === "not sale" || saleStatus === "ready";
+  const isCargoOnline = cargo?.type?.toLowerCase() === "cargo online";
   const nextStatus = isCargoDone ? "proses" : "selesai";
   const cargoPrice =
     cargo?.total_old_price ?? cargo?.total_old_price_bulky ?? 0;
-  const saleDiscount = parseNumberValue(saleInput.discount_bulky);
+  const saleDiscount = isCargoOnline
+    ? 0
+    : parseNumberValue(saleInput.discount_bulky);
   const totalAfterDiscount = Math.max(
     cargoPrice - (saleDiscount / 100) * cargoPrice,
     0,
@@ -423,14 +447,29 @@ export const Client = () => {
       {
         id: cargoId,
         body: {
-          buyer_id: saleInput.buyer_id,
-          discount_bulky: saleInput.discount_bulky,
+          buyer_id: isCargoOnline ? "" : saleInput.buyer_id,
+          discount_bulky: isCargoOnline ? "0" : saleInput.discount_bulky,
         },
       },
       {
         onSuccess: () => {
           setOpenSale(false);
           refetchAll();
+        },
+      },
+    );
+  };
+
+  const handleExport = () => {
+    exportDetailCargo(
+      { id: cargoId },
+      {
+        onSuccess: (res) => {
+          const link = document.createElement("a");
+          link.href = res.data.data.resource;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
         },
       },
     );
@@ -561,7 +600,37 @@ export const Client = () => {
       id: "action",
       header: () => <div className="text-center">Action</div>,
       cell: ({ row }) => (
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-2">
+          <TooltipProviderPage value="Detail Bag">
+            <Button
+              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50"
+              variant="outline"
+              onClick={(e) => {
+                e.preventDefault();
+                setIdBagCargo(row.original.id);
+                setOpenDetail(true);
+              }}
+            >
+              <ReceiptText className="w-4 h-4" />
+            </Button>
+          </TooltipProviderPage>
+          <TooltipProviderPage value="Print Barcode">
+            <Button
+              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
+              variant="outline"
+              onClick={(e) => {
+                e.preventDefault();
+                setSelectedBarcodeBag(row.original.barcode_bag ?? "");
+                setSelectedTotalProductBag(
+                  normalizeValue(row.original.total_product),
+                );
+                setSelectedNameBag(row.original.name_bag ?? "");
+                setBarcodeOpen(true);
+              }}
+            >
+              <Printer className="w-4 h-4" />
+            </Button>
+          </TooltipProviderPage>
           <TooltipProviderPage value="Remove Bag">
             <Button
               className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
@@ -603,6 +672,30 @@ export const Client = () => {
     <div className="flex flex-col items-start bg-gray-100 w-full relative px-4 gap-4 py-4">
       <RemoveBagDialog />
       <StatusDialog />
+      <DialogDetail
+        open={openDetail}
+        onCloseModal={() => {
+          if (openDetail) {
+            setOpenDetail(false);
+            setIdBagCargo("");
+          }
+        }}
+        idBagCargo={idBagCargo}
+      />
+      <DialogBarcode
+        onCloseModal={() => {
+          if (barcodeOpen) {
+            setBarcodeOpen(false);
+          }
+        }}
+        open={barcodeOpen}
+        barcode={selectedBarcodeBag}
+        qty={selectedTotalProductBag}
+        name={selectedNameBag}
+        handleCancel={() => {
+          setBarcodeOpen(false);
+        }}
+      />
       <DialogBuyer
         open={openBuyer}
         onOpenChange={() => setOpenBuyer(false)}
@@ -728,30 +821,34 @@ export const Client = () => {
           <DialogHeader>
             <DialogTitle>Set Penjualan</DialogTitle>
             <DialogDescription>
-              Pilih buyer dan isi diskon untuk penjualan cargo.
+              {isCargoOnline
+                ? "Set penjualan untuk cargo online."
+                : "Pilih buyer dan isi diskon untuk penjualan cargo."}
             </DialogDescription>
           </DialogHeader>
           <form className="flex flex-col gap-4" onSubmit={handleSaleSubmit}>
-            <div className="flex flex-col gap-2">
-              <Label>Buyer</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={saleInput.name_buyer || saleInput.buyer_id}
-                  placeholder="Select buyer"
-                  className="border-sky-400/80 bg-gray-50 focus-visible:ring-sky-400"
-                  disabled
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="border-sky-400 text-sky-700 hover:bg-sky-50 hover:text-sky-700"
-                  onClick={() => setOpenBuyer(true)}
-                  disabled={isPendingSetSale}
-                >
-                  Select
-                </Button>
+            {!isCargoOnline && (
+              <div className="flex flex-col gap-2">
+                <Label>Buyer</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={saleInput.name_buyer || saleInput.buyer_id}
+                    placeholder="Select buyer"
+                    className="border-sky-400/80 bg-gray-50 focus-visible:ring-sky-400"
+                    disabled
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-sky-400 text-sky-700 hover:bg-sky-50 hover:text-sky-700"
+                    onClick={() => setOpenBuyer(true)}
+                    disabled={isPendingSetSale}
+                  >
+                    Select
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
             <div className="flex flex-col gap-2">
               <Label htmlFor="cargo-sale-price">Price</Label>
               <Input
@@ -761,25 +858,27 @@ export const Client = () => {
                 disabled
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="cargo-discount">Diskon (%)</Label>
-              <Input
-                id="cargo-discount"
-                type="number"
-                min="0"
-                max="100"
-                step="0.01"
-                value={saleInput.discount_bulky}
-                onChange={(e) =>
-                  setSaleInput((prev) => ({
-                    ...prev,
-                    discount_bulky: e.target.value,
-                  }))
-                }
-                className="border-sky-400/80 focus-visible:ring-sky-400"
-                disabled={isPendingSetSale}
-              />
-            </div>
+            {!isCargoOnline && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="cargo-discount">Diskon (%)</Label>
+                <Input
+                  id="cargo-discount"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={saleInput.discount_bulky}
+                  onChange={(e) =>
+                    setSaleInput((prev) => ({
+                      ...prev,
+                      discount_bulky: e.target.value,
+                    }))
+                  }
+                  className="border-sky-400/80 focus-visible:ring-sky-400"
+                  disabled={isPendingSetSale}
+                />
+              </div>
+            )}
             <div className="flex flex-col gap-2">
               <Label htmlFor="cargo-total-after-discount">
                 Total After Discount
@@ -803,7 +902,10 @@ export const Client = () => {
               <Button
                 type="submit"
                 variant="liquid"
-                disabled={!saleInput.buyer_id.trim() || isPendingSetSale}
+                disabled={
+                  (!isCargoOnline && !saleInput.buyer_id.trim()) ||
+                  isPendingSetSale
+                }
               >
                 {isPendingSetSale ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -844,35 +946,54 @@ export const Client = () => {
               {cargo?.name_document ?? cargo?.code_document_bulky ?? "-"}
             </p>
           </div>
-          <TooltipProviderPage value="Reload Data">
-            <Button
-              onClick={() => {
-                refetchAll();
-              }}
-              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
-              variant="outline"
-            >
-              <RefreshCw
-                className={cn(
-                  "w-4 h-4",
-                  loading || infoLoading ? "animate-spin" : "",
+          <div className="flex flex-none items-center gap-2">
+            <TooltipProviderPage value="Export Data">
+              <Button
+                onClick={handleExport}
+                className="items-center h-9 border-emerald-400 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-700"
+                variant="outline"
+                disabled={isPendingExport}
+              >
+                {isPendingExport ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <FileDown className="size-4" />
                 )}
-              />
-            </Button>
-          </TooltipProviderPage>
+                Export Data
+              </Button>
+            </TooltipProviderPage>
+            <TooltipProviderPage value="Reload Data">
+              <Button
+                onClick={() => {
+                  refetchAll();
+                }}
+                className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
+                variant="outline"
+              >
+                <RefreshCw
+                  className={cn(
+                    "w-4 h-4",
+                    loading || infoLoading ? "animate-spin" : "",
+                  )}
+                />
+              </Button>
+            </TooltipProviderPage>
+          </div>
         </div>
 
         <div className="mb-4 flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center">
-          <Button
-            type="button"
-            variant="outline"
-            className="border-sky-400 text-sky-700 hover:bg-sky-50 hover:text-sky-700"
-            onClick={handleOpenWeight}
-          >
-            <Ruler className="size-4" />
-            Set Weight
-          </Button>
-          {isCargoNotSale && (isCargoProcess || isCargoDone) && (
+          {canSetCargoSale && (
+            <Button
+              type="button"
+              variant="outline"
+              className="border-sky-400 text-sky-700 hover:bg-sky-50 hover:text-sky-700"
+              onClick={handleOpenWeight}
+            >
+              <Ruler className="size-4" />
+              Set Weight
+            </Button>
+          )}
+          {canSetCargoSale && (isCargoProcess || isCargoDone) && (
             <Button
               type="button"
               variant="outline"
@@ -888,7 +1009,7 @@ export const Client = () => {
               Set Status {nextStatus}
             </Button>
           )}
-          {isCargoNotSale && (
+          {canSetCargoSale && (
             <Button
               type="button"
               variant="outline"
@@ -901,7 +1022,7 @@ export const Client = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-6">
           <div className="rounded-md border p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -971,6 +1092,55 @@ export const Client = () => {
               </div>
               <div className="flex size-11 items-center justify-center rounded-md bg-amber-100 text-amber-700">
                 <ScanText className="size-5" />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-md border p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-gray-500">
+                  Status Sale
+                </p>
+                <div className="mt-2">
+                  <Badge
+                    className={cn(
+                      "rounded min-w-24 justify-center text-black font-normal capitalize",
+                      saleStatus === "sale" && "bg-green-400 hover:bg-green-400",
+                      saleStatus === "ready" && "bg-sky-400 hover:bg-sky-400",
+                      saleStatus === "not sale" &&
+                        "bg-yellow-400 hover:bg-yellow-400",
+                    )}
+                  >
+                    {cargo?.is_sale ?? "-"}
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex size-11 items-center justify-center rounded-md bg-emerald-100 text-emerald-700">
+                <ShoppingCart className="size-5" />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-md border p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Type</p>
+                <div className="mt-2">
+                  <Badge
+                    className={cn(
+                      "rounded min-w-24 justify-center text-black font-normal capitalize",
+                      isCargoOnline
+                        ? "bg-blue-400 hover:bg-blue-400"
+                        : "bg-purple-400 hover:bg-purple-400",
+                    )}
+                  >
+                    {cargo?.type ?? "-"}
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex size-11 items-center justify-center rounded-md bg-blue-100 text-blue-700">
+                <Tag className="size-5" />
               </div>
             </div>
           </div>

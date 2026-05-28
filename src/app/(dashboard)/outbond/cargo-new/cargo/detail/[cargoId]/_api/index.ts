@@ -1,4 +1,5 @@
 export * from "./use-add-bag-cargo";
+export * from "./use-export-detail-data-cargo";
 export * from "./use-get-detail-cargo";
 export * from "./use-get-info-cargo";
 export * from "./use-get-list-buyer";
