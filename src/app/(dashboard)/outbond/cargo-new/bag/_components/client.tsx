@@ -21,11 +21,13 @@ import {
   Loader2,
   Package,
   Plus,
+  Printer,
   ReceiptText,
   RefreshCw,
   Search,
   WalletCards,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useAddBag, useGetListBag, useGetListCategory } from "../_api";
@@ -38,9 +40,17 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Badge } from "@/components/ui/badge";
 
+const DialogBarcode = dynamic(() => import("./dialog-barcode"), {
+  ssr: false,
+});
+
 export const Client = () => {
   const [categorySearch, setCategorySearch] = useState("");
   const [isOpenAddBag, setIsOpenAddBag] = useState(false);
+  const [barcodeOpen, setBarcodeOpen] = useState(false);
+  const [selectedBarcodeBag, setSelectedBarcodeBag] = useState("");
+  const [selectedTotalProductBag, setSelectedTotalProductBag] = useState("");
+  const [selectedNameBag, setSelectedNameBag] = useState("");
   const { search, searchValue, setSearch } = useSearchQuery("searchBag");
   const { metaPage, page, setPage, setPagination } = usePagination("pageBag");
 
@@ -211,6 +221,26 @@ export const Client = () => {
       header: () => <div className="text-center">Action</div>,
       cell: ({ row }) => (
         <div className="flex justify-center gap-2">
+          <TooltipProviderPage value="Print Barcode">
+            <Button
+              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
+              variant="outline"
+              onClick={(e) => {
+                e.preventDefault();
+                setSelectedBarcodeBag(row.original.barcode_bag ?? "");
+                setSelectedTotalProductBag(
+                  row.original.total_product === undefined ||
+                    row.original.total_product === null
+                    ? ""
+                    : String(row.original.total_product),
+                );
+                setSelectedNameBag(row.original.name_bag ?? "");
+                setBarcodeOpen(true);
+              }}
+            >
+              <Printer className="w-4 h-4" />
+            </Button>
+          </TooltipProviderPage>
           <TooltipProviderPage value="Detail Bag">
             <Button
               asChild
@@ -289,6 +319,20 @@ export const Client = () => {
 
   return (
     <div className="flex flex-col items-start bg-gray-100 w-full relative px-4 gap-4 py-4">
+      <DialogBarcode
+        onCloseModal={() => {
+          if (barcodeOpen) {
+            setBarcodeOpen(false);
+          }
+        }}
+        open={barcodeOpen}
+        barcode={selectedBarcodeBag}
+        qty={selectedTotalProductBag}
+        name={selectedNameBag}
+        handleCancel={() => {
+          setBarcodeOpen(false);
+        }}
+      />
       <Dialog open={isOpenAddBag} onOpenChange={setIsOpenAddBag}>
         <DialogContent className="max-w-5xl">
           <DialogHeader>

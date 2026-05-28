@@ -32,8 +32,11 @@ import { ColumnDef } from "@tanstack/react-table";
 import { AxiosError } from "axios";
 import {
   CheckCircle2,
+  FileDown,
   Loader2,
   Package,
+  Printer,
+  ReceiptText,
   Ruler,
   RefreshCw,
   ScanText,
@@ -45,10 +48,12 @@ import {
   WalletCards,
   X,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   useAddBagCargo,
+  useExportDetailDataCargo,
   useGetDetailCargo,
   useGetInfoCargo,
   useGetListBuyer,
@@ -57,6 +62,13 @@ import {
   useSetStatusCargo,
   useSetWeightCargo,
 } from "../_api";
+
+const DialogBarcode = dynamic(() => import("./dialog-barcode"), {
+  ssr: false,
+});
+const DialogDetail = dynamic(() => import("./dialog-detail"), {
+  ssr: false,
+});
 
 const getCargoTotalBag = (cargo: any | undefined, bags: any[]) =>
   cargo?.total_bag ?? bags.length ?? 0;
@@ -251,6 +263,12 @@ export const Client = () => {
   const [openWeight, setOpenWeight] = useState(false);
   const [openSale, setOpenSale] = useState(false);
   const [openBuyer, setOpenBuyer] = useState(false);
+  const [openDetail, setOpenDetail] = useState(false);
+  const [idBagCargo, setIdBagCargo] = useState("");
+  const [barcodeOpen, setBarcodeOpen] = useState(false);
+  const [selectedBarcodeBag, setSelectedBarcodeBag] = useState("");
+  const [selectedTotalProductBag, setSelectedTotalProductBag] = useState("");
+  const [selectedNameBag, setSelectedNameBag] = useState("");
   const [scanValue, setScanValue] = useState("");
   const [searchBag, setSearchBag] = useState("");
   const [weightInput, setWeightInput] = useState({
@@ -304,6 +322,8 @@ export const Client = () => {
     useSetStatusCargo();
   const { mutate: setSaleCargo, isPending: isPendingSetSale } =
     useSetSaleCargo();
+  const { mutate: exportDetailCargo, isPending: isPendingExport } =
+    useExportDetailDataCargo();
 
   const dataResource = data?.data?.data?.resource;
   const dataInfoResource = dataInfo?.data?.data?.resource;
@@ -440,6 +460,21 @@ export const Client = () => {
     );
   };
 
+  const handleExport = () => {
+    exportDetailCargo(
+      { id: cargoId },
+      {
+        onSuccess: (res) => {
+          const link = document.createElement("a");
+          link.href = res.data.data.resource;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        },
+      },
+    );
+  };
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -565,7 +600,37 @@ export const Client = () => {
       id: "action",
       header: () => <div className="text-center">Action</div>,
       cell: ({ row }) => (
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-2">
+          <TooltipProviderPage value="Detail Bag">
+            <Button
+              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50"
+              variant="outline"
+              onClick={(e) => {
+                e.preventDefault();
+                setIdBagCargo(row.original.id);
+                setOpenDetail(true);
+              }}
+            >
+              <ReceiptText className="w-4 h-4" />
+            </Button>
+          </TooltipProviderPage>
+          <TooltipProviderPage value="Print Barcode">
+            <Button
+              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
+              variant="outline"
+              onClick={(e) => {
+                e.preventDefault();
+                setSelectedBarcodeBag(row.original.barcode_bag ?? "");
+                setSelectedTotalProductBag(
+                  normalizeValue(row.original.total_product),
+                );
+                setSelectedNameBag(row.original.name_bag ?? "");
+                setBarcodeOpen(true);
+              }}
+            >
+              <Printer className="w-4 h-4" />
+            </Button>
+          </TooltipProviderPage>
           <TooltipProviderPage value="Remove Bag">
             <Button
               className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
@@ -607,6 +672,30 @@ export const Client = () => {
     <div className="flex flex-col items-start bg-gray-100 w-full relative px-4 gap-4 py-4">
       <RemoveBagDialog />
       <StatusDialog />
+      <DialogDetail
+        open={openDetail}
+        onCloseModal={() => {
+          if (openDetail) {
+            setOpenDetail(false);
+            setIdBagCargo("");
+          }
+        }}
+        idBagCargo={idBagCargo}
+      />
+      <DialogBarcode
+        onCloseModal={() => {
+          if (barcodeOpen) {
+            setBarcodeOpen(false);
+          }
+        }}
+        open={barcodeOpen}
+        barcode={selectedBarcodeBag}
+        qty={selectedTotalProductBag}
+        name={selectedNameBag}
+        handleCancel={() => {
+          setBarcodeOpen(false);
+        }}
+      />
       <DialogBuyer
         open={openBuyer}
         onOpenChange={() => setOpenBuyer(false)}
@@ -857,22 +946,39 @@ export const Client = () => {
               {cargo?.name_document ?? cargo?.code_document_bulky ?? "-"}
             </p>
           </div>
-          <TooltipProviderPage value="Reload Data">
-            <Button
-              onClick={() => {
-                refetchAll();
-              }}
-              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
-              variant="outline"
-            >
-              <RefreshCw
-                className={cn(
-                  "w-4 h-4",
-                  loading || infoLoading ? "animate-spin" : "",
+          <div className="flex flex-none items-center gap-2">
+            <TooltipProviderPage value="Export Data">
+              <Button
+                onClick={handleExport}
+                className="items-center h-9 border-emerald-400 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-700"
+                variant="outline"
+                disabled={isPendingExport}
+              >
+                {isPendingExport ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <FileDown className="size-4" />
                 )}
-              />
-            </Button>
-          </TooltipProviderPage>
+                Export Data
+              </Button>
+            </TooltipProviderPage>
+            <TooltipProviderPage value="Reload Data">
+              <Button
+                onClick={() => {
+                  refetchAll();
+                }}
+                className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
+                variant="outline"
+              >
+                <RefreshCw
+                  className={cn(
+                    "w-4 h-4",
+                    loading || infoLoading ? "animate-spin" : "",
+                  )}
+                />
+              </Button>
+            </TooltipProviderPage>
+          </div>
         </div>
 
         <div className="mb-4 flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center">
