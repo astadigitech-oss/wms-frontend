@@ -40,6 +40,7 @@ import {
   Search,
   ShoppingBag,
   ShoppingCart,
+  Tag,
   Trash2,
   WalletCards,
   X,
@@ -326,11 +327,14 @@ export const Client = () => {
   const saleStatus = normalizeSaleStatus(cargo?.is_sale);
   const isCargoDone = statusCargo === "selesai" || statusCargo === "done";
   const isCargoProcess = statusCargo === "proses" || statusCargo === "process";
-  const isCargoNotSale = saleStatus === "not sale";
+  const canSetCargoSale = saleStatus === "not sale" || saleStatus === "ready";
+  const isCargoOnline = cargo?.type?.toLowerCase() === "cargo online";
   const nextStatus = isCargoDone ? "proses" : "selesai";
   const cargoPrice =
     cargo?.total_old_price ?? cargo?.total_old_price_bulky ?? 0;
-  const saleDiscount = parseNumberValue(saleInput.discount_bulky);
+  const saleDiscount = isCargoOnline
+    ? 0
+    : parseNumberValue(saleInput.discount_bulky);
   const totalAfterDiscount = Math.max(
     cargoPrice - (saleDiscount / 100) * cargoPrice,
     0,
@@ -423,8 +427,8 @@ export const Client = () => {
       {
         id: cargoId,
         body: {
-          buyer_id: saleInput.buyer_id,
-          discount_bulky: saleInput.discount_bulky,
+          buyer_id: isCargoOnline ? "" : saleInput.buyer_id,
+          discount_bulky: isCargoOnline ? "0" : saleInput.discount_bulky,
         },
       },
       {
@@ -728,30 +732,34 @@ export const Client = () => {
           <DialogHeader>
             <DialogTitle>Set Penjualan</DialogTitle>
             <DialogDescription>
-              Pilih buyer dan isi diskon untuk penjualan cargo.
+              {isCargoOnline
+                ? "Set penjualan untuk cargo online."
+                : "Pilih buyer dan isi diskon untuk penjualan cargo."}
             </DialogDescription>
           </DialogHeader>
           <form className="flex flex-col gap-4" onSubmit={handleSaleSubmit}>
-            <div className="flex flex-col gap-2">
-              <Label>Buyer</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={saleInput.name_buyer || saleInput.buyer_id}
-                  placeholder="Select buyer"
-                  className="border-sky-400/80 bg-gray-50 focus-visible:ring-sky-400"
-                  disabled
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="border-sky-400 text-sky-700 hover:bg-sky-50 hover:text-sky-700"
-                  onClick={() => setOpenBuyer(true)}
-                  disabled={isPendingSetSale}
-                >
-                  Select
-                </Button>
+            {!isCargoOnline && (
+              <div className="flex flex-col gap-2">
+                <Label>Buyer</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={saleInput.name_buyer || saleInput.buyer_id}
+                    placeholder="Select buyer"
+                    className="border-sky-400/80 bg-gray-50 focus-visible:ring-sky-400"
+                    disabled
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-sky-400 text-sky-700 hover:bg-sky-50 hover:text-sky-700"
+                    onClick={() => setOpenBuyer(true)}
+                    disabled={isPendingSetSale}
+                  >
+                    Select
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
             <div className="flex flex-col gap-2">
               <Label htmlFor="cargo-sale-price">Price</Label>
               <Input
@@ -761,25 +769,27 @@ export const Client = () => {
                 disabled
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="cargo-discount">Diskon (%)</Label>
-              <Input
-                id="cargo-discount"
-                type="number"
-                min="0"
-                max="100"
-                step="0.01"
-                value={saleInput.discount_bulky}
-                onChange={(e) =>
-                  setSaleInput((prev) => ({
-                    ...prev,
-                    discount_bulky: e.target.value,
-                  }))
-                }
-                className="border-sky-400/80 focus-visible:ring-sky-400"
-                disabled={isPendingSetSale}
-              />
-            </div>
+            {!isCargoOnline && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="cargo-discount">Diskon (%)</Label>
+                <Input
+                  id="cargo-discount"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={saleInput.discount_bulky}
+                  onChange={(e) =>
+                    setSaleInput((prev) => ({
+                      ...prev,
+                      discount_bulky: e.target.value,
+                    }))
+                  }
+                  className="border-sky-400/80 focus-visible:ring-sky-400"
+                  disabled={isPendingSetSale}
+                />
+              </div>
+            )}
             <div className="flex flex-col gap-2">
               <Label htmlFor="cargo-total-after-discount">
                 Total After Discount
@@ -803,7 +813,10 @@ export const Client = () => {
               <Button
                 type="submit"
                 variant="liquid"
-                disabled={!saleInput.buyer_id.trim() || isPendingSetSale}
+                disabled={
+                  (!isCargoOnline && !saleInput.buyer_id.trim()) ||
+                  isPendingSetSale
+                }
               >
                 {isPendingSetSale ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -863,16 +876,18 @@ export const Client = () => {
         </div>
 
         <div className="mb-4 flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center">
-          <Button
-            type="button"
-            variant="outline"
-            className="border-sky-400 text-sky-700 hover:bg-sky-50 hover:text-sky-700"
-            onClick={handleOpenWeight}
-          >
-            <Ruler className="size-4" />
-            Set Weight
-          </Button>
-          {isCargoNotSale && (isCargoProcess || isCargoDone) && (
+          {canSetCargoSale && (
+            <Button
+              type="button"
+              variant="outline"
+              className="border-sky-400 text-sky-700 hover:bg-sky-50 hover:text-sky-700"
+              onClick={handleOpenWeight}
+            >
+              <Ruler className="size-4" />
+              Set Weight
+            </Button>
+          )}
+          {canSetCargoSale && (isCargoProcess || isCargoDone) && (
             <Button
               type="button"
               variant="outline"
@@ -888,7 +903,7 @@ export const Client = () => {
               Set Status {nextStatus}
             </Button>
           )}
-          {isCargoNotSale && (
+          {canSetCargoSale && (
             <Button
               type="button"
               variant="outline"
@@ -901,7 +916,7 @@ export const Client = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-6">
           <div className="rounded-md border p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -971,6 +986,55 @@ export const Client = () => {
               </div>
               <div className="flex size-11 items-center justify-center rounded-md bg-amber-100 text-amber-700">
                 <ScanText className="size-5" />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-md border p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-gray-500">
+                  Status Sale
+                </p>
+                <div className="mt-2">
+                  <Badge
+                    className={cn(
+                      "rounded min-w-24 justify-center text-black font-normal capitalize",
+                      saleStatus === "sale" && "bg-green-400 hover:bg-green-400",
+                      saleStatus === "ready" && "bg-sky-400 hover:bg-sky-400",
+                      saleStatus === "not sale" &&
+                        "bg-yellow-400 hover:bg-yellow-400",
+                    )}
+                  >
+                    {cargo?.is_sale ?? "-"}
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex size-11 items-center justify-center rounded-md bg-emerald-100 text-emerald-700">
+                <ShoppingCart className="size-5" />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-md border p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Type</p>
+                <div className="mt-2">
+                  <Badge
+                    className={cn(
+                      "rounded min-w-24 justify-center text-black font-normal capitalize",
+                      isCargoOnline
+                        ? "bg-blue-400 hover:bg-blue-400"
+                        : "bg-purple-400 hover:bg-purple-400",
+                    )}
+                  >
+                    {cargo?.type ?? "-"}
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex size-11 items-center justify-center rounded-md bg-blue-100 text-blue-700">
+                <Tag className="size-5" />
               </div>
             </div>
           </div>

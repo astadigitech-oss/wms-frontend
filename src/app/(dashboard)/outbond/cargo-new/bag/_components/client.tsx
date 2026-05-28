@@ -24,7 +24,6 @@ import {
   ReceiptText,
   RefreshCw,
   Search,
-  Trash2,
   WalletCards,
 } from "lucide-react";
 import Link from "next/link";
@@ -194,17 +193,17 @@ export const Client = () => {
         //   {row.original.status || "-"}
         // </div>
         <div className="flex justify-center">
-                  <Badge
-                    className={cn(
-                      "rounded min-w-20 justify-center text-black font-normal capitalize",
-                      row.original.status?.toLowerCase() === "done"
-                        ? "bg-green-400 hover:bg-green-400"
-                        : "bg-yellow-400 hover:bg-yellow-400",
-                    )}
-                  >
-                    {row.original.status ?? "-"}
-                  </Badge>
-                </div>
+          <Badge
+            className={cn(
+              "rounded min-w-20 justify-center text-black font-normal capitalize",
+              row.original.status?.toLowerCase() === "done"
+                ? "bg-green-400 hover:bg-green-400"
+                : "bg-yellow-400 hover:bg-yellow-400",
+            )}
+          >
+            {row.original.status ?? "-"}
+          </Badge>
+        </div>
       ),
     },
     {
@@ -221,23 +220,6 @@ export const Client = () => {
               <Link href={`/outbond/cargo-new/bag/detail/${row.original.id}`}>
                 <ReceiptText className="w-4 h-4" />
               </Link>
-            </Button>
-          </TooltipProviderPage>
-          <TooltipProviderPage value="Remove Product">
-            <Button
-              className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
-              variant="outline"
-              // disabled={isPendingRemove}
-              // onClick={(e) => {
-              //   e.preventDefault();
-              //   handleRemoveProduct(row.original.id);
-              // }}
-            >
-              {/* {isPendingRemove ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : ( */}
-              <Trash2 className="w-4 h-4" />
-              {/* )} */}
             </Button>
           </TooltipProviderPage>
         </div>
