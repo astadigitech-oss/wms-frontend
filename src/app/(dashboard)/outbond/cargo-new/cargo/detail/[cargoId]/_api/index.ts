@@ -7,3 +7,4 @@ export * from "./use-remove-bag-cargo";
 export * from "./use-set-sale-cargo";
 export * from "./use-set-status-cargo";
 export * from "./use-set-weight-cargo";
+export * from "./use-toggle-status-bag";
