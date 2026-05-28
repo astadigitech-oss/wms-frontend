@@ -31,33 +31,10 @@ import {
   useRemoveProductBag,
 } from "../_api";
 
-type ProductBag = {
-  id: string;
-  new_barcode_product?: string;
-  barcode_bulky_sale?: string;
-  barcode?: string;
-  qty?: number;
-  old_price_bulky_sale?: number;
-  old_price_product?: number;
-  old_price?: number;
-};
-
-const getBarcode = (product: ProductBag) =>
-  product.new_barcode_product ??
-  product.barcode_bulky_sale ??
-  product.barcode ??
-  "-";
-
-const getOldPrice = (product: ProductBag) =>
-  product.old_price_bulky_sale ??
-  product.old_price_product ??
-  product.old_price ??
-  0;
-
 const productColumns = (
   handleRemoveProduct: (id: string) => void,
   isPendingRemove: boolean,
-): ColumnDef<ProductBag>[] => [
+): ColumnDef<any>[] => [  
   {
     header: () => <div className="text-center">No</div>,
     id: "id",
@@ -71,7 +48,7 @@ const productColumns = (
     id: "new_barcode",
     header: "New Barcode",
     cell: ({ row }) => (
-      <div className="max-w-[420px] break-all">{getBarcode(row.original)}</div>
+      <div className="max-w-[420px] break-all">{row.original.barcode_bulky_sale || ""}</div>
     ),
   },
   {
@@ -88,7 +65,7 @@ const productColumns = (
     header: () => <div className="text-center">Old Price</div>,
     cell: ({ row }) => (
       <div className="text-center tabular-nums">
-        {formatRupiah(getOldPrice(row.original))}
+        {formatRupiah(row.original.old_price_bulky_sale ?? 0)}
       </div>
     ),
   },
@@ -166,7 +143,7 @@ export const Client = () => {
     dataInfoResource ??
     dataResource?.bag_product ??
     {};
-  const products: ProductBag[] = useMemo(() => {
+  const products: any = useMemo(() => {
     return dataResource?.data ?? [];
   }, [dataResource]);
 
