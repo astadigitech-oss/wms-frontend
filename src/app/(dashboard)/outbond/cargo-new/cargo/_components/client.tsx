@@ -54,31 +54,11 @@ import Link from "next/link";
 
 type CargoType = "cargo offline" | "cargo online";
 
-type CargoItem = {
-  id: string;
-  code_document_bulky?: string;
-  name_document?: string;
-  total_product_bulky?: number;
-  total_old_price_bulky?: number;
-  after_price_bulky?: number;
-  type?: string;
-  status_bulky?: string;
-};
-
-type CargoSummary = {
-  total_cargo?: number;
-  total_document?: number;
-  total_item?: number;
-  total_product?: number;
-  total_old_price?: number;
-  qty?: number;
-};
-
-const getSummaryValue = (summary: CargoSummary | undefined, keys: string[]) => {
+const getSummaryValue = (summary: any | undefined, keys: string[]) => {
   if (!summary) return 0;
 
   for (const key of keys) {
-    const value = summary[key as keyof CargoSummary];
+    const value = summary[key as keyof any];
     if (typeof value === "number") return value;
   }
 
@@ -117,13 +97,13 @@ export const Client = () => {
   const { mutate: createCargo, isPending: isPendingCreate } = useCreateCargo();
 
   const dataResource = data?.data?.data?.resource;
-  const dataList: CargoItem[] = useMemo(() => {
+  const dataList: any = useMemo(() => {
     return dataResource?.data ?? [];
   }, [dataResource]);
 
   const summaryResource = dataSummary?.data?.data?.resource ?? {};
-  const offlineSummary: CargoSummary = summaryResource?.cargo_offline ?? {};
-  const onlineSummary: CargoSummary = summaryResource?.cargo_online ?? {};
+  const offlineSummary: any = summaryResource?.cargo_offline ?? {};
+  const onlineSummary: any = summaryResource?.cargo_online ?? {};
   const loading = isLoading || isRefetching || isPending;
 
   const handleCreateCargo = (e: FormEvent<HTMLFormElement>) => {
@@ -183,7 +163,7 @@ export const Client = () => {
     });
   }, [isErrorSummary, errorSummary]);
 
-  const columnCargo: ColumnDef<CargoItem>[] = [
+  const columnCargo: ColumnDef<any>[] = [
     {
       header: () => <div className="text-center">No</div>,
       id: "id",

@@ -57,43 +57,7 @@ import {
   useSetWeightCargo,
 } from "../_api";
 
-type BagCargo = {
-  id: string;
-  barcode_bag?: string;
-  name_bag?: string;
-  total_product?: number;
-  price?: number;
-  status?: string;
-};
-
-type CargoDetail = {
-  id?: string;
-  code_document_bulky?: string;
-  name_document?: string;
-  total_product?: number;
-  total_product_bulky?: number;
-  total_old_price?: number;
-  total_old_price_bulky?: number;
-  after_price_bulky?: number;
-  total_bag?: number;
-  status_bulky?: string;
-  is_sale?: string;
-  length?: string | number;
-  width?: string | number;
-  height?: string | number;
-  weight?: string | number;
-  buyer_id?: string | number;
-  name_buyer?: string;
-  discount_bulky?: string | number;
-};
-
-type Buyer = {
-  id: string | number;
-  name_buyer?: string;
-  phone_buyer?: string;
-};
-
-const getCargoTotalBag = (cargo: CargoDetail | undefined, bags: BagCargo[]) =>
+const getCargoTotalBag = (cargo: any | undefined, bags: any[]) =>
   cargo?.total_bag ?? bags.length ?? 0;
 
 const normalizeValue = (value?: string | number) =>
@@ -113,8 +77,8 @@ const buyerColumns = ({
   onSelect,
 }: {
   metaPage: any;
-  onSelect: (buyer: Buyer) => void;
-}): ColumnDef<Buyer>[] => [
+  onSelect: (buyer: any) => void;
+}): ColumnDef<any>[] => [
   {
     header: () => <div className="text-center">No</div>,
     id: "id",
@@ -168,7 +132,7 @@ const DialogBuyer = ({
 }: {
   open: boolean;
   onOpenChange: () => void;
-  onSelect: (buyer: Buyer) => void;
+  onSelect: (buyer: any) => void;
 }) => {
   const { search, searchValue, setSearch } = useSearchQuery("searchBuyerCargo");
   const { metaPage, page, setPage, setPagination } =
@@ -181,7 +145,7 @@ const DialogBuyer = ({
       enabled: open,
     });
 
-  const buyers: Buyer[] = useMemo(() => {
+  const buyers: any = useMemo(() => {
     return data?.data?.data?.resource?.data ?? [];
   }, [data]);
   const isLoading = isPending || isRefetching;
@@ -342,7 +306,7 @@ export const Client = () => {
 
   const dataResource = data?.data?.data?.resource;
   const dataInfoResource = dataInfo?.data?.data?.resource;
-  const cargo: CargoDetail = useMemo(() => {
+  const cargo: any = useMemo(() => {
     return (
       dataInfoResource?.cargo ??
       dataInfoResource?.cargo_info ??
@@ -352,7 +316,7 @@ export const Client = () => {
       {}
     );
   }, [dataInfoResource, dataResource]);
-  const bags: BagCargo[] = useMemo(() => {
+  const bags: any = useMemo(() => {
     return dataResource?.data ?? [];
   }, [dataResource]);
 
@@ -528,7 +492,7 @@ export const Client = () => {
     }
   }, [dataResource, isSuccess]);
 
-  const columnBag: ColumnDef<BagCargo>[] = [
+  const columnBag: ColumnDef<any>[] = [
     {
       header: () => <div className="text-center">No</div>,
       id: "id",

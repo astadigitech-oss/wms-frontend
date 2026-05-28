@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { usePagination } from "@/lib/pagination";
+import { useSearchQuery } from "@/lib/search";
 import { alertError, cn, formatRupiah } from "@/lib/utils";
 import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
 import { ColumnDef } from "@tanstack/react-table";
@@ -37,27 +38,10 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-type BagItem = {
-  id: string;
-  barcode_bag: string;
-  name_bag: string;
-  total_product: number;
-  price: number;
-  status?: string;
-  category_bag?: string;
-};
-
-type CategoryItem = {
-  id: string | number;
-  name_category?: string;
-  discount_category?: string;
-  max_price_category?: string | number;
-};
-
 export const Client = () => {
-  const [dataSearch, setDataSearch] = useState("");
   const [categorySearch, setCategorySearch] = useState("");
   const [isOpenAddBag, setIsOpenAddBag] = useState(false);
+  const { search, searchValue, setSearch } = useSearchQuery("searchBag");
   const { metaPage, page, setPage, setPagination } = usePagination("pageBag");
 
   const { mutate: addBag, isPending: isPendingAddBag } = useAddBag();
@@ -71,7 +55,7 @@ export const Client = () => {
     isSuccess: isSuccessBag,
   } = useGetListBag({
     p: page,
-    q: dataSearch,
+    q: searchValue,
   });
 
   const {
@@ -85,49 +69,22 @@ export const Client = () => {
     q: categorySearch,
   });
 
-  const listCategory: CategoryItem[] = useMemo(() => {
+  const listCategory: any = useMemo(() => {
     return dataCategory?.data?.data?.resource ?? [];
   }, [dataCategory]);
 
   const isLoadingCategory = isPendingCategory || isRefetchingCategory;
   const isLoadingBag = isPendingBag || isRefetchingBag;
 
-  const dataListBag: BagItem[] = useMemo(() => {
-    const resource = dataBag?.data?.data?.resource;
-
-    if (Array.isArray(resource)) return resource;
-    if (Array.isArray(resource?.data)) return resource.data;
-    if (Array.isArray(dataBag?.data?.data)) return dataBag.data.data;
-
-    return [];
+  const dataListBag = useMemo(() => {
+    return dataBag?.data?.data?.resource;
   }, [dataBag]);
 
-  const filteredBag = useMemo(() => {
-    const search = dataSearch.toLowerCase().trim();
+  const listBag: any = useMemo(() => {
+    return dataListBag?.data ?? [];
+  }, [dataListBag]);
 
-    if (!search) return dataListBag;
-
-    return dataListBag.filter((bag) =>
-      [
-        bag.barcode_bag,
-        bag.name_bag,
-        bag.status,
-        String(bag.total_product),
-        String(bag.price),
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(search),
-    );
-  }, [dataListBag, dataSearch]);
-
-  const totalBag = dataListBag.length;
-  const totalHarga = dataListBag.reduce(
-    (total, bag) => total + Number(bag.price ?? 0),
-    0,
-  );
-
-  const handleSelectCategory = (category: CategoryItem) => {
+  const handleSelectCategory = (category: any) => {
     if (isPendingAddBag) return;
 
     addBag(
@@ -189,7 +146,7 @@ export const Client = () => {
     }
   }, [dataBag, isSuccessBag]);
 
-  const columnBag: ColumnDef<BagItem>[] = [
+  const columnBag: ColumnDef<any>[] = [
     {
       header: () => <div className="text-center">No</div>,
       id: "id",
@@ -275,7 +232,7 @@ export const Client = () => {
     },
   ];
 
-  const columnCategory: ColumnDef<CategoryItem>[] = [
+  const columnCategory: ColumnDef<any>[] = [
     {
       header: () => <div className="text-center">No</div>,
       id: "id",
@@ -401,7 +358,7 @@ export const Client = () => {
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium text-gray-500">Total Bag</p>
               <p className="text-2xl font-bold tabular-nums">
-                {totalBag.toLocaleString()}
+                {dataListBag?.total}
               </p>
             </div>
             <div className="flex size-11 items-center justify-center rounded-md bg-sky-100 text-sky-700">
@@ -415,7 +372,7 @@ export const Client = () => {
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium text-gray-500">Total Harga</p>
               <p className="text-2xl font-bold tabular-nums">
-                {formatRupiah(totalHarga)}
+                {formatRupiah(20000)}
               </p>
             </div>
             <div className="flex size-11 items-center justify-center rounded-md bg-emerald-100 text-emerald-700">
@@ -433,10 +390,10 @@ export const Client = () => {
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
               <Input
                 className="pl-9 border-sky-400/80 focus-visible:ring-sky-400"
-                value={dataSearch}
+                value={search}
                 onChange={(e) => {
                   setPage(1);
-                  setDataSearch(e.target.value);
+                  setSearch(e.target.value);
                 }}
                 placeholder="Search bag..."
                 autoFocus
@@ -475,7 +432,7 @@ export const Client = () => {
 
           <DataTable
             columns={columnBag}
-            data={filteredBag}
+            data={listBag}
             isLoading={isLoadingBag}
             isSticky
             maxHeight="h-[55vh]"
