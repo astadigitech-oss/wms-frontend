@@ -44,6 +44,8 @@ import {
   ShoppingBag,
   ShoppingCart,
   Tag,
+  ToggleLeft,
+  ToggleRight,
   Trash2,
   WalletCards,
   X,
@@ -61,6 +63,7 @@ import {
   useSetSaleCargo,
   useSetStatusCargo,
   useSetWeightCargo,
+  useToggleStatusBag,
 } from "../_api";
 
 const DialogBarcode = dynamic(() => import("./dialog-barcode"), {
@@ -269,6 +272,7 @@ export const Client = () => {
   const [selectedBarcodeBag, setSelectedBarcodeBag] = useState("");
   const [selectedTotalProductBag, setSelectedTotalProductBag] = useState("");
   const [selectedNameBag, setSelectedNameBag] = useState("");
+  const [toggleStatusBagId, setToggleStatusBagId] = useState("");
   const [scanValue, setScanValue] = useState("");
   const [searchBag, setSearchBag] = useState("");
   const [weightInput, setWeightInput] = useState({
@@ -322,6 +326,8 @@ export const Client = () => {
     useSetStatusCargo();
   const { mutate: setSaleCargo, isPending: isPendingSetSale } =
     useSetSaleCargo();
+  const { mutate: toggleStatusBag, isPending: isPendingToggleStatusBag } =
+    useToggleStatusBag();
   const { mutate: exportDetailCargo, isPending: isPendingExport } =
     useExportDetailDataCargo();
 
@@ -435,6 +441,24 @@ export const Client = () => {
       {
         onSuccess: () => {
           refetchAll();
+        },
+      },
+    );
+  };
+
+  const handleToggleStatusBag = (bagId: string) => {
+    if (isPendingToggleStatusBag) return;
+
+    toggleStatusBag(
+      {
+        idBag: bagId,
+      },
+      {
+        onSuccess: () => {
+          refetchAll();
+        },
+        onSettled: () => {
+          setToggleStatusBagId("");
         },
       },
     );
@@ -599,57 +623,84 @@ export const Client = () => {
     {
       id: "action",
       header: () => <div className="text-center">Action</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-center gap-2">
-          <TooltipProviderPage value="Detail Bag">
-            <Button
-              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50"
-              variant="outline"
-              onClick={(e) => {
-                e.preventDefault();
-                setIdBagCargo(row.original.id);
-                setOpenDetail(true);
-              }}
-            >
-              <ReceiptText className="w-4 h-4" />
-            </Button>
-          </TooltipProviderPage>
-          <TooltipProviderPage value="Print Barcode">
-            <Button
-              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
-              variant="outline"
-              onClick={(e) => {
-                e.preventDefault();
-                setSelectedBarcodeBag(row.original.barcode_bag ?? "");
-                setSelectedTotalProductBag(
-                  normalizeValue(row.original.total_product),
-                );
-                setSelectedNameBag(row.original.name_bag ?? "");
-                setBarcodeOpen(true);
-              }}
-            >
-              <Printer className="w-4 h-4" />
-            </Button>
-          </TooltipProviderPage>
-          <TooltipProviderPage value="Remove Bag">
-            <Button
-              className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
-              variant="outline"
-              disabled={isPendingRemoveBag}
-              onClick={(e) => {
-                e.preventDefault();
-                handleRemoveBag(row.original.id);
-              }}
-            >
-              {isPendingRemoveBag ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Trash2 className="w-4 h-4" />
-              )}
-            </Button>
-          </TooltipProviderPage>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const bagStatus = normalizeStatus(row.original.status);
+        const isTogglingCurrentBag =
+          isPendingToggleStatusBag && toggleStatusBagId === row.original.id;
+
+        return (
+          <div className="flex justify-center gap-2">
+            <TooltipProviderPage value="Toggle Status Bag">
+              <Button
+                className="items-center w-9 px-0 flex-none h-9 border-amber-400 text-amber-700 hover:text-amber-700 hover:bg-amber-50 disabled:opacity-100 disabled:hover:bg-amber-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                variant="outline"
+                disabled={isPendingToggleStatusBag}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setToggleStatusBagId(row.original.id);
+                  handleToggleStatusBag(row.original.id);
+                }}
+              >
+                {isTogglingCurrentBag ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : bagStatus === "done" ? (
+                  <ToggleRight className="w-4 h-4" />
+                ) : (
+                  <ToggleLeft className="w-4 h-4" />
+                )}
+              </Button>
+            </TooltipProviderPage>
+            <TooltipProviderPage value="Detail Bag">
+              <Button
+                className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50"
+                variant="outline"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIdBagCargo(row.original.id);
+                  setOpenDetail(true);
+                }}
+              >
+                <ReceiptText className="w-4 h-4" />
+              </Button>
+            </TooltipProviderPage>
+            <TooltipProviderPage value="Print Barcode">
+              <Button
+                className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
+                variant="outline"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSelectedBarcodeBag(row.original.barcode_bag ?? "");
+                  setSelectedTotalProductBag(
+                    normalizeValue(row.original.total_product),
+                  );
+                  setSelectedNameBag(row.original.name_bag ?? "");
+                  setBarcodeOpen(true);
+                }}
+              >
+                <Printer className="w-4 h-4" />
+              </Button>
+            </TooltipProviderPage>
+
+            <TooltipProviderPage value="Remove Bag">
+              <Button
+                className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                variant="outline"
+                disabled={isPendingRemoveBag}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleRemoveBag(row.original.id);
+                }}
+              >
+                {isPendingRemoveBag ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+              </Button>
+            </TooltipProviderPage>
+          </div>
+        );
+      },
     },
   ];
 
