@@ -37,6 +37,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Badge } from "@/components/ui/badge";
 
 export const Client = () => {
   const [categorySearch, setCategorySearch] = useState("");
@@ -189,9 +190,21 @@ export const Client = () => {
       accessorKey: "status",
       header: () => <div className="text-center">Status</div>,
       cell: ({ row }) => (
-        <div className="text-center capitalize">
-          {row.original.status || "-"}
-        </div>
+        // <div className="text-center capitalize">
+        //   {row.original.status || "-"}
+        // </div>
+        <div className="flex justify-center">
+                  <Badge
+                    className={cn(
+                      "rounded min-w-20 justify-center text-black font-normal capitalize",
+                      row.original.status?.toLowerCase() === "done"
+                        ? "bg-green-400 hover:bg-green-400"
+                        : "bg-yellow-400 hover:bg-yellow-400",
+                    )}
+                  >
+                    {row.original.status ?? "-"}
+                  </Badge>
+                </div>
       ),
     },
     {
