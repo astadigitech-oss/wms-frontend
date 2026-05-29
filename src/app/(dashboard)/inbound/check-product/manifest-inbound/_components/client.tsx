@@ -201,7 +201,7 @@ export const Client = () => {
               }}
             >
               <Link
-                href={`/inbound/check-product/manifest-inbound/${row.original.code_document}/check`}
+                href={`/inbound/check-product/manifest-inbound/${row.original.code_document}/check-v2`}
               >
                 {isPendingDelete ? (
                   <Loader2 className="size-4 animate-spin" />
