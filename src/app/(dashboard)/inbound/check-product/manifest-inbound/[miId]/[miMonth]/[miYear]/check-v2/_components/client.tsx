@@ -33,6 +33,7 @@ import { useConfirm } from "@/hooks/use-confirm";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -54,6 +55,8 @@ import BarcodePrinted from "@/components/barcode";
 import { useSubmitDoubleBarcode } from "../_api/use-submit-double-barcode";
 import { useSubmitDoneCheckAll } from "../_api/use-submit-done-check-all";
 import { useQueryClient } from "@tanstack/react-query";
+import { useGetScanPaused } from "../_api/use-get-scan-paused";
+import { useEditScan } from "../_api/use-edit-scan";
 
 export const Client = () => {
   const { miId, miMonth, miYear } = useParams();
@@ -76,6 +79,7 @@ export const Client = () => {
   });
 
   const [barcodeOpen, setBarcodeOpen] = useState(false);
+  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [metaBarcode, setMetaBarcode] = useState({
     barcode: "",
     newPrice: "",
@@ -105,6 +109,21 @@ export const Client = () => {
   const { mutate: mutateDouble, isPending: isPendingDouble } =
     useSubmitDoubleBarcode();
   const { mutate: mutateDoneAll } = useSubmitDoneCheckAll();
+  const { mutate: mutateEditScan, isPending: isPendingEditScan } =
+    useEditScan();
+
+  const {
+    data: dataScanPaused,
+    error: errorScanPaused,
+    isError: isErrorScanPaused,
+    isLoading: isLoadingScanPaused,
+    refetch: refetchScanPaused,
+  } = useGetScanPaused();
+
+  const scanPaused = !!dataScanPaused?.data.data.resource?.scan_paused;
+  const scanApprovalOpen = scanPaused || approvalDialogOpen;
+  const approvalBarcode =
+    dataScanPaused?.data.data.resource?.barcode_old_product || "-";
 
   const { data, error, isError } = useGetCheckManifestInbound({
     code: codeDocument,
@@ -119,11 +138,18 @@ export const Client = () => {
   } = useGetBarcodeMI({
     code: codeDocument,
     barcode: searchValue,
+    disabled: scanApprovalOpen,
   });
 
   const { data: dataCategories } = useGetCategoriesMI();
 
   const loadingBarcode = isRefetchingBarcode || isLoadingBarcode;
+  const pageBusy =
+    scanApprovalOpen ||
+    loadingBarcode ||
+    isPendingSubmit ||
+    isPendingDouble ||
+    isPendingEditScan;
 
   const document = useMemo(() => {
     return data?.data.data.resource.data[0].base_document;
@@ -154,7 +180,12 @@ export const Client = () => {
   }, [dataBarcode]);
 
   const categories: any[] = useMemo(() => {
-    return dataCategories?.data.data.resource;
+    const resource = dataCategories?.data.data.resource;
+
+    if (Array.isArray(resource)) return resource;
+    if (Array.isArray(resource?.data)) return resource.data;
+
+    return [];
   }, [dataCategories]);
 
   const handleDoneCheckAll = async () => {
@@ -185,20 +216,24 @@ export const Client = () => {
     e.preventDefault();
 
     const body = {
-      code_document: codeDocument,
-      old_barcode_product: barcodeData?.old_barcode_product,
-      new_name_product: editNewData.newName,
-      new_quantity_product: editNewData.qty,
+      id_asal: barcodeData?.id,
+      edited_name: editNewData.newName,
+      edited_qty: Number(editNewData.qty),
     };
 
-    console.log("EDIT_NEW_DATA_PRODUCT:", body);
-    setMetaData((prev) => ({
-      ...prev,
-      newName: editNewData.newName,
-      qty: editNewData.qty,
-    }));
-    setEditNewDataOpen(false);
-    toast.success("New data successfully edited.");
+    mutateEditScan(body, {
+      onSuccess: () => {
+        setMetaData((prev) => ({
+          ...prev,
+          newName: editNewData.newName,
+          qty: editNewData.qty,
+        }));
+        setEditNewDataOpen(false);
+        refetchScanPaused();
+        setApprovalDialogOpen(true);
+        toast.success("New data successfully edited.");
+      },
+    });
   };
 
   const handleSubmitDouble = async (body: any) => {
@@ -319,12 +354,16 @@ export const Client = () => {
       );
     } else if (isSuccessBarcode && dataBarcode?.data.data.status) {
       toast.success("Barcode successfully found.");
+      const product = dataBarcode.data.data.resource.product;
+      const newName =
+        product.edited_name_product ?? product.old_name_product ?? "";
+      const newQty =
+        product.edited_quantity_product ?? product.old_quantity_product ?? 0;
+
       setMetaData((prev) => ({
         ...prev,
-        qty: Math.round(
-          dataBarcode?.data.data.resource.product.old_quantity_product,
-        ).toString(),
-        newName: dataBarcode?.data.data.resource.product.old_name_product ?? "",
+        qty: Math.round(Number(newQty)).toString(),
+        newName,
       }));
     }
   }, [dataBarcode]);
@@ -341,18 +380,24 @@ export const Client = () => {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) {
+  if (!isMounted || isLoadingScanPaused) {
     return <Loading />;
   }
 
-  if (isError && (error as AxiosError)?.status === 403) {
+  if (
+    (isError && (error as AxiosError)?.status === 403) ||
+    (isErrorScanPaused && (errorScanPaused as AxiosError)?.status === 403)
+  ) {
     return (
       <div className="flex flex-col items-start h-full bg-gray-100 w-full relative p-4 gap-4">
         <Forbidden />
       </div>
     );
   }
-  if (isError && (error as AxiosError)?.status === 404) {
+  if (
+    (isError && (error as AxiosError)?.status === 404) ||
+    (isErrorScanPaused && (errorScanPaused as AxiosError)?.status === 404)
+  ) {
     notFound();
   }
 
@@ -360,6 +405,27 @@ export const Client = () => {
     <div className="flex flex-col items-start bg-gray-100 w-full relative px-4 gap-4 py-4">
       <SubmitDoubleDialog />
       <DoneAllDialog />
+      <Dialog open={scanApprovalOpen} onOpenChange={() => {}}>
+        <DialogContent
+          className="max-w-md"
+          onClose={false}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Scan Perlu Approval</DialogTitle>
+            <DialogDescription>
+              Sampaikan ke SPV barcode nya perlu di approve.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-md border border-sky-200 bg-sky-50 px-4 py-3">
+            <Label className="text-xs text-gray-500">Barcode</Label>
+            <p className="mt-1 break-all font-semibold text-black">
+              {approvalBarcode}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -396,7 +462,7 @@ export const Client = () => {
           >
             <button
               type="button"
-              disabled={loadingBarcode || isPendingSubmit || isPendingDouble}
+              disabled={pageBusy}
               className="flex items-center text-black group-hover:mr-6 mr-4 transition-all w-auto"
             >
               <div className="w-10 h-10 rounded-full group-hover:shadow justify-center flex items-center group-hover:bg-gray-100 transition-all">
@@ -420,7 +486,7 @@ export const Client = () => {
               placeholder="Search..."
               ref={searchRef}
               autoFocus
-              disabled={isPendingSubmit || isPendingDouble}
+              disabled={pageBusy}
             />
             {dataSearch.length > 0 && (
               <button
@@ -452,7 +518,7 @@ export const Client = () => {
             }}
             className="bg-sky-400/80 hover:bg-sky-400 text-black"
             type="button"
-            disabled={loadingBarcode || isPendingSubmit || isPendingDouble}
+            disabled={pageBusy}
           >
             <ShieldCheck className="w-4 h-4 mr-2" />
             Done Check All
@@ -472,7 +538,10 @@ export const Client = () => {
           </div>
         )}
       </div>
-      {loadingBarcode || isPendingSubmit || isPendingDouble ? (
+      {loadingBarcode ||
+      isPendingSubmit ||
+      isPendingDouble ||
+      isPendingEditScan ? (
         <div className="flex flex-col w-full bg-white rounded-md shadow items-center justify-center h-[300px] gap-3">
           <Loader className="size-6 animate-spin" />
           <p className="text-sm ml-1">
@@ -480,7 +549,9 @@ export const Client = () => {
               ? "Getting Data..."
               : isPendingSubmit
                 ? "Submiting..."
-                : "Submiting Double..."}
+                : isPendingDouble
+                  ? "Submiting Double..."
+                  : "Editing..."}
           </p>
         </div>
       ) : barcodeData?.id === "0" ? (
@@ -551,6 +622,7 @@ export const Client = () => {
                       size="sm"
                       className="border-sky-400/80 hover:bg-sky-50"
                       onClick={handleOpenEditNewData}
+                      disabled={pageBusy}
                     >
                       <Edit3 className="w-4 h-4 mr-2" />
                       Edit
@@ -602,6 +674,7 @@ export const Client = () => {
                       size="sm"
                       className="border-sky-400/80 hover:bg-sky-50"
                       onClick={handleOpenEditNewData}
+                      disabled={pageBusy}
                     >
                       <Edit3 className="w-4 h-4 mr-2" />
                       Edit
@@ -874,15 +947,24 @@ export const Client = () => {
                 type="button"
                 variant="outline"
                 onClick={() => setEditNewDataOpen(false)}
+                disabled={isPendingEditScan}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 className="bg-sky-400/80 hover:bg-sky-400 text-black"
-                disabled={!editNewData.newName || editNewData.qty === "0"}
+                disabled={
+                  isPendingEditScan ||
+                  !editNewData.newName ||
+                  editNewData.qty === "0"
+                }
               >
-                <Edit3 className="w-4 h-4 mr-2" />
+                {isPendingEditScan ? (
+                  <Loader className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Edit3 className="w-4 h-4 mr-2" />
+                )}
                 Edit
               </Button>
             </DialogFooter>
