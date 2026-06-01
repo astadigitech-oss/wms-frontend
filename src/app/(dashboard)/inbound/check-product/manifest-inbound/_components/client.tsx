@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
+  CheckCircle2,
   Loader2,
   ReceiptText,
   RefreshCw,
@@ -43,7 +44,7 @@ export const Client = () => {
   const [DeleteDialog, confirmDelete] = useConfirm(
     "Delete Data",
     "This action cannot be undone",
-    "destructive"
+    "destructive",
   );
   const [metaPage, setMetaPage] = useState({
     last: 1, //page terakhir
@@ -104,7 +105,7 @@ export const Client = () => {
         {
           onSuccess: (data) => resolve(data),
           onError: (error) => reject(error),
-        }
+        },
       );
     });
 
@@ -141,7 +142,7 @@ export const Client = () => {
       cell: ({ row }) => {
         const formated = format(
           new Date(row.original.date_document),
-          "iiii, dd MMMM yyyy"
+          "iiii, dd MMMM yyyy",
         );
         return <div className="tabular-nums">{formated}</div>;
       },
@@ -168,7 +169,7 @@ export const Client = () => {
               row.original.status_document === "in progress" &&
                 "bg-yellow-400 hover:bg-yellow-400",
               row.original.status_document === "done" &&
-                "bg-green-400 hover:bg-green-400"
+                "bg-green-400 hover:bg-green-400",
             )}
           >
             {row.original.status_document}
@@ -200,7 +201,7 @@ export const Client = () => {
               }}
             >
               <Link
-                href={`/inbound/check-product/manifest-inbound/${row.original.code_document}/check`}
+                href={`/inbound/check-product/manifest-inbound/${row.original.code_document}/check-v2`}
               >
                 {isPendingDelete ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -314,6 +315,19 @@ export const Client = () => {
                 />
               </Button>
             </TooltipProviderPage>
+            <div className="flex gap-4 items-center ml-auto">
+              <TooltipProviderPage value="Approval Scan">
+                <Button
+                  asChild
+                  className="bg-sky-400 hover:bg-sky-400/80 text-black h-9"
+                >
+                  <Link href="/inbound/check-product/manifest-inbound/approval-scan">
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                    Approval Scan
+                  </Link>
+                </Button>
+              </TooltipProviderPage>
+            </div>
           </div>
           <DataTable columns={columnManifestInbound} data={dataMI ?? []} />
           <Pagination

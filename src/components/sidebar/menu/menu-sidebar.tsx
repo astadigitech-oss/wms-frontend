@@ -964,6 +964,21 @@ const sidebarMenu = [
         sub_menu: [],
       },
       {
+        title: "Cargo V2",
+        href: undefined,
+        icon: <Truck className="w-5 h-5 stroke-[1.5]" />,
+        sub_menu: [
+          {
+            title: "Bag",
+            href: "/outbond/cargo-new/bag",
+          },
+          {
+            title: "Cargo",
+            href: "/outbond/cargo-new/cargo",
+          },
+        ],
+      },
+      {
         title: "buyer",
         href: "/outbond/buyer",
         icon: <BadgeDollarSign className="w-5 h-5 stroke-[1.5]" />,

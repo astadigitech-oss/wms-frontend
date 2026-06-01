@@ -19,7 +19,7 @@ import {
   RefreshCcw,
   Save,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn, promiseToast } from "@/lib/utils";
 import { useUploadInbound } from "../_api/use-upload-inbound";
 import Link from "next/link";
@@ -29,6 +29,14 @@ import { useDropzone } from "react-dropzone";
 import { useMergeHeader } from "../_api/use-merge-header";
 import Loading from "@/app/(dashboard)/loading";
 import { AxiosError } from "axios";
+import { useGetCogs } from "../_api/use-get-cogs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface UploadedFileProps {
   file: File;
@@ -53,6 +61,23 @@ const variants = {
 
 export const Client = () => {
   const [isMounted, setIsMounted] = useState(false);
+
+  const {
+    data: dataCogs,
+    // refetch: refetchCogs,
+    // isLoading: isLoadingCogs,
+    // isRefetching: isRefetchingCogs,
+    // isPending: isPendingCogs,
+    // isSuccess: isSuccessCogs,
+    // error: errorCogs,
+    // isError: isErrorCogs,
+  } = useGetCogs();
+
+  // data RES memo Cogs
+  const Cogs: any = useMemo(() => {
+    return dataCogs?.data.data.resource;
+  }, [dataCogs]);
+
   const {
     mutate: mutateUpload,
     isPending: isPendingUpload,
@@ -73,7 +98,7 @@ export const Client = () => {
 
   // state data
   const [selectedFile, setSelectedFile] = useState<UploadedFileProps | null>(
-    null
+    null,
   );
   const [results, setResults] = useState<any>();
   const [headers, setHeaders] = useState<string[]>([]);
@@ -83,6 +108,7 @@ export const Client = () => {
     qty: "",
     price: "",
   });
+  const [selectedCogs, setSelectedCogs] = useState("");
 
   // handle slide
   const handleNext = () => {
@@ -123,7 +149,8 @@ export const Client = () => {
     const promise = new Promise((resolve, reject) => {
       mutateMerge(
         {
-          code_document: results.code_document,
+          code_document: results?.code_document?.code_document,
+          channel_id: selectedCogs,
           headerMappings: {
             old_barcode_product: [selected.barcode],
             old_name_product: [selected.name],
@@ -134,7 +161,7 @@ export const Client = () => {
         {
           onSuccess: (data) => resolve(data),
           onError: (error) => reject(error),
-        }
+        },
       );
     });
 
@@ -187,7 +214,7 @@ export const Client = () => {
                 "w-10 h-10 rounded-full shadow justify-center flex items-center",
                 isSuccessUpload
                   ? "bg-green-100 text-green-500"
-                  : "bg-gray-100 text-gray-500"
+                  : "bg-gray-100 text-gray-500",
               )}
             >
               {isSuccessUpload ? (
@@ -213,18 +240,18 @@ export const Client = () => {
                 selectedFile && isSuccessUpload
                   ? "text-green-500"
                   : isErrorUpload
-                  ? "text-red-400"
-                  : "text-gray-400"
+                    ? "text-red-400"
+                    : "text-gray-400",
               )}
             >
               {selectedFile
                 ? isSuccessUpload
                   ? "completed"
                   : isErrorUpload
-                  ? "failed"
-                  : isPendingUpload
-                  ? "pending"
-                  : "click next for upload"
+                    ? "failed"
+                    : isPendingUpload
+                      ? "pending"
+                      : "click next for upload"
                 : "current"}
             </p>
           </div>
@@ -238,21 +265,21 @@ export const Client = () => {
             <p
               className={cn(
                 "text-xs",
-                isErrorMerge ? "text-red-400" : "text-gray-400"
+                isErrorMerge ? "text-red-400" : "text-gray-400",
               )}
             >
               {direction === 1
                 ? "current"
                 : isErrorMerge
-                ? "failed"
-                : "not complete"}
+                  ? "failed"
+                  : "not complete"}
             </p>
           </div>
         </div>
         <button
           onClick={handleNext}
           className={cn(
-            "border-r px-4 items-center w-full h-20 hover:gap-4 gap-2 group transition-all flex disabled:cursor-not-allowed col-span-2"
+            "border-r px-4 items-center w-full h-20 hover:gap-4 gap-2 group transition-all flex disabled:cursor-not-allowed col-span-2",
           )}
           disabled={
             (!selectedFile && direction === 0) ||
@@ -273,7 +300,7 @@ export const Client = () => {
                     !selected.price ||
                     !selected.qty))
                 ? "group-hover:bg-gray-100"
-                : "group-hover:bg-green-300"
+                : "group-hover:bg-green-300",
             )}
           >
             {direction === 1 ? (
@@ -410,16 +437,16 @@ export const Client = () => {
                       {isPendingUpload
                         ? "uploading..."
                         : isPendingMerge
-                        ? "submiting..."
-                        : isErrorUpload
-                        ? `Error ${
-                            (errorUpload as AxiosError).status
-                          }: Failed to upload`
-                        : isErrorMerge
-                        ? `Error ${
-                            (errorMerge as AxiosError).status
-                          }: Failed to merge`
-                        : "redirecting..."}
+                          ? "submiting..."
+                          : isErrorUpload
+                            ? `Error ${
+                                (errorUpload as AxiosError).status
+                              }: Failed to upload`
+                            : isErrorMerge
+                              ? `Error ${
+                                  (errorMerge as AxiosError).status
+                                }: Failed to merge`
+                              : "redirecting..."}
                     </p>
                   </div>
                 ) : (
@@ -429,17 +456,18 @@ export const Client = () => {
                       <div className="flex w-full items-center justify-between">
                         <p>Uploaded File</p>
                         <Badge className="bg-gray-200 hover:bg-gray-200 border border-black rounded-full text-black">
-                          {results?.code_document}
+                          {results?.code_document?.code_document}
                         </Badge>
                       </div>
                     </div>
-                    <div className="flex gap-3 border-b py-5 border-gray-500">
+                    <div className="flex gap-3 py-5">
                       <div className="flex flex-col pl-6 w-full overflow-hidden gap-1">
                         <p className="text-xs font-medium">File Name</p>
                         <p className="text-sm text-gray-500 w-full overflow-hidden text-ellipsis whitespace-nowrap">
                           {results?.file_name}
                         </p>
                       </div>
+
                       <div className="w-1/3 flex-none pl-6 flex gap-2 ">
                         <div className="flex flex-col w-2/3 overflow-hidden gap-1">
                           <p className="text-xs font-medium">Total Columns</p>
@@ -453,6 +481,68 @@ export const Client = () => {
                             {results?.fileDetails.total_row_count}
                           </p>
                         </div>
+                      </div>
+
+                      {/* Tambahan COGS */}
+                      {/* <div className="w-[250px] flex flex-col gap-1">
+                        <Label className="text-xs font-medium">
+                          Select COGS
+                        </Label>
+
+                        <Select
+                          value={selectedCogs}
+                          onValueChange={setSelectedCogs}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose COGS" />
+                          </SelectTrigger>
+
+                          <SelectContent>
+                            {Cogs?.map((item: any) => (
+                              <SelectItem
+                                key={item.channel_id}
+                                value={String(item.channel_id)}
+                              >
+                                {item.channel_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div> */}
+                    </div>
+                    <div className="w-full flex flex-col gap-3 border-b py-5 border-gray-500">
+                      <div className="w-[250px] flex flex-col gap-3 pl-6 ">
+                        <Label className="text-xs font-medium">
+                          Select COGS
+                        </Label>
+
+                        <Select
+                          value={selectedCogs}
+                          onValueChange={setSelectedCogs}
+                        >
+                          <SelectTrigger className="h-auto">
+                            <SelectValue placeholder="Choose COGS" />
+                          </SelectTrigger>
+
+                          <SelectContent>
+                            {Cogs?.map((item: any) => (
+                              <SelectItem
+                                key={item.channel_id}
+                                value={String(item.channel_id)}
+                              >
+                                <div className="flex flex-col">
+                                  <span className="font-medium">
+                                    {item.channel_name}
+                                  </span>
+
+                                  <span className="text-xs text-gray-500">
+                                    {item.supplier_name}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     <div className="w-full flex">
@@ -477,7 +567,7 @@ export const Client = () => {
                               className={cn(
                                 "flex w-full px-5 py-2 gap-2 items-center rounded hover:bg-sky-100",
                                 selected.barcode === item &&
-                                  "bg-sky-100 hover:bg-sky-200"
+                                  "bg-sky-100 hover:bg-sky-200",
                               )}
                             >
                               <RadioGroupItem
@@ -510,7 +600,7 @@ export const Client = () => {
                               className={cn(
                                 "flex w-full px-5 py-2 gap-2 items-center rounded hover:bg-sky-100",
                                 selected.name === item &&
-                                  "bg-sky-100 hover:bg-sky-200"
+                                  "bg-sky-100 hover:bg-sky-200",
                               )}
                             >
                               <RadioGroupItem value={item} id={item + "name"} />
@@ -540,7 +630,7 @@ export const Client = () => {
                               className={cn(
                                 "flex w-full px-5 py-2 gap-2 items-center rounded hover:bg-sky-100",
                                 selected.qty === item &&
-                                  "bg-sky-100 hover:bg-sky-200"
+                                  "bg-sky-100 hover:bg-sky-200",
                               )}
                             >
                               <RadioGroupItem value={item} id={item + "qty"} />
@@ -570,7 +660,7 @@ export const Client = () => {
                               className={cn(
                                 "flex w-full px-5 py-2 gap-2 items-center rounded hover:bg-sky-100",
                                 selected.price === item &&
-                                  "bg-sky-100 hover:bg-sky-200"
+                                  "bg-sky-100 hover:bg-sky-200",
                               )}
                             >
                               <RadioGroupItem

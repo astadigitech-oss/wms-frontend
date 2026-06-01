@@ -1,41 +1,40 @@
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import axios, { AxiosError } from "axios";
 import type { AxiosResponse } from "axios";
 import { baseUrl } from "@/lib/baseUrl";
+import { toast } from "sonner";
 import { getCookie } from "cookies-next/client";
 
 type RequestType = {
-  code_document: any;
-  channel_id: any;
-  headerMappings: {
-    old_barcode_product: string[];
-    old_name_product: string[];
-    old_quantity_product: string[];
-    old_price_product: string[];
-  };
+  [key: string]: string;
 };
 
 type Error = AxiosError;
 
-export const useMergeHeader = () => {
+export const useSubmitProduct = () => {
   const accessToken = getCookie("accessToken");
-  const router = useRouter();
 
   const mutation = useMutation<AxiosResponse, Error, RequestType>({
     mutationFn: async (value) => {
-      const res = await axios.post(`${baseUrl}/generate/merge-headers`, value, {
+      const res = await axios.post(`${baseUrl}/product-approves`, value, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
       return res;
     },
-    onSuccess: () => {
-      router.push("/inbound/check-product/manifest-inbound");
-    },
     onError: (err) => {
-      console.log("ERROR_MERGE_FILE:", err);
+      if (err.status === 403) {
+        toast.error(`Error 403: Restricted Access`);
+      } else {
+        toast.error(
+          `ERROR ${err?.status}: ${
+            (err.response?.data as any).data.message ||
+            "Product failed to submit"
+          } `
+        );
+        console.log("ERROR_SUBMIT_PRODUCT:", err);
+      }
     },
   });
   return mutation;

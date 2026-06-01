@@ -589,7 +589,7 @@ export const Client = () => {
                   className="bg-sky-400/80 hover:bg-sky-400 text-black"
                 >
                   <Link
-                    href={`/inbound/check-product/manifest-inbound/${codeDocument}/check`}
+                    href={`/inbound/check-product/manifest-inbound/${codeDocument}/check-v2`}
                   >
                     <ArrowRightCircle className="w-4 h-4 mr-1" />
                     Next
