@@ -22,6 +22,7 @@ import {
   ArrowLeftRight,
   Boxes,
   Loader2,
+  Pencil,
   ReceiptText,
   RefreshCw,
   Shield,
@@ -49,6 +50,7 @@ import DialogHistoryBundling from "./dialog-history-bundling";
 import { useGetListHistoryBundling } from "../_api/use-get-list-history-bundling";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { DialogEditProductSku } from "./dialog-edit-product-sku";
 
 export const Client = () => {
   const { skuId, skuMonth, skuYear } = useParams();
@@ -57,6 +59,8 @@ export const Client = () => {
   const [input, setInput] = useState("");
   const [openDamaged, setOpenDamaged] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [openEditProduct, setOpenEditProduct] = useState(false);
+  const [selectedEditProduct, setSelectedEditProduct] = useState<any>(null);
 
   const [totalDamaged, setTotalDamaged] = useState("");
   const [notesDamaged, setNotesDamaged] = useState("");
@@ -212,6 +216,13 @@ export const Client = () => {
     });
   };
 
+  const handleCloseEditProduct = (open: boolean) => {
+    setOpenEditProduct(open);
+    if (!open) {
+      setSelectedEditProduct(null);
+    }
+  };
+
   useEffect(() => {
     setPaginate({
       isSuccess,
@@ -304,6 +315,22 @@ export const Client = () => {
       header: () => <div className="text-center">Action</div>,
       cell: ({ row }) => (
         <div className="flex gap-4 justify-center items-center">
+          <TooltipProviderPage value={<p>Edit</p>}>
+            <Button
+              className="items-center w-9 px-0 flex-none h-9 border-amber-400 text-amber-700 hover:text-amber-700 hover:bg-amber-50 disabled:opacity-100 disabled:hover:bg-amber-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+              variant={"outline"}
+              onClick={() => {
+                setSelectedEditProduct(row.original);
+                setOpenEditProduct(true);
+              }}
+            >
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Pencil className="w-4 h-4" />
+              )}
+            </Button>
+          </TooltipProviderPage>
           <TooltipProviderPage value={<p>Bundling</p>}>
             <Button
               asChild
@@ -472,6 +499,16 @@ export const Client = () => {
   return (
     <div className="flex flex-col items-start bg-gray-100 w-full relative px-4 gap-4 py-4">
       <DeleteBarcodeDialog />
+      <DialogEditProductSku
+        open={openEditProduct}
+        onOpenChange={handleCloseEditProduct}
+        product={selectedEditProduct}
+        onSuccess={() => {
+          queryClient.invalidateQueries({
+            queryKey: ["detail-product-sku", codeDocument],
+          });
+        }}
+      />
       <DialogHistoryBundling
         open={isHistoryBundling}
         onCloseModal={() => {
