@@ -75,32 +75,9 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useGetSummarySaldoStagging } from "../_api/use-get-summary-saldo-stagging";
 const DialogCreateEdit = dynamic(() => import("./dialog-create-edit"), {
   ssr: false,
 });
-
-const formatNumber = (value?: number | null) => {
-  if (value === null || value === undefined) return "-";
-  return new Intl.NumberFormat("id-ID").format(value);
-};
-
-const formatCurrency = (value?: number | null) => {
-  if (value === null || value === undefined) return "-";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(value);
-};
-
-const formatDateTime = (value?: string | null) => {
-  if (!value) return "-";
-  return new Intl.DateTimeFormat("id-ID", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value.replace(" ", "T")));
-};
 
 export const Client = () => {
   const [isOpen, setIsOpen] = useQueryState(
@@ -276,13 +253,6 @@ export const Client = () => {
     q: searchValueCategories,
   });
 
-  const {
-    data: dataSummarySaldo,
-    isLoading: isLoadingSummarySaldo,
-    isRefetching: isRefetchingSummarySaldo,
-    refetch: refetchSummarySaldo,
-  } = useGetSummarySaldoStagging();
-
   const rackData = useMemo(() => {
     return dataRacks?.data.data.resource;
   }, [dataRacks]);
@@ -296,13 +266,6 @@ export const Client = () => {
   const CategoriesData = useMemo(() => {
     return dataCategories?.data.data.resource;
   }, [dataCategories]);
-
-  const summarySaldo = useMemo(() => {
-    return dataSummarySaldo?.data.data.resource ?? dataSummarySaldo?.data.data;
-  }, [dataSummarySaldo]);
-
-  const saldoRealtime: any = summarySaldo?.saldo_realtime;
-  const summaryAsOf = dataSummarySaldo?.data.meta?.as_of;
 
   const loading =
     isLoadingProducts ||
@@ -667,63 +630,19 @@ export const Client = () => {
           <BreadcrumbItem>Rack</BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-
-      <div className="flex flex-col gap-4 w-full mt-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mt-4 mb-6">
         {/* Card: Total Rack */}
         <div className="bg-white shadow rounded-xl p-5 flex flex-col border border-gray-200">
           <h4 className="text-sm text-gray-500">Total Rack</h4>
           <p className="text-3xl font-bold mt-2">{totalRacks} </p>
         </div>
 
-        <div className="bg-sky-100 shadow rounded-xl p-5 flex flex-col border border-gray-200">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h4 className="text-sm text-gray-500">Saldo Realtime Stagging</h4>
-              <p className="text-xs text-gray-400 mt-1">
-                As of: {formatDateTime(summaryAsOf)}
-              </p>
-            </div>
-            <TooltipProviderPage value={"Refresh Data"}>
-              <Button
-                onClick={() => refetchSummarySaldo()}
-                className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
-                variant={"outline"}
-                disabled={isLoadingSummarySaldo || isRefetchingSummarySaldo}
-              >
-                <RefreshCw
-                  className={cn(
-                    "w-4 h-4",
-                    isLoadingSummarySaldo || isRefetchingSummarySaldo
-                      ? "animate-spin"
-                      : "",
-                  )}
-                />
-              </Button>
-            </TooltipProviderPage>
-          </div>
-          <p className="text-3xl font-bold mt-4">
-            {isLoadingSummarySaldo || isRefetchingSummarySaldo
-              ? "-"
-              : formatNumber(saldoRealtime?.qty)}
+        {/* Card: Total Product */}
+        <div className="bg-white shadow rounded-xl p-5 flex flex-col border border-gray-200">
+          <h4 className="text-sm text-gray-500">Total Products Rack</h4>
+          <p className="text-3xl font-bold mt-2">
+            {rackData?.total_products_in_racks}{" "}
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 text-sm">
-            <div>
-              <p className="text-gray-500">Total Price</p>
-              <p className="font-semibold text-gray-900">
-                {isLoadingSummarySaldo || isRefetchingSummarySaldo
-                  ? "-"
-                  : formatCurrency(saldoRealtime?.total_price)}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-500">Total Price Before</p>
-              <p className="font-semibold text-gray-900">
-                {isLoadingSummarySaldo || isRefetchingSummarySaldo
-                  ? "-"
-                  : formatCurrency(saldoRealtime?.total_price_before)}
-              </p>
-            </div>
-          </div>
         </div>
       </div>
       <Tabs className="w-full mt-5" defaultValue="rack">
