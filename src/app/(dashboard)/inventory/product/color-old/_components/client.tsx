@@ -75,24 +75,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useExportAllColor } from "../_api/use-export-all-color";
-import { useGetSummarySaldoDisplayColor } from "../_api/use-get-summary-saldo-display-color";
 
 const DialogDetail = dynamic(() => import("./dialog-detail"), {
   ssr: false,
 });
-
-const formatNumber = (value?: number | null) => {
-  if (value === null || value === undefined) return "-";
-  return new Intl.NumberFormat("id-ID").format(value);
-};
-
-const formatDateTime = (value?: string | null) => {
-  if (!value) return "-";
-  return new Intl.DateTimeFormat("id-ID", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value.replace(" ", "T")));
-};
 
 export const Client = () => {
   const queryClient = useQueryClient();
@@ -251,13 +237,6 @@ export const Client = () => {
     isError: isErrorRacksWMS,
   } = useGetListRacks({ p: pageRackWms, q: searchValueRackWMS });
 
-  const {
-    data: dataSummarySaldo,
-    isLoading: isLoadingSummarySaldo,
-    isRefetching: isRefetchingSummarySaldo,
-    refetch: refetchSummarySaldo,
-  } = useGetSummarySaldoDisplayColor();
-
   // data detail
   const {
     data: dataProduct,
@@ -270,6 +249,16 @@ export const Client = () => {
   const dataDetail: any = useMemo(() => {
     return dataProduct?.data.data.resource;
   }, [dataProduct]);
+
+  // data RES memo WMS
+  const dataResWMS: any = useMemo(() => {
+    return dataWMS?.data.data.resource;
+  }, [dataWMS]);
+
+  // data RES memo APK
+  const dataResAPK: any = useMemo(() => {
+    return dataAPK?.data.data.resource;
+  }, [dataAPK]);
 
   // data Summary memo WMS
   const dataListSummartWMS: any[] = useMemo(() => {
@@ -309,19 +298,6 @@ export const Client = () => {
   const dataListRacksWMS: any[] = useMemo(() => {
     return dataRacksWMS?.data.data.resource.racks.data;
   }, [dataRacksWMS]);
-
-  const summarySaldo = useMemo(() => {
-    return dataSummarySaldo?.data.data.resource ?? dataSummarySaldo?.data.data;
-  }, [dataSummarySaldo]);
-
-  const saldoRealtime: any = useMemo(() => {
-    return summarySaldo?.saldo_realtime;
-  }, [summarySaldo]);
-
-  const summaryAsOf = useMemo(() => {
-    return dataSummarySaldo?.data.meta?.as_of;
-  }, [dataSummarySaldo]);
-
   // loading WMS APK
   const loadingWMS = isLoadingWMS || isRefetchingWMS || isPendingWMS;
   const loadingAPK = isLoadingAPK || isRefetchingAPK || isPendingAPK;
@@ -1509,68 +1485,25 @@ export const Client = () => {
             </TabsTrigger>
           </TabsList>
         </div> */}
-
         <TabsContent value="wms">
           <div className="flex w-full flex-col gap-4">
             <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-6 flex-col">
               <h2 className="text-xl font-bold">Summary Product Colors WMS</h2>
-              <div className="flex flex-col gap-4 w-full">
-                <div className="bg-sky-100 shadow rounded-xl p-5 flex flex-col border border-gray-200">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h4 className="text-sm text-gray-500">
-                        Saldo Realtime Display Color
-                      </h4>
-                      <p className="text-xs text-gray-400 mt-1">
-                        As of: {formatDateTime(summaryAsOf)}
-                      </p>
-                    </div>
-                    <TooltipProviderPage value={"Refresh Data"}>
-                      <Button
-                        onClick={() => refetchSummarySaldo()}
-                        className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
-                        variant={"outline"}
-                        disabled={
-                          isLoadingSummarySaldo || isRefetchingSummarySaldo
-                        }
-                      >
-                        <RefreshCw
-                          className={cn(
-                            "w-4 h-4",
-                            isLoadingSummarySaldo || isRefetchingSummarySaldo
-                              ? "animate-spin"
-                              : "",
-                          )}
-                        />
-                      </Button>
-                    </TooltipProviderPage>
+              <div className="flex flex-col w-full gap-4">
+                <div className="flex w-full gap-4">
+                  <div className="w-full border border-sky-400 p-3 rounded-md">
+                    <h5 className="text-sm">Total Product</h5>
+                    <p className="font-semibold text-lg">
+                      {dataResWMS?.total_data.toLocaleString()} Products
+                    </p>
                   </div>
-                  <p className="text-3xl font-bold mt-4">
-                    {isLoadingSummarySaldo || isRefetchingSummarySaldo
-                      ? "-"
-                      : formatNumber(saldoRealtime?.qty)}
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 text-sm">
-                    <div>
-                      <p className="text-gray-500">Total Price</p>
-                      <p className="font-semibold text-gray-900">
-                        {isLoadingSummarySaldo || isRefetchingSummarySaldo
-                          ? "-"
-                          : formatRupiah(saldoRealtime?.total_price)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Total Price Before</p>
-                      <p className="font-semibold text-gray-900">
-                        {isLoadingSummarySaldo || isRefetchingSummarySaldo
-                          ? "-"
-                          : formatRupiah(saldoRealtime?.total_price_before)}
-                      </p>
-                    </div>
+                  <div className="w-full border border-sky-400 p-3 rounded-md">
+                    <h5 className="text-sm">Total Value</h5>
+                    <p className="font-semibold text-lg">
+                      {formatRupiah(dataResWMS?.total_price)}
+                    </p>
                   </div>
                 </div>
-              </div>
-              <div className="flex flex-col w-full gap-4">
                 <DataTable
                   columns={columnSummaryColor}
                   data={dataListSummartWMS ?? []}
@@ -1581,7 +1514,6 @@ export const Client = () => {
                 />
               </div>
             </div>
-
             <Tabs className="w-full mt-14" defaultValue="rack">
               <div className="relative w-full flex justify-center">
                 <TabsList className="absolute -top-12 p-1 h-auto border-2 border-white shadow bg-gray-200">
@@ -1819,6 +1751,20 @@ export const Client = () => {
             <div className="flex w-full bg-white rounded-md overflow-hidden shadow px-5 py-3 gap-6 flex-col">
               <h2 className="text-xl font-bold">Summary Product Colors APK</h2>
               <div className="flex flex-col w-full gap-4">
+                <div className="flex w-full gap-4">
+                  <div className="w-full border border-sky-400 p-3 rounded-md">
+                    <h5 className="text-sm">Total Product</h5>
+                    <p className="font-semibold text-lg">
+                      {dataResAPK?.total_data.toLocaleString()} Products
+                    </p>
+                  </div>
+                  <div className="w-full border border-sky-400 p-3 rounded-md">
+                    <h5 className="text-sm">Total Value</h5>
+                    <p className="font-semibold text-lg">
+                      {formatRupiah(dataResAPK?.total_price)}
+                    </p>
+                  </div>
+                </div>
                 <DataTable
                   columns={columnSummaryColor}
                   data={dataListSummartAPK ?? []}

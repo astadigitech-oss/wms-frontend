@@ -78,6 +78,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useGetSummarySaldoDisplay } from "../_api/use-get-summary-saldo-display";
 const DialogCreateEdit = dynamic(() => import("./dialog-create-edit"), {
   ssr: false,
 });
@@ -87,6 +88,19 @@ interface QualityData {
   damaged: string | null;
   abnormal: string | null;
 }
+
+const formatNumber = (value?: number | null) => {
+  if (value === null || value === undefined) return "-";
+  return new Intl.NumberFormat("id-ID").format(value);
+};
+
+const formatDateTime = (value?: string | null) => {
+  if (!value) return "-";
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value.replace(" ", "T")));
+};
 
 export const Client = () => {
   const queryClient = useQueryClient();
@@ -179,7 +193,7 @@ export const Client = () => {
   );
 
   const [SoRackDialog, confirmSoRack] = useConfirm(
-    "SO Rack Stagging",
+    "SO Rack Display",
     "This action cannot be undone",
     "liquid",
   );
@@ -258,6 +272,13 @@ export const Client = () => {
     q: searchValueProduct, // product tab has its own search input `dataSearch`
   });
 
+  const {
+    data: dataSummarySaldo,
+    isLoading: isLoadingSummarySaldo,
+    isRefetching: isRefetchingSummarySaldo,
+    refetch: refetchSummarySaldo,
+  } = useGetSummarySaldoDisplay();
+
   const rackData = useMemo(() => {
     return dataRacks?.data.data.resource;
   }, [dataRacks]);
@@ -267,6 +288,18 @@ export const Client = () => {
   const productData = useMemo(() => {
     return dataProducts?.data.data.resource.data;
   }, [dataProducts]);
+
+  const summarySaldo = useMemo(() => {
+    return dataSummarySaldo?.data.data.resource ?? dataSummarySaldo?.data.data;
+  }, [dataSummarySaldo]);
+
+  const saldoRealtime: any = useMemo(() => {
+    return summarySaldo?.saldo_realtime;
+  }, [summarySaldo]);
+
+  const summaryAsOf = useMemo(() => {
+    return dataSummarySaldo?.data.meta?.as_of;
+  }, [dataSummarySaldo]);
 
   const dataDetailProduct: any = useMemo(() => {
     return dataProduct?.data.data.resource;
@@ -504,7 +537,7 @@ export const Client = () => {
   // const handleScanSORack = (e: FormEvent) => {
   //   e.preventDefault();
   //   if (!SORackInput.trim()) return;
-  //   const title = `SO Rack Stagging barcode ${SORackInput}`;
+  //   const title = `SO Rack Display barcode ${SORackInput}`;
 
   //   (async () => {
   //     const ok = await confirmSoRack(title);
@@ -539,7 +572,7 @@ export const Client = () => {
     const name =
       selectedNameRack || foundRack?.display?.name || foundRack?.name || "";
 
-    const title = `SO Rack Stagging barcode ${barcode}${name ? ` nama rak ${name}` : ""}`;
+    const title = `SO Rack Display barcode ${barcode}${name ? ` nama rak ${name}` : ""}`;
 
     const ok = await confirmSoRack(title);
 
@@ -1041,19 +1074,62 @@ export const Client = () => {
           <BreadcrumbItem>Rack</BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mt-4 mb-6">
+      <div className="flex flex-col gap-4 w-full mt-4 mb-6">
         {/* Card: Total Rack */}
         <div className="bg-white shadow rounded-xl p-5 flex flex-col border border-gray-200">
           <h4 className="text-sm text-gray-500">Total Rack</h4>
           <p className="text-3xl font-bold mt-2">{totalRacks} </p>
         </div>
 
-        {/* Card: Total Product */}
-        <div className="bg-white shadow rounded-xl p-5 flex flex-col border border-gray-200">
-          <h4 className="text-sm text-gray-500">Total Products Rack</h4>
-          <p className="text-3xl font-bold mt-2">
-            {rackData?.total_products_in_racks}{" "}
+        <div className="bg-sky-100 shadow rounded-xl p-5 flex flex-col border border-gray-200">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h4 className="text-sm text-gray-500">Saldo Realtime Display</h4>
+              <p className="text-xs text-gray-400 mt-1">
+                As of: {formatDateTime(summaryAsOf)}
+              </p>
+            </div>
+            <TooltipProviderPage value={"Refresh Data"}>
+              <Button
+                onClick={() => refetchSummarySaldo()}
+                className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
+                variant={"outline"}
+                disabled={isLoadingSummarySaldo || isRefetchingSummarySaldo}
+              >
+                <RefreshCw
+                  className={cn(
+                    "w-4 h-4",
+                    isLoadingSummarySaldo || isRefetchingSummarySaldo
+                      ? "animate-spin"
+                      : "",
+                  )}
+                />
+              </Button>
+            </TooltipProviderPage>
+          </div>
+          <p className="text-3xl font-bold mt-4">
+            {isLoadingSummarySaldo || isRefetchingSummarySaldo
+              ? "-"
+              : formatNumber(saldoRealtime?.qty)}
           </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 text-sm">
+            <div>
+              <p className="text-gray-500">Total Price</p>
+              <p className="font-semibold text-gray-900">
+                {isLoadingSummarySaldo || isRefetchingSummarySaldo
+                  ? "-"
+                  : formatRupiah(saldoRealtime?.total_price)}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-500">Total Price Before</p>
+              <p className="font-semibold text-gray-900">
+                {isLoadingSummarySaldo || isRefetchingSummarySaldo
+                  ? "-"
+                  : formatRupiah(saldoRealtime?.total_price_before)}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
       <Tabs className="w-full mt-5" defaultValue="rack">
