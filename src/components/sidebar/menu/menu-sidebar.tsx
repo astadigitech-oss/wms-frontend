@@ -985,6 +985,12 @@ const sidebarMenu = [
         sub_menu: [],
       },
       // {
+      //   title: "Voucher",
+      //   href: "/outbond/voucher",
+      //   icon: <Gift className="w-5 h-5 stroke-[1.5]" />,
+      //   sub_menu: [],
+      // },
+      // {
       //   title: "Class buyer",
       //   href: "/outbond/class-buyer",
       //   icon: <Award className="w-5 h-5 stroke-[1.5]" />,
