@@ -1,6 +1,13 @@
 "use client";
 
-import { PlusCircle, ReceiptText, RefreshCcw, RefreshCw } from "lucide-react";
+import {
+  FileDown,
+  Loader2,
+  PlusCircle,
+  ReceiptText,
+  RefreshCcw,
+  RefreshCw,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { alertError, cn, formatRupiah, setPaginate } from "@/lib/utils";
 import {
@@ -27,9 +34,12 @@ import { Badge } from "@/components/ui/badge";
 import DialogSync from "./dialog-sync";
 import { useCreateSync } from "../_api/use-create-sync";
 import { format } from "date-fns";
+import DialogExportSales from "./dialog-export-sales";
+import { useExportSalesReguler } from "../_api/use-export-sales-reguler";
 
 export const Client = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
   // data search, page
@@ -85,8 +95,12 @@ export const Client = () => {
 
   const handleOpenDialog = () => setIsDialogOpen(true);
   const handleClose = () => setIsDialogOpen(false);
+  const handleOpenExportDialog = () => setIsExportDialogOpen(true);
+  const handleCloseExportDialog = () => setIsExportDialogOpen(false);
 
   const { mutate: mutateCreate } = useCreateSync();
+  const { mutate: mutateExportSales, isPending: isPendingExportSales } =
+    useExportSalesReguler();
 
   const handleSync = (dateRange: { start_date: Date; end_date: Date }) => {
     const body = {
@@ -94,6 +108,35 @@ export const Client = () => {
       end_date: dateRange.end_date.toISOString().split("T")[0],
     };
     mutateCreate({ body }, { onSuccess: handleClose });
+  };
+
+  const handleExportSales = (dateRange: {
+    start_date: Date;
+    end_date: Date;
+  }) => {
+    const body = {
+      start_date: format(dateRange.start_date, "yyyy-MM-dd"),
+      end_date: format(dateRange.end_date, "yyyy-MM-dd"),
+    };
+
+    mutateExportSales(
+      { body },
+      {
+        onSuccess: (res) => {
+          console.log("EXPORT_SALES_REGULER_SUCCESS:", res);
+          const downloadUrl = res.data?.data?.resource;
+          if (downloadUrl) {
+            const link = document.createElement("a");
+            link.href = downloadUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+
+          handleCloseExportDialog();
+        },
+      },
+    );
   };
 
   // column data
@@ -149,15 +192,15 @@ export const Client = () => {
               row.original.approved === "1"
                 ? "bg-yellow-300 hover:bg-yellow-300 font-normal"
                 : row.original.approved === "2"
-                ? "bg-sky-300 hover:bg-sky-300 font-normal"
-                : "bg-transparent hover:bg-transparent font-normal text-sm"
+                  ? "bg-sky-300 hover:bg-sky-300 font-normal"
+                  : "bg-transparent hover:bg-transparent font-normal text-sm",
             )}
           >
             {row.original.approved === "1"
               ? "Pending"
               : row.original.approved === "2"
-              ? "Done"
-              : "-"}
+                ? "Done"
+                : "-"}
           </Badge>
         </div>
       ),
@@ -243,7 +286,7 @@ export const Client = () => {
                   asChild
                   className="hidden items-center flex-none h-9 bg-sky-400/80 hover:bg-sky-400 text-black disabled:opacity-100 disabled:hover:bg-sky-400 disabled:pointer-events-auto disabled:cursor-not-allowed"
                   variant={"outline"}
-                  onClick={handleOpenDialog} 
+                  onClick={handleOpenDialog}
                 >
                   <div>
                     <RefreshCcw className={"w-4 h-4 mr-1"} />
@@ -257,6 +300,25 @@ export const Client = () => {
                   setIsDirty={setIsDirty}
                   handleSync={handleSync}
                 />
+                <DialogExportSales
+                  open={isExportDialogOpen}
+                  onCloseModal={handleCloseExportDialog}
+                  handleExport={handleExportSales}
+                  isPending={isPendingExportSales}
+                />
+                <Button
+                  className="items-center flex-none h-9 bg-white border-sky-400/80 text-black hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-white disabled:pointer-events-auto disabled:cursor-not-allowed"
+                  variant={"outline"}
+                  onClick={handleOpenExportDialog}
+                  disabled={isPendingExportSales}
+                >
+                  {isPendingExportSales ? (
+                    <Loader2 className={"w-4 h-4 mr-1 animate-spin"} />
+                  ) : (
+                    <FileDown className={"w-4 h-4 mr-1"} />
+                  )}
+                  Export
+                </Button>
                 <Button
                   asChild
                   className="items-center flex-none h-9 bg-sky-400/80 hover:bg-sky-400 text-black disabled:opacity-100 disabled:hover:bg-sky-400 disabled:pointer-events-auto disabled:cursor-not-allowed"
