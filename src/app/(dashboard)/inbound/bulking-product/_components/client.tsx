@@ -29,6 +29,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { parseAsBoolean, parseAsStringLiteral, useQueryState } from "nuqs";
 import { useUploadBulking } from "../_api/use-upload-bulking";
 import Loading from "@/app/(dashboard)/loading";
@@ -63,12 +64,14 @@ export const Client = () => {
   const [selectedFile, setSelectedFile] = useState<UploadedFileProps | null>(
     null
   );
+  const [isExtra, setIsExtra] = useState(false);
 
   const handleComplete = async () => {
     const body = new FormData();
     if (selectedFile?.file) {
       body.append("file", selectedFile.file);
     }
+    body.append("is_extra", String(isExtra));
 
     const promise = new Promise((resolve, reject) => {
       mutate(
@@ -77,6 +80,7 @@ export const Client = () => {
           onSuccess: (data) => {
             resolve(data);
             setSelectedFile(null);
+            setIsExtra(false);
             setTypeBulk("");
           },
           onError: (error) => {
@@ -101,6 +105,7 @@ export const Client = () => {
   const onDrop = (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
+      setIsExtra(false);
       return setSelectedFile({
         file,
         name: file.name,
@@ -302,6 +307,7 @@ export const Client = () => {
                     type="button"
                     onClick={() => {
                       setSelectedFile(null);
+                      setIsExtra(false);
                       setErrorMsg([]);
                     }}
                   >
@@ -333,6 +339,13 @@ export const Client = () => {
                   </div>
                 </li>
               </ul>
+              <label className="mt-4 flex w-fit cursor-pointer items-center gap-2 text-sm font-medium text-gray-700">
+                <Checkbox
+                  checked={isExtra}
+                  onCheckedChange={(checked) => setIsExtra(checked === true)}
+                />
+                is_extra
+              </label>
             </div>
           )}
         </div>
