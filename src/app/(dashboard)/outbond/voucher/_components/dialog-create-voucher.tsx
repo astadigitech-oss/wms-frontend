@@ -88,11 +88,11 @@ const DialogCreateVoucher = ({
                   placeholder="0"
                   type="number"
                   min={0}
-                  value={input.max_value}
+                  value={input.max_usage}
                   onChange={(e) =>
                     setInput((prev: any) => ({
                       ...prev,
-                      max_value: e.target.value,
+                      max_usage: e.target.value,
                     }))
                   }
                 />
@@ -104,11 +104,11 @@ const DialogCreateVoucher = ({
                   placeholder="0"
                   type="number"
                   min={0}
-                  value={input.max_weeks}
+                  value={input.max_week}
                   onChange={(e) =>
                     setInput((prev: any) => ({
                       ...prev,
-                      max_weeks: e.target.value,
+                      max_week: e.target.value,
                     }))
                   }
                 />

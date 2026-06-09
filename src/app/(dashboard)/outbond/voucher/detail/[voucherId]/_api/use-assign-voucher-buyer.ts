@@ -18,7 +18,7 @@ export const useAssignVoucherBuyer = () => {
 
   const mutation = useMutation<AxiosResponse, Error, RequestType>({
     mutationFn: async ({ id, body }) => {
-      const res = await axios.post(`${baseUrl}/vouchers/${id}/buyers`, body, {
+      const res = await axios.post(`${baseUrl}/vouchers/${id}/tambah-buyer`, body, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

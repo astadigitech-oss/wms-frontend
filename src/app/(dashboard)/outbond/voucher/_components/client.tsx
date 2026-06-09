@@ -34,8 +34,8 @@ const DialogCreateVoucher = dynamic(() => import("./dialog-create-voucher"), {
 const emptyInput = {
   name: "",
   amount: "",
-  max_value: "",
-  max_weeks: "",
+  max_usage: "",
+  max_week: "",
 };
 
 export const Client = () => {
@@ -110,8 +110,8 @@ export const Client = () => {
     const body = {
       name: input.name,
       amount: Number(input.amount || 0),
-      max_value: Number(input.max_value || 0),
-      max_weeks: Number(input.max_weeks || 0),
+      max_usage: Number(input.max_usage || 0),
+      max_week: Number(input.max_week || 0),
     };
 
     mutateCreate(
@@ -165,11 +165,11 @@ export const Client = () => {
       ),
     },
     {
-      accessorKey: "max_value",
+      accessorKey: "max_usage",
       header: "Max Value",
       cell: ({ row }) =>
         formatRupiah(
-          row.original.max_value ?? row.original.max_value_voucher ?? 0
+          row.original.max_usage ?? row.original.max_value_voucher ?? 0
         ),
     },
     {
@@ -196,11 +196,11 @@ export const Client = () => {
       },
     },
     {
-      accessorKey: "max_weeks",
+      accessorKey: "max_week",
       header: () => <div className="text-center">Max Weeks</div>,
       cell: ({ row }) => (
         <div className="text-center tabular-nums">
-          {row.original.max_weeks ?? row.original.max_week ?? "-"}
+          {row.original.max_week ?? row.original.max_week ?? "-"}
         </div>
       ),
     },

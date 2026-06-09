@@ -87,11 +87,11 @@ const DialogEditVoucher = ({
                   className="border-sky-400/80 focus-visible:ring-0 border-0 border-b rounded-none focus-visible:border-sky-500"
                   type="number"
                   min={0}
-                  value={input.max_value}
+                  value={input.max_usage}
                   onChange={(e) =>
                     setInput((prev: any) => ({
                       ...prev,
-                      max_value: e.target.value,
+                      max_usage: e.target.value,
                     }))
                   }
                 />
@@ -102,11 +102,11 @@ const DialogEditVoucher = ({
                   className="border-sky-400/80 focus-visible:ring-0 border-0 border-b rounded-none focus-visible:border-sky-500"
                   type="number"
                   min={0}
-                  value={input.max_weeks}
+                  value={input.max_week}
                   onChange={(e) =>
                     setInput((prev: any) => ({
                       ...prev,
-                      max_weeks: e.target.value,
+                      max_week: e.target.value,
                     }))
                   }
                 />

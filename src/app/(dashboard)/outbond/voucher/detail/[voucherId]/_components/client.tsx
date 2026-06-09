@@ -11,39 +11,31 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
 import Forbidden from "@/components/403";
 import { AxiosError } from "axios";
 import Loading from "@/app/(dashboard)/loading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ArrowLeft, Edit3, Gift, Loader2, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useDebounce } from "@/hooks/use-debounce";
 import { useGetDetailVoucher } from "../../../_api/use-get-detail-voucher";
-import { useUpdateVoucher } from "../../../_api/use-update-voucher";
-import { useGetListBuyer } from "../_api/use-get-list-buyer";
+import { useUpdateVoucher } from "../_api/use-update-voucher";
 import { useAssignVoucherBuyer } from "../_api/use-assign-voucher-buyer";
 
 const DialogEditVoucher = dynamic(() => import("./dialog-edit-voucher"), {
+  ssr: false,
+});
+const DialogBuyer = dynamic(() => import("./dialog-buyer"), {
   ssr: false,
 });
 
 const emptyInput = {
   name: "",
   amount: "",
-  max_value: "",
-  max_weeks: "",
+  max_usage: "",
+  max_week: "",
   is_active: true,
 };
 
@@ -55,10 +47,8 @@ export const Client = () => {
   const voucherId = params.voucherId;
   const [isMounted, setIsMounted] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+  const [openBuyer, setOpenBuyer] = useState(false);
   const [input, setInput] = useState(emptyInput);
-  const [buyerSearch, setBuyerSearch] = useState("");
-  const [buyerId, setBuyerId] = useState("");
-  const searchBuyerValue = useDebounce(buyerSearch);
 
   const {
     data,
@@ -69,13 +59,6 @@ export const Client = () => {
     isSuccess,
   } = useGetDetailVoucher({ id: voucherId });
 
-  const {
-    data: dataBuyer,
-    isLoading: isLoadingBuyer,
-    isError: isErrorBuyer,
-    error: errorBuyer,
-  } = useGetListBuyer({ q: searchBuyerValue });
-
   const { mutate: mutateUpdate, isPending: isPendingUpdate } =
     useUpdateVoucher();
   const { mutate: mutateAssignBuyer, isPending: isPendingAssignBuyer } =
@@ -84,14 +67,6 @@ export const Client = () => {
   const voucher = useMemo(() => {
     return data?.data?.data?.resource;
   }, [data]);
-
-  const buyers: any[] = useMemo(() => {
-    const buyerResource = dataBuyer?.data?.data?.resource;
-
-    if (Array.isArray(buyerResource)) return buyerResource;
-    if (Array.isArray(buyerResource?.data)) return buyerResource.data;
-    return [];
-  }, [dataBuyer]);
 
   const voucherBuyers: any[] = useMemo(() => {
     return voucher?.buyers ?? voucher?.voucher_buyers ?? [];
@@ -102,11 +77,11 @@ export const Client = () => {
       setInput({
         name: getVoucherValue(voucher, "name", "name_voucher") ?? "",
         amount: String(getVoucherValue(voucher, "amount", "amount_voucher") ?? ""),
-        max_value: String(
-          getVoucherValue(voucher, "max_value", "max_value_voucher") ?? ""
+        max_usage: String(
+          getVoucherValue(voucher, "max_usage", "max_value_voucher") ?? ""
         ),
-        max_weeks: String(
-          voucher?.max_weeks ?? voucher?.max_week ?? ""
+        max_week: String(
+          voucher?.max_week ?? voucher?.max_week ?? ""
         ),
         is_active: voucher?.is_active ?? voucher?.status === "active",
       });
@@ -123,22 +98,12 @@ export const Client = () => {
     });
   }, [isError, error]);
 
-  useEffect(() => {
-    alertError({
-      isError: isErrorBuyer,
-      error: errorBuyer as AxiosError,
-      data: "Buyer",
-      action: "get data",
-      method: "GET",
-    });
-  }, [isErrorBuyer, errorBuyer]);
-
   const handleUpdate = () => {
     const body = {
       name: input.name,
       amount: Number(input.amount || 0),
-      max_value: Number(input.max_value || 0),
-      max_weeks: Number(input.max_weeks || 0),
+      max_usage: Number(input.max_usage || 0),
+      max_week: Number(input.max_week || 0),
       is_active: input.is_active,
     };
 
@@ -152,12 +117,12 @@ export const Client = () => {
     );
   };
 
-  const handleAssignBuyer = () => {
+  const handleAssignBuyer = (buyer: any) => {
     mutateAssignBuyer(
-      { id: voucherId, body: { buyer_id: buyerId } },
+      { id: voucherId, body: { buyer_id: buyer.id } },
       {
         onSuccess: () => {
-          setBuyerId("");
+          setOpenBuyer(false);
         },
       }
     );
@@ -190,6 +155,12 @@ export const Client = () => {
         setInput={setInput}
         handleSubmit={handleUpdate}
         isPending={isPendingUpdate}
+      />
+      <DialogBuyer
+        open={openBuyer}
+        onOpenChange={() => setOpenBuyer(false)}
+        onSelect={handleAssignBuyer}
+        isPending={isPendingAssignBuyer}
       />
       <Breadcrumb>
         <BreadcrumbList>
@@ -262,7 +233,7 @@ export const Client = () => {
                 <p className="text-sm text-gray-500">Max Value</p>
                 <p className="font-semibold">
                   {formatRupiah(
-                    getVoucherValue(voucher, "max_value", "max_value_voucher") ??
+                    getVoucherValue(voucher, "max_usage", "max_value_voucher") ??
                       0
                   )}
                 </p>
@@ -270,7 +241,7 @@ export const Client = () => {
               <div>
                 <p className="text-sm text-gray-500">Max Weeks</p>
                 <p className="font-semibold">
-                  {voucher?.max_weeks ?? voucher?.max_week ?? "-"}
+                  {voucher?.max_week ?? voucher?.max_week ?? "-"}
                 </p>
               </div>
               <div>
@@ -296,61 +267,25 @@ export const Client = () => {
           </Card>
 
           <Card className="rounded-md border-sky-200 shadow-none mt-4">
-            <CardHeader>
-              <CardTitle className="text-base">Input Select Buyer</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between gap-4">
+              <CardTitle className="text-base">Buyer Voucher</CardTitle>
+              <TooltipProviderPage value="Add buyer to voucher">
+                <Button
+                  onClick={() => setOpenBuyer(true)}
+                  disabled={isPendingAssignBuyer}
+                  className="items-center h-9 bg-sky-400/80 hover:bg-sky-400 text-black"
+                  variant="outline"
+                >
+                  {isPendingAssignBuyer ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                  ) : (
+                    <PlusCircle className="w-4 h-4 mr-1" />
+                  )}
+                  Add Buyer
+                </Button>
+              </TooltipProviderPage>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
-              <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
-                <div className="flex flex-col gap-1">
-                  <Label>Search Buyer</Label>
-                  <Input
-                    className="border-sky-400/80 focus-visible:ring-sky-400"
-                    placeholder="Search buyer..."
-                    value={buyerSearch}
-                    onChange={(e) => setBuyerSearch(e.target.value)}
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <Label>Buyer</Label>
-                  <Select value={buyerId} onValueChange={setBuyerId}>
-                    <SelectTrigger className="border-sky-400/80 focus:ring-sky-400">
-                      <SelectValue placeholder="Select buyer" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {isLoadingBuyer ? (
-                        <SelectItem value="loading" disabled>
-                          Loading buyer...
-                        </SelectItem>
-                      ) : buyers.length === 0 ? (
-                        <SelectItem value="empty" disabled>
-                          Buyer not found
-                        </SelectItem>
-                      ) : (
-                        buyers.map((buyer) => (
-                          <SelectItem key={buyer.id} value={String(buyer.id)}>
-                            {buyer.name_buyer ?? buyer.name ?? "-"}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <TooltipProviderPage value="Add buyer to voucher">
-                  <Button
-                    onClick={handleAssignBuyer}
-                    disabled={!buyerId || isPendingAssignBuyer}
-                    className="items-center h-9 bg-sky-400/80 hover:bg-sky-400 text-black"
-                    variant="outline"
-                  >
-                    {isPendingAssignBuyer ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                    ) : (
-                      <PlusCircle className="w-4 h-4 mr-1" />
-                    )}
-                    Add Buyer
-                  </Button>
-                </TooltipProviderPage>
-              </div>
               <div className="border rounded-md overflow-hidden">
                 <div className="grid grid-cols-3 bg-sky-100/70 text-sm font-semibold px-3 py-2">
                   <p>Name</p>

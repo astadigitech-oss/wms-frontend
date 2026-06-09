@@ -3,12 +3,12 @@ import axios from "axios";
 import { baseUrl } from "@/lib/baseUrl";
 import { getCookie } from "cookies-next/client";
 
-export const useGetListBuyer = ({ q }: any) => {
+export const useGetListBuyer = ({ p = 1, q }: any) => {
   const accessToken = getCookie("accessToken");
   const query = useQuery({
-    queryKey: ["list-buyer-voucher", { q }],
+    queryKey: ["list-buyer-voucher", { p, q }],
     queryFn: async () => {
-      const res = await axios.get(`${baseUrl}/buyers?page=1&q=${q}`, {
+      const res = await axios.get(`${baseUrl}/buyers?page=${p}&q=${q}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

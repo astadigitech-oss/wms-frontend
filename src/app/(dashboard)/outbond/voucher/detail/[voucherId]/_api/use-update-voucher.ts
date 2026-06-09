@@ -18,7 +18,7 @@ export const useUpdateVoucher = () => {
 
   const mutation = useMutation<AxiosResponse, Error, RequestType>({
     mutationFn: async ({ id, body }) => {
-      const res = await axios.put(`${baseUrl}/vouchers/${id}`, body, {
+      const res = await axios.post(`${baseUrl}/vouchers/${id}`, body, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
