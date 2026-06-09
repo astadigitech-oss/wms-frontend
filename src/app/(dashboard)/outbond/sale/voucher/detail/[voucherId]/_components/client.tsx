@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { alertError, cn, formatRupiah } from "@/lib/utils";
+import { format } from "date-fns";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -117,9 +118,15 @@ export const Client = () => {
     );
   };
 
-  const handleAssignBuyer = (buyer: any) => {
+  const handleAssignBuyer = (buyer: any, startDate: Date) => {
     mutateAssignBuyer(
-      { id: voucherId, body: { buyer_id: buyer.id } },
+      {
+        id: voucherId,
+        body: {
+          buyer_id: buyer.id,
+          start_date: format(startDate, "yyyy-MM-dd"),
+        },
+      },
       {
         onSuccess: () => {
           setOpenBuyer(false);
@@ -171,7 +178,7 @@ export const Client = () => {
           <BreadcrumbItem>Outbond</BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/outbond/voucher">Voucher</BreadcrumbLink>
+            <BreadcrumbLink href="/outbond/sale/voucher">Voucher</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>Detail</BreadcrumbItem>

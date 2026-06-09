@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AxiosError } from "axios";
-import { CheckCircle2, Loader2, RefreshCw, X } from "lucide-react";
+import { CalendarIcon, CheckCircle2, Loader2, RefreshCw, X } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { DataTable } from "@/components/data-table";
 import Pagination from "@/components/pagination";
 import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
@@ -20,15 +22,22 @@ import { alertError, cn } from "@/lib/utils";
 import { usePagination } from "@/lib/pagination";
 import { useSearchQuery } from "@/lib/search";
 import { useGetListBuyer } from "../_api/use-get-list-buyer";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const columnsBuyer = ({
   metaPage,
   onSelect,
   isPending,
+  startDate,
 }: {
   metaPage: any;
-  onSelect: (buyer: any) => void;
+  onSelect: (buyer: any, startDate: Date) => void;
   isPending: boolean;
+  startDate?: Date;
 }): ColumnDef<any>[] => [
   {
     header: () => <div className="text-center">No</div>,
@@ -65,12 +74,13 @@ const columnsBuyer = ({
         <TooltipProviderPage value="Select">
           <Button
             className="items-center p-0 w-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:pointer-events-auto disabled:cursor-not-allowed"
-            disabled={isPending}
+            disabled={isPending || !startDate}
             variant="outline"
             type="button"
             onClick={(e) => {
               e.preventDefault();
-              onSelect(row.original);
+              if (!startDate) return;
+              onSelect(row.original, startDate);
             }}
           >
             {isPending ? (
@@ -93,11 +103,13 @@ export const DialogBuyer = ({
 }: {
   open: boolean;
   onOpenChange: () => void;
-  onSelect: (buyer: any) => void;
+  onSelect: (buyer: any, startDate: Date) => void;
   isPending: boolean;
 }) => {
   const { search, searchValue, setSearch } = useSearchQuery("searchBuyer");
   const { metaPage, page, setPage, setPagination } = usePagination("pageBuyer");
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [isOpenDate, setIsOpenDate] = useState(false);
 
   const { data, isPending: isPendingBuyer, refetch, isRefetching, error, isError, isSuccess } =
     useGetListBuyer({
@@ -136,6 +148,8 @@ export const DialogBuyer = ({
     if (!open) {
       setPage(1);
       setSearch("");
+      setStartDate(undefined);
+      setIsOpenDate(false);
     }
   }, [open]);
 
@@ -181,6 +195,33 @@ export const DialogBuyer = ({
                 />
               </Button>
             </TooltipProviderPage>
+            <Popover open={isOpenDate} onOpenChange={setIsOpenDate}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "ml-auto justify-start border-sky-400/80 text-left font-normal hover:bg-sky-50",
+                    !startDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="size-4 mr-2" />
+                  {startDate
+                    ? format(startDate, "MMMM dd, yyyy")
+                    : "Pick start date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-[60]" align="end">
+                <Calendar
+                  initialFocus
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => {
+                    setStartDate(date);
+                    setIsOpenDate(false);
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <DataTable
             isSticky
@@ -190,6 +231,7 @@ export const DialogBuyer = ({
               metaPage,
               onSelect,
               isPending,
+              startDate,
             })}
             data={listData ?? []}
           />
