@@ -9,12 +9,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
 import { Loader2, X } from "lucide-react";
 import React from "react";
 
-const DialogEditVoucher = ({
+const DialogCreateVoucher = ({
   open,
   onCloseModal,
   input,
@@ -34,7 +33,7 @@ const DialogEditVoucher = ({
       <DialogContent onClose={false} onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="justify-between flex items-center">
-            Edit Detail
+            Create Voucher
             <TooltipProviderPage value="close" side="left">
               <button
                 onClick={() => onCloseModal()}
@@ -70,6 +69,7 @@ const DialogEditVoucher = ({
                 <Label>Amount</Label>
                 <Input
                   className="border-sky-400/80 focus-visible:ring-0 border-0 border-b rounded-none focus-visible:border-sky-500"
+                  placeholder="0"
                   type="number"
                   min={0}
                   value={input.amount}
@@ -85,13 +85,14 @@ const DialogEditVoucher = ({
                 <Label>Max Value</Label>
                 <Input
                   className="border-sky-400/80 focus-visible:ring-0 border-0 border-b rounded-none focus-visible:border-sky-500"
+                  placeholder="0"
                   type="number"
                   min={0}
-                  value={input.max_value}
+                  value={input.max_usage}
                   onChange={(e) =>
                     setInput((prev: any) => ({
                       ...prev,
-                      max_value: e.target.value,
+                      max_usage: e.target.value,
                     }))
                   }
                 />
@@ -100,30 +101,19 @@ const DialogEditVoucher = ({
                 <Label>Max Week</Label>
                 <Input
                   className="border-sky-400/80 focus-visible:ring-0 border-0 border-b rounded-none focus-visible:border-sky-500"
+                  placeholder="0"
                   type="number"
                   min={0}
-                  value={input.max_weeks}
+                  value={input.max_week}
                   onChange={(e) =>
                     setInput((prev: any) => ({
                       ...prev,
-                      max_weeks: e.target.value,
+                      max_week: e.target.value,
                     }))
                   }
                 />
               </div>
             </div>
-            <label className="flex items-center gap-2 text-sm">
-              <Checkbox
-                checked={input.is_active}
-                onCheckedChange={(checked) =>
-                  setInput((prev: any) => ({
-                    ...prev,
-                    is_active: checked === true,
-                  }))
-                }
-              />
-              Active
-            </label>
           </div>
           <div className="flex w-full gap-2">
             <Button
@@ -139,7 +129,7 @@ const DialogEditVoucher = ({
               disabled={!input.name || isPending}
             >
               {isPending && <Loader2 className="w-4 h-4 animate-spin mr-1" />}
-              Update
+              Create
             </Button>
           </div>
         </form>
@@ -148,4 +138,4 @@ const DialogEditVoucher = ({
   );
 };
 
-export default DialogEditVoucher;
+export default DialogCreateVoucher;
