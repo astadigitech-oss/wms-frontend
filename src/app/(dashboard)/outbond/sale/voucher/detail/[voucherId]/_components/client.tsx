@@ -195,7 +195,7 @@ export const Client = () => {
             )}
           </div>
           <Button variant="outline" asChild className="border-sky-400">
-            <Link href="/outbond/voucher">
+            <Link href="/outbond/sale/voucher">
               <ArrowLeft className="w-4 h-4 mr-1" />
               Back
             </Link>

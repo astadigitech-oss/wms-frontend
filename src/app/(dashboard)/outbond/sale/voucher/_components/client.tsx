@@ -215,7 +215,7 @@ export const Client = () => {
               variant={"outline"}
               asChild
             >
-              <Link href={`/outbond/voucher/detail/${row.original.id}`}>
+              <Link href={`/outbond/sale/voucher/detail/${row.original.id}`}>
                 <ReceiptText className="w-4 h-4" />
               </Link>
             </Button>

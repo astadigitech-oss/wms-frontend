@@ -947,9 +947,18 @@ const sidebarMenu = [
       },
       {
         title: "sale",
-        href: "/outbond/sale",
+        href: undefined,
         icon: <ShoppingBasket className="w-5 h-5 stroke-[1.5]" />,
-        sub_menu: [],
+        sub_menu: [
+          {
+            title: "list sale",
+            href: "/outbond/sale",
+          },
+          {
+            title: "Voucher",
+            href: "/outbond/sale/voucher",
+          },
+        ],
       },
       // {
       //   title: "B2B",
