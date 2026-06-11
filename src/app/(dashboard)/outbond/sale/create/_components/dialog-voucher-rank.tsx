@@ -203,20 +203,20 @@ const DialogVoucherRank = ({
               <p className="text-gray-600">Grand Total</p>
               <p className="font-semibold">{formatRupiah(grandTotal)}</p>
             </div>
-            <div>
+            {/* <div>
               <p className="text-gray-600">Minimum Voucher Rank</p>
               <p className="font-semibold">{formatRupiah(5000000)}</p>
-            </div>
+            </div> */}
             <div>
               <p className="text-gray-600">Product Price</p>
               <p className="font-semibold">{formatRupiah(data ?? 0)}</p>
             </div>
-            <div>
+            {/* <div>
               <p className="text-gray-600">Status</p>
               <Badge className="rounded-full bg-emerald-200 text-emerald-800 hover:bg-emerald-200 shadow-none">
                 Eligible
               </Badge>
-            </div>
+            </div> */}
           </div>
           <div className="flex gap-2">
             <div className="relative w-full">
