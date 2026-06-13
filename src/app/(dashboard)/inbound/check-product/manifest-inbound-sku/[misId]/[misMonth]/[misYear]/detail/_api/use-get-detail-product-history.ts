@@ -9,7 +9,7 @@ export const useGetDetailProductHistory = ({ id, p, q }: any) => {
     queryKey: ["detail-manifest-inbound-sku-history", id, { p, q }],
     queryFn: async () => {
       const res = await axios.get(
-        `${baseUrl}/sku/batch/${id}?page=${p}&q=${q}`,
+        `${baseUrl}/sku/batch/${id}?p=${p}&q=${q}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
