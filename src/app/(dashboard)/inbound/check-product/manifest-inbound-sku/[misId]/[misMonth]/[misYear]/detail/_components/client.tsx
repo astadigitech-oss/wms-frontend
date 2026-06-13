@@ -29,6 +29,7 @@ import { DataTable } from "@/components/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import Loading from "@/app/(dashboard)/loading";
 import { AxiosError } from "axios";
+import { toast } from "sonner";
 import Forbidden from "@/components/403";
 import {
   Dialog,
@@ -44,7 +45,7 @@ import { useRollbackProduct } from "../_api/use-rollback-product";
 import { useGetDetailProduct } from "../_api/use-get-detail-product";
 import Pagination from "@/components/pagination";
 import { useConfirm } from "@/hooks/use-confirm";
-import { useSubmitDocumentSku } from "../_api/use-submit-doc-sku";
+import { useCheckFinishSku, useFinishSku } from "../_api/use-submit-doc-sku";
 import { useGetDetailProductHistory } from "../_api/use-get-detail-product-history";
 import { format } from "date-fns";
 
@@ -72,6 +73,8 @@ export const Client = () => {
 
   const [historySearch, setHistorySearch] = useState("");
   const historySearchValue = useDebounce(historySearch);
+  const [openFinishSku, setOpenFinishSku] = useState(false);
+  const [finishSkuCheck, setFinishSkuCheck] = useState<any>(null);
   const [input, setInput] = useState({
     old_name_product: "",
     actual_quantity_product: "0",
@@ -90,11 +93,6 @@ export const Client = () => {
     perPage: 1,
   });
 
-  const [SubmitSkuDialog, confirmSubmitSkuDialog] = useConfirm(
-    "Submit Product SKU",
-    "This action cannot be undone",
-    "liquid",
-  );
   const [RollbackProductDialog, confirmRollbackProductDialog] = useConfirm(
     "Rollback Product",
     "This action cannot be undone",
@@ -132,13 +130,18 @@ export const Client = () => {
     useUpdateProduct();
   const { mutate: mutateRollback, isPending: isPendingRollback } =
     useRollbackProduct();
-  const { mutate: mutateSubmitSku, isPending: isPendingSubmitSku } =
-    useSubmitDocumentSku();
+  const { mutate: mutateCheckFinishSku, isPending: isPendingCheckFinishSku } =
+    useCheckFinishSku();
+  const { mutate: mutateFinishSku, isPending: isPendingFinishSku } =
+    useFinishSku();
   const dataDetails = useMemo(() => {
     return data?.data.data.resource;
   }, [data]);
   const dataDetailMI = dataDetails?.data.data;
   const statusMIS = dataDetails?.status;
+  const documentId =dataDetails?.id;
+  const finishSkuResource = finishSkuCheck?.data?.data?.resource;
+  const finishSkuMessage = finishSkuCheck?.data?.data?.message;
   const dataProductHistoryResource = useMemo(() => {
     return dataProductHistory?.data?.data?.resource;
   }, [dataProductHistory]);
@@ -218,14 +221,35 @@ export const Client = () => {
     );
   };
 
-  const handleSubmitSku = async () => {
-    const ok = await confirmSubmitSkuDialog();
+  const handleCheckFinishSku = () => {
+    if (!documentId) {
+      toast.error("Document ID not found");
+      return;
+    }
 
-    if (!ok) return;
+    mutateCheckFinishSku(
+      { documentId },
+      {
+        onSuccess: (data) => {
+          setFinishSkuCheck(data);
+          setOpenFinishSku(true);
+        },
+      },
+    );
+  };
 
-    mutateSubmitSku({
-      code_document: codeDocument,
-    });
+  const handleFinishSku = () => {
+    if (!documentId) return;
+
+    mutateFinishSku(
+      { documentId },
+      {
+        onSuccess: () => {
+          setOpenFinishSku(false);
+          setFinishSkuCheck(null);
+        },
+      },
+    );
   };
 
   useEffect(() => {
@@ -539,7 +563,6 @@ export const Client = () => {
 
   return (
     <div className="flex flex-col items-start bg-gray-100 w-full relative px-4 gap-4 py-4">
-      <SubmitSkuDialog />
       <RollbackProductDialog />
       <Breadcrumb>
         <BreadcrumbList>
@@ -592,13 +615,22 @@ export const Client = () => {
                 />
               </Button>
             </TooltipProviderPage>
-            <TooltipProviderPage value={"Add Product"} align="end">
+            <TooltipProviderPage value={"Check"} align="end">
               <Button
-                disabled={isPendingSubmitSku || statusMIS === "done"}
-                onClick={handleSubmitSku}
+                disabled={
+                  isPendingCheckFinishSku ||
+                  isPendingFinishSku ||
+                  statusMIS === "done" ||
+                  !documentId
+                }
+                onClick={handleCheckFinishSku}
                 className="items-center w-9 px-0 flex-none h-9 bg-sky-400/80 text-black hover:bg-sky-400"
               >
-                <Send className="size-4" />
+                {isPendingCheckFinishSku ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Send className="size-4" />
+                )}
               </Button>
             </TooltipProviderPage>
           </div>
@@ -662,6 +694,75 @@ export const Client = () => {
           />
         </div>
       </div>
+      <Dialog
+        open={openFinishSku}
+        onOpenChange={(open) => {
+          setOpenFinishSku(open);
+          if (!open) setFinishSkuCheck(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Konfirmasi Finish SKU</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-4">
+            <div className="rounded-md border border-sky-400/80 p-4 flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-gray-500">Status</p>
+                <p className="font-semibold capitalize">
+                  {finishSkuCheck?.data?.data?.status || "-"}
+                </p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-gray-500">Message</p>
+                <p className="font-semibold">{finishSkuMessage || "-"}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded border p-3">
+                  <p className="text-sm text-gray-500">SKU Product Old</p>
+                  <p className="text-lg font-bold tabular-nums">
+                    {finishSkuResource?.product_old_count ?? 0}
+                  </p>
+                </div>
+                <div className="rounded border p-3">
+                  <p className="text-sm text-gray-500">SKU Product</p>
+                  <p className="text-lg font-bold tabular-nums">
+                    {finishSkuResource?.product_sku_count ?? 0}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex w-full gap-2 justify-end">
+              <Button
+                className="w-full sm:w-auto"
+                variant="outline"
+                type="button"
+                disabled={isPendingFinishSku}
+                onClick={() => {
+                  setOpenFinishSku(false);
+                  setFinishSkuCheck(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="w-full sm:w-auto bg-sky-400/80 text-black hover:bg-sky-400"
+                type="button"
+                disabled={isPendingFinishSku || !documentId}
+                onClick={handleFinishSku}
+              >
+                {isPendingFinishSku ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Confirm"
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Dialog
         open={openEdit}
         onOpenChange={() => {
