@@ -12,14 +12,13 @@ type RequestType = {
 
 type Error = AxiosError;
 
-export const useUpdateProduct = () => {
+export const useRollbackProduct = () => {
   const accessToken = getCookie("accessToken");
   const queryClient = useQueryClient();
 
   const mutation = useMutation<AxiosResponse, Error, RequestType>({
     mutationFn: async ({ id, body }) => {
-      // const res = await axios.put(`${baseUrl}/sku-product-old/${id}`, body, {
-      const res = await axios.post(`${baseUrl}/sku/up-batch/${id}`, body, {
+      const res = await axios.post(`${baseUrl}/sku/rollback-batch/${id}`, body, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -27,7 +26,7 @@ export const useUpdateProduct = () => {
       return res;
     },
     onSuccess: () => {
-      toast.success("Product successfully updated");
+      toast.success("Product successfully rollback");
       queryClient.invalidateQueries({
         queryKey: ["detail-manifest-inbound-sku"],
       });
@@ -39,9 +38,9 @@ export const useUpdateProduct = () => {
         toast.error(
           `ERROR ${err?.status}: ${
             (err?.response?.data as any)?.data?.message
-          } Product failed to update`,
+          } Product failed to rollback`,
         );
-        console.log("ERROR_UPDATE_PRODUCT:", err);
+        console.log("ERROR_ROLLBACK_PRODUCT:", err);
       }
     },
   });

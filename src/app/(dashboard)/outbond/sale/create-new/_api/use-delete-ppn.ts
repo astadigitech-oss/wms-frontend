@@ -6,20 +6,18 @@ import { toast } from "sonner";
 import { getCookie } from "cookies-next/client";
 
 type RequestType = {
-  id: string;
-  body: any;
+  id: any;
 };
 
 type Error = AxiosError;
 
-export const useUpdateProduct = () => {
+export const useDeletePPN = () => {
   const accessToken = getCookie("accessToken");
   const queryClient = useQueryClient();
 
   const mutation = useMutation<AxiosResponse, Error, RequestType>({
-    mutationFn: async ({ id, body }) => {
-      // const res = await axios.put(`${baseUrl}/sku-product-old/${id}`, body, {
-      const res = await axios.post(`${baseUrl}/sku/up-batch/${id}`, body, {
+    mutationFn: async ({ id }) => {
+      const res = await axios.delete(`${baseUrl}/ppn/${id}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -27,21 +25,17 @@ export const useUpdateProduct = () => {
       return res;
     },
     onSuccess: () => {
-      toast.success("Product successfully updated");
+      toast.success("PPN successfully deleted");
       queryClient.invalidateQueries({
-        queryKey: ["detail-manifest-inbound-sku"],
+        queryKey: ["list-data-ppn"],
       });
     },
     onError: (err) => {
       if (err.status === 403) {
         toast.error(`Error 403: Restricted Access`);
       } else {
-        toast.error(
-          `ERROR ${err?.status}: ${
-            (err?.response?.data as any)?.data?.message
-          } Product failed to update`,
-        );
-        console.log("ERROR_UPDATE_PRODUCT:", err);
+        toast.error(`ERROR ${err?.status}: PPN failed to delete`);
+        console.log("ERROR_DELETE_PPN:", err);
       }
     },
   });

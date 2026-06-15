@@ -6,42 +6,38 @@ import { toast } from "sonner";
 import { getCookie } from "cookies-next/client";
 
 type RequestType = {
-  id: string;
+  id: any;
   body: any;
 };
 
 type Error = AxiosError;
 
-export const useUpdateProduct = () => {
+export const useUpdateVoucher = () => {
   const accessToken = getCookie("accessToken");
   const queryClient = useQueryClient();
 
   const mutation = useMutation<AxiosResponse, Error, RequestType>({
     mutationFn: async ({ id, body }) => {
-      // const res = await axios.put(`${baseUrl}/sku-product-old/${id}`, body, {
-      const res = await axios.post(`${baseUrl}/sku/up-batch/${id}`, body, {
+      const res = await axios.post(`${baseUrl}/vouchers/${id}`, body, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
       return res;
     },
-    onSuccess: () => {
-      toast.success("Product successfully updated");
+    onSuccess: (_data, variables) => {
+      toast.success("Voucher successfully updated");
+      queryClient.invalidateQueries({ queryKey: ["list-voucher"] });
       queryClient.invalidateQueries({
-        queryKey: ["detail-manifest-inbound-sku"],
+        queryKey: ["detail-voucher", variables.id],
       });
     },
     onError: (err) => {
       if (err.status === 403) {
         toast.error(`Error 403: Restricted Access`);
       } else {
-        toast.error(
-          `ERROR ${err?.status}: ${
-            (err?.response?.data as any)?.data?.message
-          } Product failed to update`,
-        );
-        console.log("ERROR_UPDATE_PRODUCT:", err);
+        toast.error(`ERROR ${err?.status}: Voucher failed to update`);
+        console.log("ERROR_UPDATE_VOUCHER:", err);
       }
     },
   });

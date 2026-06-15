@@ -13,7 +13,15 @@ import React, { FormEvent, useEffect, useMemo, useState } from "react";
 import { useGetDetailManifestInboundSku } from "../_api/use-get-detail-manifest-inbound";
 import { parseAsBoolean, parseAsInteger, useQueryState } from "nuqs";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Edit3, Loader2, RefreshCw, ScanBarcode, Send } from "lucide-react";
+import {
+  Edit3,
+  Loader2,
+  ReceiptText,
+  RefreshCw,
+  RotateCcw,
+  ScanBarcode,
+  Send,
+} from "lucide-react";
 import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
 import { Button } from "@/components/ui/button";
 import { alertError, cn, formatRupiah, setPaginate } from "@/lib/utils";
@@ -21,6 +29,7 @@ import { DataTable } from "@/components/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import Loading from "@/app/(dashboard)/loading";
 import { AxiosError } from "axios";
+import { toast } from "sonner";
 import Forbidden from "@/components/403";
 import {
   Dialog,
@@ -30,11 +39,15 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useUpdateProduct } from "../_api/use-update-product";
+import { useRollbackProduct } from "../_api/use-rollback-product";
 import { useGetDetailProduct } from "../_api/use-get-detail-product";
 import Pagination from "@/components/pagination";
 import { useConfirm } from "@/hooks/use-confirm";
-import { useSubmitDocumentSku } from "../_api/use-submit-doc-sku";
+import { useCheckFinishSku, useFinishSku } from "../_api/use-submit-doc-sku";
+import { useGetDetailProductHistory } from "../_api/use-get-detail-product-history";
+import { format } from "date-fns";
 
 export const Client = () => {
   const { misId, misMonth, misYear } = useParams();
@@ -43,13 +56,30 @@ export const Client = () => {
     "dialog",
     parseAsBoolean.withDefault(false),
   );
+  const [openDetail, setOpenDetail] = useState(false);
   const [productId, setProductId] = useQueryState("productId", {
     defaultValue: "",
   });
+  const [historyProductId, setHistoryProductId] = useState("");
+
+  const [historyPage, setHistoryPage] = useState(1);
+
+  const [historyMetaPage, setHistoryMetaPage] = useState({
+    last: 1,
+    from: 1,
+    total: 1,
+    perPage: 10,
+  });
+
+  const [historySearch, setHistorySearch] = useState("");
+  const historySearchValue = useDebounce(historySearch);
+  const [openFinishSku, setOpenFinishSku] = useState(false);
+  const [finishSkuCheck, setFinishSkuCheck] = useState<any>(null);
   const [input, setInput] = useState({
     old_name_product: "",
     actual_quantity_product: "0",
     damaged_quantity_product: "0",
+    note: "",
     // lost_quantity_product: "0",
   });
   const codeDocument = `${misId}/${misMonth}/${misYear}`;
@@ -63,8 +93,8 @@ export const Client = () => {
     perPage: 1,
   });
 
-  const [SubmitSkuDialog, confirmSubmitSkuDialog] = useConfirm(
-    "Submit Product SKU",
+  const [RollbackProductDialog, confirmRollbackProductDialog] = useConfirm(
+    "Rollback Product",
     "This action cannot be undone",
     "liquid",
   );
@@ -84,16 +114,42 @@ export const Client = () => {
     error: errorProduct,
   } = useGetDetailProduct({ id: productId });
 
+  const {
+    data: dataProductHistory,
+    isLoading: isLoadingProductHistory,
+    isRefetching: isRefetchingProductHistory,
+    isError: isErrorProductHistory,
+    error: errorProductHistory,
+  } = useGetDetailProductHistory({
+    id: historyProductId,
+    p: historyPage,
+    q: historySearchValue,
+  });
+
   const { mutate: mutateUpdate, isPending: isPendingUpdate } =
     useUpdateProduct();
-  const { mutate: mutateSubmitSku, isPending: isPendingSubmitSku } =
-    useSubmitDocumentSku();
+  const { mutate: mutateRollback, isPending: isPendingRollback } =
+    useRollbackProduct();
+  const { mutate: mutateCheckFinishSku, isPending: isPendingCheckFinishSku } =
+    useCheckFinishSku();
+  const { mutate: mutateFinishSku, isPending: isPendingFinishSku } =
+    useFinishSku();
   const dataDetails = useMemo(() => {
     return data?.data.data.resource;
   }, [data]);
   const dataDetailMI = dataDetails?.data.data;
   const statusMIS = dataDetails?.status;
-  
+  const documentId =dataDetails?.id;
+  const finishSkuResource = finishSkuCheck?.data?.data?.resource;
+  const finishSkuMessage = finishSkuCheck?.data?.data?.message;
+  const dataProductHistoryResource = useMemo(() => {
+    return dataProductHistory?.data?.data?.resource;
+  }, [dataProductHistory]);
+
+  const dataDetailProductHistory = useMemo(() => {
+    return dataProductHistoryResource?.data || [];
+  }, [dataProductHistoryResource]);
+
   const handleClose = () => {
     setOpenEdit(false);
     setProductId("");
@@ -101,15 +157,24 @@ export const Client = () => {
       old_name_product: "",
       actual_quantity_product: "0",
       damaged_quantity_product: "0",
+      note: "",
       // lost_quantity_product: "0",
     });
+  };
+
+  const handleCloseDetail = () => {
+    setOpenDetail(false);
+    setHistoryProductId("");
+    setHistoryPage(1);
+    setHistorySearch("");
   };
 
   const handleUpdate = (e: FormEvent) => {
     e.preventDefault();
     const body = {
-      actual_quantity_product: input.actual_quantity_product,
-      damaged_quantity_product: input.damaged_quantity_product,
+      actual_quantity_batch: input.actual_quantity_product,
+      damaged_quantity_batch: input.damaged_quantity_product,
+      note: input.note,
       // lost_quantity_product: input.lost_quantity_product,
     };
     mutateUpdate(
@@ -128,14 +193,63 @@ export const Client = () => {
     );
   };
 
-  const handleSubmitSku = async () => {
-    const ok = await confirmSubmitSkuDialog();
+  const handleRollback = async () => {
+    const ok = await confirmRollbackProductDialog();
 
     if (!ok) return;
 
-    mutateSubmitSku({
-      code_document: codeDocument,
-    });
+    const body = {
+      actual_quantity_batch: input.actual_quantity_product,
+      damaged_quantity_batch: input.damaged_quantity_product,
+      note: input.note,
+      // lost_quantity_product: input.lost_quantity_product,
+    };
+
+    mutateRollback(
+      { id: productId, body },
+      {
+        onSuccess: (data) => {
+          handleClose();
+          queryClient.invalidateQueries({
+            queryKey: [
+              "detail-manifest-inbound-sku",
+              data.data.data.resource.id,
+            ],
+          });
+        },
+      },
+    );
+  };
+
+  const handleCheckFinishSku = () => {
+    if (!documentId) {
+      toast.error("Document ID not found");
+      return;
+    }
+
+    mutateCheckFinishSku(
+      { documentId },
+      {
+        onSuccess: (data) => {
+          setFinishSkuCheck(data);
+          setOpenFinishSku(true);
+        },
+      },
+    );
+  };
+
+  const handleFinishSku = () => {
+    if (!documentId) return;
+
+    mutateFinishSku(
+      { documentId },
+      {
+        onSuccess: () => {
+          setOpenFinishSku(false);
+          setFinishSkuCheck(null);
+        },
+      },
+    );
   };
 
   useEffect(() => {
@@ -147,6 +261,19 @@ export const Client = () => {
       setPage: setPage,
     });
   }, [data]);
+
+  useEffect(() => {
+    const resource = dataProductHistory?.data?.data?.resource;
+
+    if (!resource) return;
+
+    setHistoryMetaPage({
+      last: resource.last_page || 1,
+      from: resource.from || 1,
+      total: resource.total || 0,
+      perPage: resource.per_page || 10,
+    });
+  }, [dataProductHistory]);
 
   // isError get data
   useEffect(() => {
@@ -170,6 +297,17 @@ export const Client = () => {
     });
   }, [isErrorProduct, errorProduct]);
 
+  // isError get detail history
+  useEffect(() => {
+    alertError({
+      isError: isErrorProductHistory,
+      error: errorProductHistory as AxiosError,
+      data: "Detail History",
+      action: "get data",
+      method: "GET",
+    });
+  }, [isErrorProductHistory, errorProductHistory]);
+
   useEffect(() => {
     if (isSuccessProduct && dataProduct) {
       return setInput({
@@ -182,6 +320,7 @@ export const Client = () => {
           Math.round(
             dataProduct.data.data.resource.damaged_quantity_product,
           ).toString() ?? "0",
+        note: dataProduct.data.data.resource.note || "",
         // lost_quantity_product:
         //   Math.round(
         //     dataProduct.data.data.resource.lost_quantity_product,
@@ -201,6 +340,80 @@ export const Client = () => {
     //   setInput((prev) => ({ ...prev, lost_quantity_product: "0" }));
     // }
   }, [input]);
+
+  const columnDetailHistory: ColumnDef<any>[] = [
+    {
+      header: () => <div className="text-center">No</div>,
+      id: "id",
+      cell: ({ row }) => (
+        <div className="text-center tabular-nums">
+          {(1 + row.index).toLocaleString()}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "code",
+      header: "Code",
+      cell: ({ row }) => (
+        <div className="min-w-[180px] whitespace-nowrap">
+          {row.original.code ?? "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "actual_quantity_batch",
+      header: "Lolos",
+      cell: ({ row }) => (
+        <div className="tabular-nums">
+          {row.original.actual_quantity_batch ?? 0}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "damaged_quantity_batch",
+      header: "Damaged",
+      cell: ({ row }) => (
+        <div className="tabular-nums">
+          {row.original.damaged_quantity_batch ?? 0}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "type",
+      header: "Type",
+      cell: ({ row }) => (
+        <div className="capitalize">{row.original.type ?? "-"}</div>
+      ),
+    },
+    {
+      accessorKey: "note",
+      header: "Note",
+      cell: ({ row }) => (
+        <div className="min-w-[220px] max-w-[360px] break-words">
+          {row.original.note ?? "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "created_by",
+      header: "User",
+      cell: ({ row }) => (
+        <div className="min-w-[120px]">{row.original.created_by ?? "-"}</div>
+      ),
+    },
+    {
+      accessorKey: "time",
+      header: "Time",
+      cell: ({ row }) => (
+        <div className="min-w-[160px] whitespace-nowrap">
+          {row.original.time
+            ? format(new Date(row.original.time), "yyyy-MM-dd HH:mm")
+            : "-"}
+        </div>
+      ),
+    },
+  ];
+
   const columnSales: ColumnDef<any>[] = [
     {
       header: () => <div className="text-center">No</div>,
@@ -274,18 +487,48 @@ export const Client = () => {
       header: () => <div className="text-center">Action</div>,
       cell: ({ row }) => (
         <div className="flex gap-4 justify-center items-center">
+          <TooltipProviderPage value={<p>Detail</p>}>
+            <Button
+              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+              variant={"outline"}
+              disabled={
+                isLoadingProductHistory && historyProductId === row.original.id
+              }
+              onClick={(e) => {
+                e.preventDefault();
+
+                setHistoryPage(1);
+                setHistorySearch("");
+
+                setHistoryProductId(row.original.id);
+                setOpenDetail(true);
+              }}
+            >
+              {isLoadingProductHistory &&
+              historyProductId === row.original.id ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <ReceiptText className="w-4 h-4" />
+              )}
+            </Button>
+          </TooltipProviderPage>
           <TooltipProviderPage value={<p>Edit</p>}>
             <Button
               className="items-center w-9 px-0 flex-none h-9 border-yellow-400 text-yellow-700 hover:text-yellow-700 hover:bg-yellow-50 disabled:opacity-100 disabled:hover:bg-yellow-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
               variant={"outline"}
-              disabled={isLoadingProduct || isPendingUpdate || statusMIS === "done"}
+              disabled={
+                isLoadingProduct ||
+                isPendingUpdate ||
+                isPendingRollback ||
+                statusMIS === "done"
+              }
               onClick={(e) => {
                 e.preventDefault();
                 setProductId(row.original.id);
                 setOpenEdit(true);
               }}
             >
-              {isLoading || isPendingUpdate ? (
+              {isLoading || isPendingUpdate || isPendingRollback ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Edit3 className="w-4 h-4" />
@@ -320,7 +563,7 @@ export const Client = () => {
 
   return (
     <div className="flex flex-col items-start bg-gray-100 w-full relative px-4 gap-4 py-4">
-      <SubmitSkuDialog />
+      <RollbackProductDialog />
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -372,13 +615,22 @@ export const Client = () => {
                 />
               </Button>
             </TooltipProviderPage>
-            <TooltipProviderPage value={"Add Product"} align="end">
+            <TooltipProviderPage value={"Check"} align="end">
               <Button
-                disabled={isPendingSubmitSku || statusMIS === "done"}
-                onClick={handleSubmitSku}
+                disabled={
+                  isPendingCheckFinishSku ||
+                  isPendingFinishSku ||
+                  statusMIS === "done" ||
+                  !documentId
+                }
+                onClick={handleCheckFinishSku}
                 className="items-center w-9 px-0 flex-none h-9 bg-sky-400/80 text-black hover:bg-sky-400"
               >
-                <Send className="size-4" />
+                {isPendingCheckFinishSku ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Send className="size-4" />
+                )}
               </Button>
             </TooltipProviderPage>
           </div>
@@ -442,6 +694,75 @@ export const Client = () => {
           />
         </div>
       </div>
+      <Dialog
+        open={openFinishSku}
+        onOpenChange={(open) => {
+          setOpenFinishSku(open);
+          if (!open) setFinishSkuCheck(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Konfirmasi Finish SKU</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-4">
+            <div className="rounded-md border border-sky-400/80 p-4 flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-gray-500">Status</p>
+                <p className="font-semibold capitalize">
+                  {finishSkuCheck?.data?.data?.status || "-"}
+                </p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-gray-500">Message</p>
+                <p className="font-semibold">{finishSkuMessage || "-"}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded border p-3">
+                  <p className="text-sm text-gray-500">SKU Product Old</p>
+                  <p className="text-lg font-bold tabular-nums">
+                    {finishSkuResource?.product_old_count ?? 0}
+                  </p>
+                </div>
+                <div className="rounded border p-3">
+                  <p className="text-sm text-gray-500">SKU Product</p>
+                  <p className="text-lg font-bold tabular-nums">
+                    {finishSkuResource?.product_sku_count ?? 0}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex w-full gap-2 justify-end">
+              <Button
+                className="w-full sm:w-auto"
+                variant="outline"
+                type="button"
+                disabled={isPendingFinishSku}
+                onClick={() => {
+                  setOpenFinishSku(false);
+                  setFinishSkuCheck(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="w-full sm:w-auto bg-sky-400/80 text-black hover:bg-sky-400"
+                type="button"
+                disabled={isPendingFinishSku || !documentId}
+                onClick={handleFinishSku}
+              >
+                {isPendingFinishSku ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Confirm"
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Dialog
         open={openEdit}
         onOpenChange={() => {
@@ -532,6 +853,20 @@ export const Client = () => {
                   {parseFloat(input.lost_quantity_product) ?? "Rp 0"}
                 </p>
               </div> */}
+              <div className="flex flex-col gap-1 w-full">
+                <Label>Note</Label>
+                <Textarea
+                  className="border-sky-400/80 focus-visible:ring-0 focus-visible:border-sky-500"
+                  placeholder="Note..."
+                  value={input.note}
+                  onChange={(e) =>
+                    setInput((prev) => ({
+                      ...prev,
+                      note: e.target.value,
+                    }))
+                  }
+                />
+              </div>
             </div>
             <div className="flex w-full gap-2">
               <Button
@@ -545,6 +880,22 @@ export const Client = () => {
                 Cancel
               </Button>
               <Button
+                className="text-black w-full bg-red-400 hover:bg-red-400/80"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleRollback();
+                }}
+                type="button"
+                disabled={isPendingRollback || isPendingUpdate || !productId}
+              >
+                {isPendingRollback ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <RotateCcw className="w-4 h-4" />
+                )}
+                Rollback
+              </Button>
+              <Button
                 className={cn(
                   "text-black w-full",
                   productId
@@ -552,12 +903,76 @@ export const Client = () => {
                     : "bg-sky-400 hover:bg-sky-400/80",
                 )}
                 type="submit"
+                disabled={isPendingUpdate || isPendingRollback}
                 // disabled={parseFloat(input.actual_quantity_product) <= 0}
               >
-                Update
+                {isPendingUpdate ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Update"
+                )}
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={openDetail}
+        onOpenChange={() => {
+          handleCloseDetail();
+        }}
+      >
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>Detail Product</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-2 items-center">
+              <Input
+                className="w-2/5 border-sky-400/80 focus-visible:ring-sky-400"
+                placeholder="Search history..."
+                value={historySearch}
+                onChange={(e) => {
+                  setHistorySearch(e.target.value);
+                  setHistoryPage(1);
+                }}
+              />
+
+              <Button
+                className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-black hover:bg-sky-50"
+                variant="outline"
+                onClick={() =>
+                  queryClient.invalidateQueries({
+                    queryKey: ["detail-manifest-inbound-sku-history"],
+                  })
+                }
+              >
+                <RefreshCw
+                  className={cn(
+                    "w-4 h-4",
+                    isRefetchingProductHistory ? "animate-spin" : "",
+                  )}
+                />
+              </Button>
+            </div>
+
+            <DataTable
+              isSticky
+              maxHeight="h-[55vh]"
+              isLoading={isLoadingProductHistory || isRefetchingProductHistory}
+              columns={columnDetailHistory}
+              data={dataDetailProductHistory}
+            />
+
+            <Pagination
+              pagination={{
+                ...historyMetaPage,
+                current: historyPage,
+              }}
+              setPagination={setHistoryPage}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
