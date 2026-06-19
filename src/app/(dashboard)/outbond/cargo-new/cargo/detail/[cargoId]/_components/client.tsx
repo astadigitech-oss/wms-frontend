@@ -33,6 +33,7 @@ import { AxiosError } from "axios";
 import {
   CheckCircle2,
   FileDown,
+  Info,
   Loader2,
   Package,
   Printer,
@@ -70,6 +71,9 @@ const DialogBarcode = dynamic(() => import("./dialog-barcode"), {
   ssr: false,
 });
 const DialogDetail = dynamic(() => import("./dialog-detail"), {
+  ssr: false,
+});
+const DialogSetInfo = dynamic(() => import("./dialog-set-info"), {
   ssr: false,
 });
 
@@ -264,6 +268,7 @@ export const Client = () => {
   const scanRef = useRef<HTMLInputElement | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [openWeight, setOpenWeight] = useState(false);
+  const [openInfo, setOpenInfo] = useState(false);
   const [openSale, setOpenSale] = useState(false);
   const [openBuyer, setOpenBuyer] = useState(false);
   const [openDetail, setOpenDetail] = useState(false);
@@ -759,6 +764,13 @@ export const Client = () => {
           setOpenBuyer(false);
         }}
       />
+      <DialogSetInfo
+        open={openInfo}
+        onOpenChange={setOpenInfo}
+        cargoId={cargoId}
+        cargo={cargo}
+        onSuccess={refetchAll}
+      />
       <Dialog open={openWeight} onOpenChange={setOpenWeight}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -1033,6 +1045,17 @@ export const Client = () => {
         </div>
 
         <div className="mb-4 flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center">
+          {canSetCargoSale && (
+            <Button
+              type="button"
+              variant="outline"
+              className="flex border-indigo-400 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-700"
+              onClick={() => setOpenInfo(true)}
+            >
+              <Info className="size-4" />
+              Set Info
+            </Button>
+          )}
           {canSetCargoSale && (
             <Button
               type="button"

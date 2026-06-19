@@ -14,6 +14,7 @@ import { useGetDetailManifestInboundSku } from "../_api/use-get-detail-manifest-
 import { parseAsBoolean, parseAsInteger, useQueryState } from "nuqs";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
+  ArrowLeftRight,
   Edit3,
   Loader2,
   ReceiptText,
@@ -48,6 +49,15 @@ import { useConfirm } from "@/hooks/use-confirm";
 import { useCheckFinishSku, useFinishSku } from "../_api/use-submit-doc-sku";
 import { useGetDetailProductHistory } from "../_api/use-get-detail-product-history";
 import { format } from "date-fns";
+import { useGetCogs } from "../_api/use-get-cogs";
+import { useSetCogs } from "../_api/use-set-cogs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Client = () => {
   const { misId, misMonth, misYear } = useParams();
@@ -74,6 +84,8 @@ export const Client = () => {
   const [historySearch, setHistorySearch] = useState("");
   const historySearchValue = useDebounce(historySearch);
   const [openFinishSku, setOpenFinishSku] = useState(false);
+  const [openSetCogs, setOpenSetCogs] = useState(false);
+  const [selectedCogs, setSelectedCogs] = useState("");
   const [finishSkuCheck, setFinishSkuCheck] = useState<any>(null);
   const [input, setInput] = useState({
     old_name_product: "",
@@ -134,14 +146,21 @@ export const Client = () => {
     useCheckFinishSku();
   const { mutate: mutateFinishSku, isPending: isPendingFinishSku } =
     useFinishSku();
+  const { mutate: mutateSetCogs, isPending: isPendingSetCogs } = useSetCogs();
+  const { data: dataCogs, isLoading: isLoadingCogs } = useGetCogs();
   const dataDetails = useMemo(() => {
     return data?.data.data.resource;
   }, [data]);
   const dataDetailMI = dataDetails?.data.data;
   const statusMIS = dataDetails?.status;
-  const documentId =dataDetails?.id;
+  const documentId = dataDetails?.id;
+  const cogsChannel =
+    dataDetails?.cogs_channel ?? dataDetails?.cogs?.cogs_channel ?? "-";
   const finishSkuResource = finishSkuCheck?.data?.data?.resource;
   const finishSkuMessage = finishSkuCheck?.data?.data?.message;
+  const cogs: any[] = useMemo(() => {
+    return dataCogs?.data.data.resource ?? [];
+  }, [dataCogs]);
   const dataProductHistoryResource = useMemo(() => {
     return dataProductHistory?.data?.data?.resource;
   }, [dataProductHistory]);
@@ -252,6 +271,37 @@ export const Client = () => {
     );
   };
 
+  const handleSetCogs = (e: FormEvent) => {
+    e.preventDefault();
+
+    if (!documentId) {
+      toast.error("Document ID not found");
+      return;
+    }
+
+    if (!selectedCogs) {
+      toast.error("Please choose COGS");
+      return;
+    }
+
+    mutateSetCogs(
+      {
+        documentId,
+        body: {
+          channel_id: selectedCogs,
+        },
+      },
+      {
+        onSuccess: () => {
+          setOpenSetCogs(false);
+          queryClient.invalidateQueries({
+            queryKey: ["detail-manifest-inbound-sku", codeDocument],
+          });
+        },
+      },
+    );
+  };
+
   useEffect(() => {
     setPaginate({
       isSuccess: isSuccess,
@@ -328,6 +378,19 @@ export const Client = () => {
       });
     }
   }, [dataProduct]);
+
+  useEffect(() => {
+    if (!openSetCogs) return;
+
+    setSelectedCogs(
+      String(
+        dataDetails?.channel_id ??
+          dataDetails?.cogs_channel_id ??
+          dataDetails?.cogs?.channel_id ??
+          "",
+      ),
+    );
+  }, [openSetCogs, dataDetails]);
 
   useEffect(() => {
     if (isNaN(parseFloat(input.actual_quantity_product))) {
@@ -564,6 +627,74 @@ export const Client = () => {
   return (
     <div className="flex flex-col items-start bg-gray-100 w-full relative px-4 gap-4 py-4">
       <RollbackProductDialog />
+      <Dialog open={openSetCogs} onOpenChange={setOpenSetCogs}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set COGS</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSetCogs} className="w-full flex flex-col gap-4">
+            <div className="w-full flex flex-col gap-3">
+              <div className="w-full flex flex-col border rounded border-gray-500 p-3 gap-2">
+                <div className="flex items-center text-sm font-semibold border-b border-gray-500 pb-2">
+                  <ScanBarcode className="w-4 h-4 mr-2" />
+                  Base Document
+                </div>
+                <h5 className="pl-6 text-sm">{dataDetails?.code_document}</h5>
+              </div>
+              <div className="flex w-full flex-col gap-1">
+                <Label>COGS</Label>
+                <Select
+                  value={selectedCogs}
+                  onValueChange={setSelectedCogs}
+                  disabled={isLoadingCogs || isPendingSetCogs}
+                >
+                  <SelectTrigger className="border-sky-400/80 focus:ring-sky-400">
+                    <SelectValue placeholder="Choose COGS" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cogs.map((item: any) => (
+                      <SelectItem
+                        key={item.channel_id}
+                        value={String(item.channel_id)}
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium">
+                            {item.channel_name}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {item.supplier_name}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex w-full gap-2">
+              <Button
+                className="w-full bg-transparent hover:bg-transparent text-black border-black/50 border hover:border-black"
+                onClick={() => setOpenSetCogs(false)}
+                type="button"
+                disabled={isPendingSetCogs}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="bg-sky-400 hover:bg-sky-400/80 text-black w-full"
+                type="submit"
+                disabled={isPendingSetCogs || !selectedCogs}
+              >
+                {isPendingSetCogs ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Update"
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -603,6 +734,30 @@ export const Client = () => {
             </h5>
           </div>
           <div className="flex gap-4 items-center">
+            <TooltipProviderPage value={"Set COGS"}>
+              <Button
+                onClick={() => setOpenSetCogs(true)}
+                className="flex items-center h-auto min-h-9 gap-3 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 px-3 py-1.5"
+                variant={"outline"}
+                disabled={!documentId || isPendingSetCogs}
+              >
+                {isPendingSetCogs ? (
+                  <Loader2 className="size-4 animate-spin mr-1" />
+                ) : (
+                  <>
+                    <div className="flex flex-col items-end leading-tight">
+                      <p className="underline text-sm">COGS</p>
+                      <h3 className="text-gray-700 font-light text-end text-sm">
+                        {cogsChannel}
+                      </h3>
+                    </div>
+                    <div className="flex items-center justify-center size-6 bg-sky-100 rounded-full border border-sky-700">
+                      <ArrowLeftRight className="w-3 h-3" />
+                    </div>
+                  </>
+                )}
+              </Button>
+            </TooltipProviderPage>
             <TooltipProviderPage value={"Reload Data"}>
               <Button
                 onClick={() => refetch()}

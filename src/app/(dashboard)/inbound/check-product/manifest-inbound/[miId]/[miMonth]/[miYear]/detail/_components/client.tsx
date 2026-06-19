@@ -15,6 +15,7 @@ import {
   Check,
   Copy,
   FileSpreadsheet,
+  Loader2,
   RefreshCw,
   ScanLine,
   Trash2,
@@ -49,6 +50,16 @@ import { useDeleteBarcodeMI } from "../_api/use-delete-barcode-mi";
 import Loading from "../../../../../../../../loading";
 import { useGetScanManifestInbound } from "../_api/use-get-scan-manifest-inbound";
 import dynamic from "next/dynamic";
+import { useGetCogs } from "../_api/use-get-cogs";
+import { useSetCogs } from "../_api/use-set-cogs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
 
 const DialogDetail = dynamic(() => import("../_components/dialog-detail"), {
   ssr: false,
@@ -60,6 +71,8 @@ export const Client = () => {
 
   const [input, setInput] = useState("");
   const [copied, setCopied] = useState<number | null>(null);
+  const [openSetCogs, setOpenSetCogs] = useState(false);
+  const [selectedCogs, setSelectedCogs] = useState("");
 
   const [openDetail, setOpenDetail] = useQueryState(
     "dialog",
@@ -79,6 +92,8 @@ export const Client = () => {
   const { mutate: mutateDeleteBarcode } = useDeleteBarcodeMI();
   const { mutate: mutateDelete } = useDeleteProductMI();
   const { mutate: mutateCE } = useCreateEditBarcodeMI();
+  const { mutate: mutateSetCogs, isPending: isPendingSetCogs } = useSetCogs();
+  const { data: dataCogs, isLoading: isLoadingCogs } = useGetCogs();
   const [DeleteDialog, confirmDelete] = useConfirm(
     "Delete Product",
     "This action cannot be undone",
@@ -141,6 +156,10 @@ export const Client = () => {
     return dataScan?.data.data.resource.data;
   }, [dataScan]);
 
+  const cogs: any[] = useMemo(() => {
+    return dataCogs?.data.data.resource ?? [];
+  }, [dataCogs]);
+
   useEffect(() => {
     setPaginate({
       isSuccess,
@@ -174,6 +193,19 @@ export const Client = () => {
       setInput(data?.data.data.resource.custom_barcode ?? "");
     }
   }, [cEBarcode]);
+
+  useEffect(() => {
+    if (!openSetCogs) return;
+
+    setSelectedCogs(
+      String(
+        dataMetaDetailMI?.channel_id ??
+          dataMetaDetailMI?.cogs_channel_id ??
+          dataMetaDetailMI?.cogs?.channel_id ??
+          "",
+      ),
+    );
+  }, [openSetCogs, dataMetaDetailMI]);
 
   const handleCopy = (code: string, id: number) => {
     navigator.clipboard.writeText(code).then(() => {
@@ -225,6 +257,37 @@ export const Client = () => {
         onSuccess: () => {
           setCEBarcode(false);
           setInput("");
+          queryClient.invalidateQueries({
+            queryKey: ["detail-manifest-inbound", codeDocument],
+          });
+        },
+      },
+    );
+  };
+
+  const handleSetCogs = (e: FormEvent) => {
+    e.preventDefault();
+
+    if (!dataMetaDetailMI?.id) {
+      toast.error("Document ID not found");
+      return;
+    }
+
+    if (!selectedCogs) {
+      toast.error("Please choose COGS");
+      return;
+    }
+
+    mutateSetCogs(
+      {
+        documentId: dataMetaDetailMI.id,
+        body: {
+          channel_id: selectedCogs,
+        },
+      },
+      {
+        onSuccess: () => {
+          setOpenSetCogs(false);
           queryClient.invalidateQueries({
             queryKey: ["detail-manifest-inbound", codeDocument],
           });
@@ -454,7 +517,95 @@ export const Client = () => {
               {dataMetaDetailMI?.total_columns.toLocaleString()}
             </h3>
           </div>
-          <div className="flex flex-col items-end w-auto">
+          <div className="flex items-center justify-end gap-2 w-auto">
+            <Dialog open={openSetCogs} onOpenChange={setOpenSetCogs}>
+              <DialogTrigger asChild>
+                <button className="flex text-sm gap-3 font-medium items-center hover:bg-sky-100 rounded pr-2 pl-3 text-sky-700 focus-visible:outline-none focus-visible:ring-0 group border border-sky-400">
+                  <div className="flex flex-col">
+                    <p className="underline">COGS</p>
+                    <h3 className="text-gray-700 font-light text-end">
+                      {dataMetaDetailMI?.cogs_channel ??
+                        dataMetaDetailMI?.cogs?.cogs_channel ??
+                        "-"}
+                    </h3>
+                  </div>
+                  <div className="flex items-center justify-center size-6 bg-sky-100 group-hover:bg-sky-200 hover:bg-sky-200 rounded-full border border-sky-700">
+                    <ArrowLeftRight className="w-3 h-3" />
+                  </div>
+                </button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Set COGS</DialogTitle>
+                </DialogHeader>
+                <form
+                  onSubmit={handleSetCogs}
+                  className="w-full flex flex-col gap-4"
+                >
+                  <div className="w-full flex flex-col gap-3">
+                    <div className="w-full flex flex-col border rounded border-gray-500 p-3 gap-2">
+                      <div className="flex items-center text-sm font-semibold border-b border-gray-500 pb-2">
+                        <FileSpreadsheet className="w-4 h-4 mr-2" />
+                        Base Document
+                      </div>
+                      <h5 className="pl-6 text-sm">
+                        {dataMetaDetailMI?.code_document}
+                      </h5>
+                    </div>
+                    <div className="flex w-full flex-col gap-1">
+                      <Label>COGS</Label>
+                      <Select
+                        value={selectedCogs}
+                        onValueChange={setSelectedCogs}
+                        disabled={isLoadingCogs || isPendingSetCogs}
+                      >
+                        <SelectTrigger className="border-sky-400/80 focus:ring-sky-400">
+                          <SelectValue placeholder="Choose COGS" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {cogs.map((item: any) => (
+                            <SelectItem
+                              key={item.channel_id}
+                              value={String(item.channel_id)}
+                            >
+                              <div className="flex flex-col">
+                                <span className="font-medium">
+                                  {item.channel_name}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {item.supplier_name}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="flex w-full gap-2">
+                    <Button
+                      className="w-full bg-transparent hover:bg-transparent text-black border-black/50 border hover:border-black"
+                      onClick={() => setOpenSetCogs(false)}
+                      type="button"
+                      disabled={isPendingSetCogs}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      className="bg-sky-400 hover:bg-sky-400/80 text-black w-full"
+                      type="submit"
+                      disabled={isPendingSetCogs || !selectedCogs}
+                    >
+                      {isPendingSetCogs ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        "Update"
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
             <Dialog open={cEBarcode} onOpenChange={setCEBarcode}>
               <DialogTrigger asChild>
                 <button className="text-sm gap-3 font-medium flex items-center hover:bg-sky-100 rounded pr-2 pl-3  text-sky-700 focus-visible:outline-none focus-visible:ring-0 group border border-sky-400">
