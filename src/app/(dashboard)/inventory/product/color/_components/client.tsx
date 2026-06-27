@@ -1173,6 +1173,27 @@ export const Client = () => {
         </div>
       ),
     },
+    {
+      accessorKey: "status_document",
+      header: () => <div className="text-center">Status</div>,
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          <Badge
+            className={cn(
+              "rounded w-20 px-0 justify-center text-black font-normal capitalize",
+              row.original.status === "migrate" &&
+                "bg-gray-200 hover:bg-gray-200",
+              row.original.status === "process" &&
+                "bg-yellow-400 hover:bg-yellow-400",
+              row.original.status === "display" &&
+                "bg-green-400 hover:bg-green-400",
+            )}
+          >
+            {row.original.status}
+          </Badge>
+        </div>
+      ),
+    },
     // {
     //   accessorKey: "status_so",
     //   header: "Status SO",
@@ -1267,20 +1288,21 @@ export const Client = () => {
               )}
             </Button>
           </TooltipProviderPage>
-          <TooltipProviderPage value={<p>To Migrate</p>}>
-            <Button
-              onClick={(e) => {
-                e.preventDefault();
-                handleToMigrate(row.original.id);
-              }}
-              className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
-              variant={"outline"}
-              asChild
-              disabled={isPendingToMigrate}
-            >
-              <Truck className="w-4 h-4" />
-            </Button>
-          </TooltipProviderPage>
+          {row.original.status === "display" && (
+            <TooltipProviderPage value={<p>To Migrate</p>}>
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleToMigrate(row.original.id);
+                }}
+                className="items-center w-9 px-0 flex-none h-9 border-sky-400 text-sky-700 hover:text-sky-700 hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-sky-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
+                variant={"outline"}
+                disabled={isPendingToMigrate}
+              >
+                <Truck className="w-4 h-4" />
+              </Button>
+            </TooltipProviderPage>
+          )}
           {/* <TooltipProviderPage value={<p>Delete</p>}>
             <Button
               className="items-center w-9 px-0 flex-none h-9 border-red-400 text-red-700 hover:text-red-700 hover:bg-red-50 disabled:opacity-100 disabled:hover:bg-red-50 disabled:pointer-events-auto disabled:cursor-not-allowed"
