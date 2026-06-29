@@ -34,6 +34,7 @@ const DialogCreateVoucher = dynamic(() => import("./dialog-create-voucher"), {
 const emptyInput = {
   name: "",
   amount: "",
+  min_transaction: "",
   max_usage: "",
   max_week: "",
 };
@@ -110,6 +111,7 @@ export const Client = () => {
     const body = {
       name: input.name,
       amount: Number(input.amount || 0),
+      min_transaction: input.min_transaction === "" ? null : Number(input.min_transaction),
       max_usage: Number(input.max_usage || 0),
       max_week: Number(input.max_week || 0),
     };
@@ -149,6 +151,16 @@ export const Client = () => {
       header: "Amount",
       cell: ({ row }) =>
         formatRupiah(row.original.amount ?? row.original.amount_voucher ?? 0),
+    },
+    {
+      accessorKey: "min_transaction",
+      header: "Min Transaction",
+      cell: ({ row }) => {
+        const minTransaction =
+          row.original.min_transaction ?? row.original.min_transaction_voucher;
+
+        return minTransaction == null ? "-" : formatRupiah(minTransaction);
+      },
     },
     {
       accessorKey: "usage",
