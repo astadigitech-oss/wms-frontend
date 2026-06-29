@@ -22,6 +22,7 @@ import {
   Settings,
   Star,
   TicketPercent,
+  Trophy,
   Trash2,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -81,6 +82,7 @@ import { useUpdatePPN } from "../_api/use-update-ppn";
 import { useDeletePPN } from "../_api/use-delete-ppn";
 import { useGetDetailPPN } from "../_api/use-get-detail-ppn";
 import { useRouter } from "next/navigation";
+import { useLepasVoucher } from "../_api/use-lepas-voucher";
 
 const DialogBuyer = dynamic(() => import("./dialog-buyer"), {
   ssr: false,
@@ -92,6 +94,9 @@ const DialogUpdatePrice = dynamic(() => import("./dialog-update-price"), {
   ssr: false,
 });
 const DialogVoucher = dynamic(() => import("./dialog-voucher"), {
+  ssr: false,
+});
+const DialogVoucherRank = dynamic(() => import("./dialog-voucher-rank"), {
   ssr: false,
 });
 const DialogDiscount = dynamic(() => import("./dialog-discount"), {
@@ -124,6 +129,7 @@ export const Client = () => {
   const [isOpenCarton, setIsOpenCarton] = useState(false);
   const [isOpenDiscount, setIsOpenDiscount] = useState(false);
   const [isOpenVoucher, setIsOpenVoucher] = useState(false);
+  const [isOpenVoucherRank, setIsOpenVoucherRank] = useState(false);
   const [isUpdatePrice, setIsUpdatePrice] = useState(false);
   const [isBuyer, setIsBuyer] = useState(false);
   const [isProduct, setIsProduct] = useState(false);
@@ -131,7 +137,7 @@ export const Client = () => {
   const [isOpenSelectPPN, setIsOpenSelectPPN] = useState(false);
   const [isTax, setIsTax] = useState<boolean | "indeterminate">(false);
   const [dynamicMessage, setDynamicMessage] = useState(
-    "This action cannot be undone"
+    "This action cannot be undone",
   );
   // const [successMessage, setSuccessMessage] = useState("Sale berhasil dibuat");
 
@@ -154,6 +160,12 @@ export const Client = () => {
     cartonQty: "0",
     cartonUnit: "0",
     voucher: "0",
+    voucherRankAmount: "0",
+    voucherRankId: "",
+    voucherRankName: "",
+    voucherRankCode: "",
+    voucherRankAvailable: false,
+    voucherRankValue: "0",
     ppnActive: 0,
     discountFor: "",
     buyerRank: "",
@@ -210,25 +222,25 @@ export const Client = () => {
   const [SubmitDialog, confirmSubmit] = useConfirm(
     "Create Sale",
     "This action cannot be undone",
-    "liquid"
+    "liquid",
   );
 
   const [DeleteProductDialog, confirmDeleteProduct] = useConfirm(
     "Delete Product",
     "This action cannot be undone",
-    "destructive"
+    "destructive",
   );
 
   const [DeletePPNDialog, confirmDeletePPN] = useConfirm(
     "Delete PPN",
     "This action cannot be undone",
-    "destructive"
+    "destructive",
   );
 
   const [AddProductDialog, confirmAddProduct] = useConfirm(
     "Confirm Add Product",
     dynamicMessage,
-    "liquid"
+    "liquid",
   );
 
   // const [SuccessDialog, confirmSuccess] = useConfirm(
@@ -256,6 +268,8 @@ export const Client = () => {
 
   const { mutate: mutateUpdatePrice, isPending: isPendingUpdatePrice } =
     useUpdatePriceProduct();
+  const { mutate: mutateLepasVoucher, isPending: isPendingLepasVoucher } =
+    useLepasVoucher();
 
   // mutate end ----------------------------------------------------------------
 
@@ -321,10 +335,18 @@ export const Client = () => {
 
   // memo end ----------------------------------------------------------------
 
+  const totalVoucher =
+    parseFloat(input.voucher || "0") +
+    parseFloat(input.voucherRankAmount || "0");
+  const hasVoucherRank = parseFloat(input.voucherRankValue || "0") > 0;
   const totalPriceBeforeTax =
     parseFloat(dataRes?.total_sale) +
     parseFloat(input.cartonQty) * parseFloat(input.cartonUnit) -
-    parseFloat(input.voucher);
+    totalVoucher;
+  const grandTotal =
+    totalPriceBeforeTax +
+    (isTax ? (totalPriceBeforeTax / 100) * input.ppnActive : 0);
+  const isVoucherRankDisabled = grandTotal < 5000000;
 
   // paginate strat ----------------------------------------------------------------
 
@@ -343,7 +365,7 @@ export const Client = () => {
       buyer: data?.data.data.resource.sale_buyer_name,
       buyerId: data?.data.data.resource.sale_buyer_id,
       discount: Math.round(
-        data?.data.data.resource.data?.[0]?.new_discount_sale ?? "0"
+        data?.data.data.resource.data?.[0]?.new_discount_sale ?? "0",
       ).toString(),
       discountFor: data?.data.data.resource.data?.[0]?.type_discount ?? "",
       price: Math.round(data?.data.data.resource.total_sale ?? "0").toString(),
@@ -352,17 +374,23 @@ export const Client = () => {
       nextTransactionBuyerRank: data?.data.data.resource.transaction_next,
       currentTransactionBuyerRank: data?.data.data.resource.current_transaction,
       percentage_discount: Math.round(
-        data?.data.data.resource.percentage_discount ?? "0"
+        data?.data.data.resource.percentage_discount ?? "0",
       ).toString(),
       monthlyPoint: data?.data.data.resource.monthly_point,
       monthlyClassPosition: data?.data.data.resource.monthly_rank_position,
+      voucherRankAmount:
+        data?.data.data.resource.voucher_rank_value?.toString() ?? "0",
+      voucherRankValue:
+        data?.data.data.resource.voucher_rank_value?.toString() ?? "0",
+      voucherRankAvailable:
+        data?.data.data.resource.voucher_rank_available ?? false,
     }));
   }, [data]);
   useEffect(() => {
     setInput((prev) => ({
       ...prev,
       ppnActive: Math.round(
-        dataResPPN?.find((item) => item.is_tax_default === 1)?.ppn ?? "0"
+        dataResPPN?.find((item) => item.is_tax_default === 1)?.ppn ?? "0",
       ),
     }));
   }, [dataResPPN]);
@@ -445,7 +473,7 @@ export const Client = () => {
           if (!ok) return;
           mutateAddProduct({ body });
         },
-      }
+      },
     );
   };
 
@@ -464,8 +492,27 @@ export const Client = () => {
         onSuccess: () => {
           handleCloseUpdatePrice();
         },
-      }
+      },
     );
+  };
+
+  const handleLepasVoucherRank = () => {
+    mutateLepasVoucher(undefined, {
+      onSuccess: () => {
+        setInput((prev) => ({
+          ...prev,
+          voucherRankAmount: "0",
+          voucherRankId: "",
+          voucherRankName: "",
+          voucherRankCode: "",
+          voucherRankAvailable: false,
+          voucherRankValue: "0",
+        }));
+        if (!isDirty) {
+          setIsDirty(true);
+        }
+      },
+    });
   };
 
   const handleSubmit = async () => {
@@ -479,12 +526,12 @@ export const Client = () => {
       cardbox_qty: input.cartonQty,
       cardbox_unit_price: input.cartonUnit,
       total_price_document_sale: totalPriceBeforeTax,
-      voucher: input.voucher,
+      voucher: totalVoucher,
+      voucher_rank: input.voucherRankAmount,
+      voucher_id: input.voucherRankId || null,
       is_tax: isTax ? 1 : 0,
       tax: input.ppnActive,
-      price_after_tax:
-        totalPriceBeforeTax +
-        (isTax ? (totalPriceBeforeTax / 100) * input.ppnActive : 0),
+      price_after_tax: grandTotal,
     };
 
     mutateSubmit(
@@ -497,7 +544,7 @@ export const Client = () => {
           // await confirmSuccess();
           router.push(`/outbond/sale/detail/${id}`);
         },
-      }
+      },
     );
   };
 
@@ -522,7 +569,7 @@ export const Client = () => {
             old_default: false,
           });
         },
-      }
+      },
     );
   };
 
@@ -545,7 +592,7 @@ export const Client = () => {
             old_default: false,
           });
         },
-      }
+      },
     );
   };
   const handleUpdateDefaultPPN = async (id: any, ppn: any) => {
@@ -929,7 +976,7 @@ export const Client = () => {
         <div className="flex items-center justify-center">
           <TooltipProviderPage
             className={cn(
-              row.original.is_tax_default === 1 ? "hidden" : "flex"
+              row.original.is_tax_default === 1 ? "hidden" : "flex",
             )}
             value={"Set Is Default"}
           >
@@ -945,7 +992,7 @@ export const Client = () => {
               onCheckedChange={() =>
                 handleUpdateDefaultPPN(
                   row.original.id,
-                  Math.round(row.original.ppn)
+                  Math.round(row.original.ppn),
                 )
               }
               checked={row.original.is_tax_default === 1}
@@ -1122,6 +1169,22 @@ export const Client = () => {
         }}
         data={dataRes?.total_sale}
         voucher={input.voucher}
+        setVoucher={setInput}
+        isDirty={isDirty}
+        setIsDirty={setIsDirty}
+      />
+      <DialogVoucherRank
+        open={isOpenVoucherRank}
+        onCloseModal={() => {
+          if (isOpenVoucherRank) {
+            setIsOpenVoucherRank(false);
+          }
+        }}
+        data={dataRes?.total_sale}
+        buyerId={input.buyerId}
+        grandTotal={grandTotal}
+        selectedVoucherId={input.voucherRankId}
+        hasVoucherRank={hasVoucherRank}
         setVoucher={setInput}
         isDirty={isDirty}
         setIsDirty={setIsDirty}
@@ -1308,7 +1371,7 @@ export const Client = () => {
                         className={cn(
                           direction === 1
                             ? "bg-sky-400/80 text-black shadow hover:bg-sky-400"
-                            : "bg-yellow-400/80 text-black shadow hover:bg-yellow-400"
+                            : "bg-yellow-400/80 text-black shadow hover:bg-yellow-400",
                         )}
                         type="submit"
                         disabled={
@@ -1397,6 +1460,35 @@ export const Client = () => {
                 <TicketPercent className="size-4 mr-1" />
                 Voucher
               </Button>
+              <Button
+                type={"button"}
+                onClick={() => setIsOpenVoucherRank(true)}
+                disabled={isVoucherRankDisabled}
+                title={
+                  isVoucherRankDisabled
+                    ? "Grand total minimal Rp 5.000.000 untuk voucher rank"
+                    : undefined
+                }
+                className="bg-emerald-400/80 hover:bg-emerald-400 text-black disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <Trophy className="size-4 mr-1" />
+                Voucher Rank
+              </Button>
+              {hasVoucherRank && (
+                <Button
+                  type="button"
+                  onClick={handleLepasVoucherRank}
+                  disabled={isPendingLepasVoucher}
+                  className="bg-red-100 text-red-700 hover:bg-red-100 disabled:opacity-60"
+                >
+                  {isPendingLepasVoucher ? (
+                    <Loader2 className="size-4 mr-1 animate-spin" />
+                  ) : (
+                    <Trash2 className="size-4 mr-1" />
+                  )}
+                  Lepas Voucher Rank
+                </Button>
+              )}
             </div>
           </div>
           <div className="flex w-full gap-4">
@@ -1441,6 +1533,22 @@ export const Client = () => {
                   <p>{input.monthlyPoint ? input.monthlyPoint : "0"}</p>
                 </div>
               </div>
+              <div className="flex flex-col">
+                <p className="text-sm">Status Voucher</p>
+                <div className="flex flex-col gap-1 font-semibold">
+                  <Badge
+                    className={cn(
+                      "w-fit rounded-full shadow-none",
+                      input.voucherRankAvailable
+                        ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
+                        : "bg-red-100 text-red-700 hover:bg-red-100",
+                    )}
+                  >
+                    {input.voucherRankAvailable ? "Available" : "Not Available"}
+                  </Badge>
+                </div>
+              </div>
+
               {/* <div className="flex flex-col">
                 <p className="text-sm">Discount Class</p>
                 <p className="font-semibold">{input.percentage_discount}%</p>
@@ -1489,6 +1597,7 @@ export const Client = () => {
                   {formatRupiah(parseFloat(input.voucher ?? "0"))}
                 </p>
               </div>
+
               <div className="flex flex-col">
                 <p className="text-sm">Montly Rank Position</p>
                 <div className="flex items-center gap-2 font-semibold">
@@ -1497,6 +1606,29 @@ export const Client = () => {
                       ? input.monthlyClassPosition
                       : "-"}
                   </p>
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <p className="text-sm">Total Voucher Rank</p>
+                <p className="font-semibold">
+                  {formatRupiah(parseFloat(input.voucherRankValue ?? "0"))}
+                </p>
+                <div className="flex items-center gap-2">
+                  {hasVoucherRank && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleLepasVoucherRank}
+                      disabled={isPendingLepasVoucher}
+                      className="h-7 bg-red-100 px-2 text-xs text-red-700 hover:bg-red-100 disabled:opacity-60"
+                    >
+                      {isPendingLepasVoucher ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        "Lepas"
+                      )}
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -1565,7 +1697,7 @@ export const Client = () => {
               <p className="text-sm">Total Carton Box Price</p>
               <p className="font-semibold">
                 {formatRupiah(
-                  parseFloat(input.cartonQty) * parseFloat(input.cartonUnit)
+                  parseFloat(input.cartonQty) * parseFloat(input.cartonUnit),
                 )}
               </p>
             </div>
@@ -1584,7 +1716,7 @@ export const Client = () => {
             <div
               className={cn(
                 "ml-5 pl-5 border-l h-full border-gray-500 font-semibold",
-                !isTax && "line-through"
+                !isTax && "line-through",
               )}
             >
               {formatRupiah((totalPriceBeforeTax / 100) * input.ppnActive)}
@@ -1650,12 +1782,7 @@ export const Client = () => {
               <p className="font-semibold">Grand Total</p>
             </div>
             <p className="font-semibold w-full text-center">
-              {formatRupiah(
-                parseFloat(dataRes?.total_sale) +
-                  parseFloat(input.cartonQty) * parseFloat(input.cartonUnit) -
-                  parseFloat(input.voucher) +
-                  (isTax ? (totalPriceBeforeTax / 100) * input.ppnActive : 0)
-              )}
+              {formatRupiah(grandTotal)}
               {/* {formatRupiah(
                 Math.round(
                   parseFloat(dataRes?.total_sale ?? "0") -
@@ -1699,7 +1826,7 @@ export const Client = () => {
             <div
               className={cn(
                 "w-full flex justify-between items-center relative group",
-                !input.buyer && "cursor-not-allowed"
+                !input.buyer && "cursor-not-allowed",
               )}
             >
               <Label
