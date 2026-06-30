@@ -49,10 +49,37 @@ import {
   WalletCards,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { useCreateCargo, useGetListCargo, useGetSummaryCargo } from "../_api";
+import {
+  useCreateCargo,
+  useGetListCargo,
+  useGetSummaryCargo,
+  useGetListCategoryCargo,
+} from "../_api";
 import Link from "next/link";
 
 type CargoType = "cargo offline" | "cargo online";
+
+type Option = {
+  value: string;
+  label: string;
+};
+
+const getCategoryOptionList = (data: any): Option[] => {
+  const resource =
+    data?.data?.data?.resource?.data ??
+    data?.data?.data?.resource ??
+    data?.data?.data ??
+    data?.data ??
+    [];
+  const list = Array.isArray(resource) ? resource : [];
+
+  return list.map((item) => ({
+    value: String(item?.id ?? item?.value ?? item?.category_id ?? item),
+    label: String(
+      item?.name ?? item?.label ?? item?.title ?? item?.category ?? "-",
+    ),
+  }));
+};
 
 const getSummaryValue = (summary: any | undefined, keys: string[]) => {
   if (!summary) return 0;
@@ -73,6 +100,8 @@ export const Client = () => {
   const [openCreate, setOpenCreate] = useState(false);
   const [cargoName, setCargoName] = useState("");
   const [cargoType, setCargoType] = useState<CargoType>("cargo offline");
+  const [categorySearch, setCategorySearch] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [filterType, setFilterType] = useState("");
   const { search, searchValue, setSearch } = useSearchQuery();
   const { metaPage, page, setPage, setPagination } = usePagination();
@@ -94,6 +123,15 @@ export const Client = () => {
     isError: isErrorSummary,
   } = useGetSummaryCargo();
 
+  const {
+    data: dataCategory,
+    refetch: refetchCategory,
+    isPending: isPendingCategory,
+    isRefetching: isRefetchingCategory,
+    error: errorCategory,
+    isError: isErrorCategory,
+  } = useGetListCategoryCargo({ q: categorySearch });
+
   const { mutate: createCargo, isPending: isPendingCreate } = useCreateCargo();
 
   const dataResource = data?.data?.data?.resource;
@@ -105,6 +143,11 @@ export const Client = () => {
   const offlineSummary: any = summaryResource?.cargo_offline ?? {};
   const onlineSummary: any = summaryResource?.cargo_online ?? {};
   const loading = isLoading || isRefetching || isPending;
+
+  const categoryOptions = useMemo(
+    () => getCategoryOptionList(dataCategory),
+    [dataCategory],
+  );
 
   const handleCreateCargo = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -119,7 +162,7 @@ export const Client = () => {
           discount_bulky: "0",
           name_document: name,
           type: cargoType,
-          category_id: 0,
+          category_id: Number(categoryId || 0),
         },
       },
       {
@@ -127,6 +170,8 @@ export const Client = () => {
           setOpenCreate(false);
           setCargoName("");
           setCargoType("cargo offline");
+          setCategoryId("");
+          setCategorySearch("");
           refetch();
         },
       },
@@ -162,6 +207,22 @@ export const Client = () => {
       method: "GET",
     });
   }, [isErrorSummary, errorSummary]);
+
+  useEffect(() => {
+    if (!openCreate) return;
+
+    refetchCategory();
+  }, [openCreate, refetchCategory]);
+
+  useEffect(() => {
+    alertError({
+      isError: isErrorCategory,
+      error: errorCategory as AxiosError,
+      data: "Data Category",
+      action: "get data",
+      method: "GET",
+    });
+  }, [isErrorCategory, errorCategory]);
 
   const columnCargo: ColumnDef<any>[] = [
     {
@@ -326,6 +387,39 @@ export const Client = () => {
                 <SelectContent>
                   <SelectItem value="cargo offline">Offline</SelectItem>
                   <SelectItem value="cargo online">Online</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label>Category Cargo</Label>
+              <Select
+                value={categoryId}
+                onValueChange={(value) => {
+                  setCategoryId(value);
+                  const selectedCategory = categoryOptions.find(
+                    (option) => option.value === value,
+                  );
+                  setCargoName(selectedCategory?.label ?? "");
+                }}
+                disabled={
+                  isPendingCreate || isPendingCategory || isRefetchingCategory
+                }
+              >
+                <SelectTrigger className="border-sky-400/80 focus:ring-sky-400">
+                  <SelectValue
+                    placeholder={
+                      isPendingCategory || isRefetchingCategory
+                        ? "Loading category..."
+                        : "Pilih category cargo"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoryOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
