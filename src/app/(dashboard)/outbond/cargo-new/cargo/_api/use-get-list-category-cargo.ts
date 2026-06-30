@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { baseUrl } from "@/lib/baseUrl";
+import { baseUrlApiBulkyDev } from "@/lib/baseUrl";
 import { getCookie } from "cookies-next/client";
 
 export const useGetListCategoryCargo = ({ q }: { q: string }) => {
@@ -9,11 +9,14 @@ export const useGetListCategoryCargo = ({ q }: { q: string }) => {
   const query = useQuery({
     queryKey: ["cargo-new-list-category-cargo", { q }],
     queryFn: async () => {
-      const res = await axios.get(`${baseUrl}/categories-cargo?q=${q}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
+      const res = await axios.get(
+        `${baseUrlApiBulkyDev}/products/filter/categories?q=${q}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
         },
-      });
+      );
       return res;
     },
     enabled: false,

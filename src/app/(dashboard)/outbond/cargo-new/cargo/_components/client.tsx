@@ -74,9 +74,9 @@ const getCategoryOptionList = (data: any): Option[] => {
   const list = Array.isArray(resource) ? resource : [];
 
   return list.map((item) => ({
-    value: String(item?.id ?? item?.value ?? item?.category_id ?? item),
+    value: String(item?.id ?? item?.value ?? item?.category_id ?? item ?? ""),
     label: String(
-      item?.name ?? item?.label ?? item?.title ?? item?.category ?? "-",
+      item?.category_name ?? item?.name ?? item?.label ?? item?.title ?? item?.category ?? "-",
     ),
   }));
 };
@@ -155,15 +155,20 @@ export const Client = () => {
     const name = cargoName.trim();
     if (!name || isPendingCreate) return;
 
+    const body: any = {
+      type: cargoType,
+      name_document: name,
+    };
+
+    if (cargoType === "cargo online") {
+      const categoryIdValue = categoryId || "";
+      body.category_bulky_id = categoryIdValue;
+      body.category_bulky_name = cargoName;
+    }
+
     createCargo(
       {
-        body: {
-          buyer_id: "",
-          discount_bulky: "0",
-          name_document: name,
-          type: cargoType,
-          category_id: Number(categoryId || 0),
-        },
+        body,
       },
       {
         onSuccess: () => {
@@ -172,7 +177,6 @@ export const Client = () => {
           setCargoType("cargo offline");
           setCategoryId("");
           setCategorySearch("");
-          refetch();
         },
       },
     );
@@ -378,7 +382,12 @@ export const Client = () => {
               <Label>Type Cargo</Label>
               <Select
                 value={cargoType}
-                onValueChange={(value) => setCargoType(value as CargoType)}
+                onValueChange={(value) => {
+                  const type = value as CargoType;
+                  setCargoType(type);
+                  setCargoName("");
+                  setCategoryId("");
+                }}
                 disabled={isPendingCreate}
               >
                 <SelectTrigger className="border-sky-400/80 focus:ring-sky-400">
@@ -390,51 +399,54 @@ export const Client = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex flex-col gap-2">
-              <Label>Category Cargo</Label>
-              <Select
-                value={categoryId}
-                onValueChange={(value) => {
-                  setCategoryId(value);
-                  const selectedCategory = categoryOptions.find(
-                    (option) => option.value === value,
-                  );
-                  setCargoName(selectedCategory?.label ?? "");
-                }}
-                disabled={
-                  isPendingCreate || isPendingCategory || isRefetchingCategory
-                }
-              >
-                <SelectTrigger className="border-sky-400/80 focus:ring-sky-400">
-                  <SelectValue
-                    placeholder={
-                      isPendingCategory || isRefetchingCategory
-                        ? "Loading category..."
-                        : "Pilih category cargo"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoryOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="cargo-name">Nama Cargo</Label>
-              <Input
-                id="cargo-name"
-                className="border-sky-400/80 focus-visible:ring-sky-400"
-                value={cargoName}
-                onChange={(e) => setCargoName(e.target.value)}
-                placeholder="Input nama cargo..."
-                disabled={isPendingCreate}
-                autoFocus
-              />
-            </div>
+            {cargoType === "cargo online" ? (
+              <div className="flex flex-col gap-2">
+                <Label>Category Cargo</Label>
+                <Select
+                  value={categoryId}
+                  onValueChange={(value) => {
+                    setCategoryId(value);
+                    const selectedCategory = categoryOptions.find(
+                      (option) => option.value === value,
+                    );
+                    setCargoName(selectedCategory?.label ?? "");
+                  }}
+                  disabled={
+                    isPendingCreate || isPendingCategory || isRefetchingCategory
+                  }
+                >
+                  <SelectTrigger className="border-sky-400/80 focus:ring-sky-400">
+                    <SelectValue
+                      placeholder={
+                        isPendingCategory || isRefetchingCategory
+                          ? "Loading category..."
+                          : "Pilih category cargo"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="cargo-name">Nama Cargo</Label>
+                <Input
+                  id="cargo-name"
+                  className="border-sky-400/80 focus-visible:ring-sky-400"
+                  value={cargoName}
+                  onChange={(e) => setCargoName(e.target.value)}
+                  placeholder="Input nama cargo..."
+                  disabled={isPendingCreate}
+                  autoFocus
+                />
+              </div>
+            )}
             <DialogFooter>
               <Button
                 type="button"
@@ -447,7 +459,11 @@ export const Client = () => {
               <Button
                 type="submit"
                 variant="liquid"
-                disabled={!cargoName.trim() || isPendingCreate}
+                disabled={
+                  isPendingCreate ||
+                  !cargoName.trim() ||
+                  (cargoType === "cargo online" && !categoryId)
+                }
               >
                 {isPendingCreate ? (
                   <Loader2 className="size-4 animate-spin" />
