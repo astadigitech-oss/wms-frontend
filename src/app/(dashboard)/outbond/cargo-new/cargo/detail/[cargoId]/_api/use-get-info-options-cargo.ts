@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { baseUrlApiBulkyDev } from "@/lib/baseUrl";
+import { baseUrlApiBulky } from "@/lib/baseUrl";
 import { getCookie } from "cookies-next/client";
 
 const getAuthHeader = () => ({
@@ -12,7 +12,7 @@ export const useGetBrandOptionsCargo = ({ enabled = true }: { enabled?: boolean 
     queryKey: ["cargo-new-info-options", "brands"],
     enabled,
     queryFn: async () => {
-      const res = await axios.get(`${baseUrlApiBulkyDev}/products/filter/brands`, {
+      const res = await axios.get(`${baseUrlApiBulky}/products/filter/brands`, {
         headers: getAuthHeader(),
       });
       return res;
@@ -30,7 +30,7 @@ export const useGetCategoryOptionsCargo = ({
     enabled,
     queryFn: async () => {
       const res = await axios.get(
-        `${baseUrlApiBulkyDev}/products/filter/categories`,
+        `${baseUrlApiBulky}/products/filter/categories`,
         {
           headers: getAuthHeader(),
         },
@@ -50,7 +50,7 @@ export const useGetConditionOptionsCargo = ({
     enabled,
     queryFn: async () => {
       const res = await axios.get(
-        `${baseUrlApiBulkyDev}/products/filter/conditions`,
+        `}/products/filter/conditions`,
         {
           headers: getAuthHeader(),
         },
@@ -70,7 +70,7 @@ export const useGetPackageConditionOptionsCargo = ({
     enabled,
     queryFn: async () => {
       const res = await axios.get(
-        `${baseUrlApiBulkyDev}/products/filter/statuses`,
+        `${baseUrlApiBulky}/products/filter/statuses`,
         {
           headers: getAuthHeader(),
         },
@@ -86,7 +86,7 @@ export const useGetOriginOptionsCargo = ({ enabled = true }: { enabled?: boolean
     enabled,
     queryFn: async () => {
       const res = await axios.get(
-        `${baseUrlApiBulkyDev}/products/filter/status-packages`,
+        `${baseUrlApiBulky}/products/filter/status-packages`,
         {
           headers: getAuthHeader(),
         },
