@@ -1049,7 +1049,7 @@ export const Client = () => {
             <Button
               type="button"
               variant="outline"
-              className="flex border-indigo-400 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-700"
+              className="hidden border-indigo-400 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-700"
               onClick={() => setOpenInfo(true)}
             >
               <Info className="size-4" />
