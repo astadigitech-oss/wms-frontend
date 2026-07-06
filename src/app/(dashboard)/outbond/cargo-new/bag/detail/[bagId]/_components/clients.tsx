@@ -52,6 +52,13 @@ const productColumns = (
     ),
   },
   {
+    id: "name_product_bulky_sale",
+    header: "Description",
+    cell: ({ row }) => (
+      <div className="max-w-[420px] break-all">{row.original.name_product_bulky_sale || ""}</div>
+    ),
+  },
+  {
     accessorKey: "qty",
     header: () => <div className="text-center">Qty</div>,
     cell: ({ row }) => (
@@ -71,7 +78,7 @@ const productColumns = (
   },
   {
     id: "action_out",
-    header: () => <div className="text-center">Action Out</div>,
+    header: () => <div className="text-center">Action</div>,
     cell: ({ row }) => (
       <div className="flex justify-center">
         <TooltipProviderPage value="Remove Product">

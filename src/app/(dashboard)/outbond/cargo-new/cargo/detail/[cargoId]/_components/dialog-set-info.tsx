@@ -169,7 +169,10 @@ const SelectInfo = ({
         <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
           <Command>
             <CommandInput placeholder={`Search ${label.toLowerCase()}...`} />
-            <CommandList>
+            <CommandList
+              className="max-h-60 overflow-y-auto"
+              onWheel={(e) => e.stopPropagation()}
+            >
               <CommandEmpty>No Data Found.</CommandEmpty>
               <CommandGroup>
                 {options.map((option) => (

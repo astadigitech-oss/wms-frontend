@@ -35,6 +35,7 @@ const DialogBuyer = dynamic(() => import("./dialog-buyer"), {
 const emptyInput = {
   name: "",
   amount: "",
+  min_transaction: "",
   max_usage: "",
   max_week: "",
   is_active: true,
@@ -78,6 +79,9 @@ export const Client = () => {
       setInput({
         name: getVoucherValue(voucher, "name", "name_voucher") ?? "",
         amount: String(getVoucherValue(voucher, "amount", "amount_voucher") ?? ""),
+        min_transaction: String(
+          getVoucherValue(voucher, "min_transaction", "min_transaction_voucher") ?? ""
+        ),
         max_usage: String(
           getVoucherValue(voucher, "max_usage", "max_value_voucher") ?? ""
         ),
@@ -103,6 +107,7 @@ export const Client = () => {
     const body = {
       name: input.name,
       amount: Number(input.amount || 0),
+      min_transaction: input.min_transaction === "" ? null : Number(input.min_transaction),
       max_usage: Number(input.max_usage || 0),
       max_week: Number(input.max_week || 0),
       is_active: input.is_active,
@@ -246,6 +251,18 @@ export const Client = () => {
                 </p>
               </div>
               <div>
+                <p className="text-sm text-gray-500">Min Transaction</p>
+                <p className="font-semibold">
+                  {formatRupiah(
+                    getVoucherValue(
+                      voucher,
+                      "min_transaction",
+                      "min_transaction_voucher"
+                    ) ?? 0
+                  )}
+                </p>
+              </div>
+              <div>
                 <p className="text-sm text-gray-500">Max Weeks</p>
                 <p className="font-semibold">
                   {voucher?.max_week ?? voucher?.max_week ?? "-"}
@@ -323,3 +340,5 @@ export const Client = () => {
     </div>
   );
 };
+
+

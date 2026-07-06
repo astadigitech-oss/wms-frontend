@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TooltipProviderPage } from "@/providers/tooltip-provider-page";
+import { formatRupiah } from "@/lib/utils";
 import { Loader2, X } from "lucide-react";
 import React from "react";
 
@@ -29,6 +30,10 @@ const DialogEditVoucher = ({
   handleSubmit: any;
   isPending: boolean;
 }) => {
+  const amountValue = Number(input.amount || 0);
+  const maxValue = Number(input.max_usage || 0);
+  const minTransactionValue = Number(input.min_transaction || 0);
+
   return (
     <Dialog open={open} onOpenChange={onCloseModal}>
       <DialogContent onClose={false} onOpenAutoFocus={(e) => e.preventDefault()}>
@@ -80,6 +85,9 @@ const DialogEditVoucher = ({
                     }))
                   }
                 />
+                <p className="text-[11px] text-sky-700/70 leading-none pl-1">
+                  {formatRupiah(amountValue)}
+                </p>
               </div>
               <div className="flex flex-col gap-1 w-full">
                 <Label>Max Value</Label>
@@ -95,6 +103,9 @@ const DialogEditVoucher = ({
                     }))
                   }
                 />
+                <p className="text-[11px] text-sky-700/70 leading-none pl-1">
+                  {formatRupiah(maxValue)}
+                </p>
               </div>
               <div className="flex flex-col gap-1 w-full">
                 <Label>Max Week</Label>
@@ -111,6 +122,25 @@ const DialogEditVoucher = ({
                   }
                 />
               </div>
+            </div>
+            <div className="flex flex-col gap-1 w-full">
+              <Label>Min Transaction</Label>
+              <Input
+                className="border-sky-400/80 focus-visible:ring-0 border-0 border-b rounded-none focus-visible:border-sky-500"
+                type="number"
+                min={0}
+                placeholder="Optional"
+                value={input.min_transaction}
+                onChange={(e) =>
+                  setInput((prev: any) => ({
+                    ...prev,
+                    min_transaction: e.target.value,
+                  }))
+                }
+              />
+              <p className="text-[11px] text-sky-700/70 leading-none pl-1">
+                {formatRupiah(minTransactionValue)}
+              </p>
             </div>
             <label className="flex items-center gap-2 text-sm">
               <Checkbox

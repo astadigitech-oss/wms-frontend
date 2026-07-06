@@ -50,7 +50,7 @@ export const useGetConditionOptionsCargo = ({
     enabled,
     queryFn: async () => {
       const res = await axios.get(
-        `${baseUrlApiBulky}/products/filter/conditions`,
+        `}/products/filter/conditions`,
         {
           headers: getAuthHeader(),
         },
@@ -86,7 +86,7 @@ export const useGetOriginOptionsCargo = ({ enabled = true }: { enabled?: boolean
     enabled,
     queryFn: async () => {
       const res = await axios.get(
-        `${baseUrlApiBulky}/products/filter/warehouse`,
+        `${baseUrlApiBulky}/products/filter/status-packages`,
         {
           headers: getAuthHeader(),
         },
