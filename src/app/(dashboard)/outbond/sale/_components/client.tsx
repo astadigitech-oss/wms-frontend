@@ -2,6 +2,7 @@
 
 import {
   FileDown,
+  BadgeCheck,
   Loader2,
   PlusCircle,
   ReceiptText,
@@ -329,6 +330,16 @@ export const Client = () => {
                     Cashier
                   </Link>
                 </Button>
+                <Button
+                  asChild
+                  className="items-center flex-none h-9 bg-white border-sky-400/80 text-black hover:bg-sky-50 disabled:opacity-100 disabled:hover:bg-white disabled:pointer-events-auto disabled:cursor-not-allowed"
+                  variant={"outline"}
+                >
+                  <Link href={"/outbond/sale/approval"}>
+                    <BadgeCheck className={"w-4 h-4 mr-1"} />
+                    Approval
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>
@@ -342,3 +353,4 @@ export const Client = () => {
     </div>
   );
 };
+

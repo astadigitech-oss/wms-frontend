@@ -105,7 +105,9 @@ const DialogDiscount = dynamic(() => import("./dialog-discount"), {
 const DialogCarton = dynamic(() => import("./dialog-carton"), {
   ssr: false,
 });
-
+const DialogWaitApproval = dynamic(() => import("./dialog-wait-approval"), {
+  ssr: false,
+});
 const variants = {
   enter: (direction: number) => ({
     x: direction > 0 ? 100 : -100,
@@ -346,11 +348,43 @@ export const Client = () => {
   const grandTotal =
     totalPriceBeforeTax +
     (isTax ? (totalPriceBeforeTax / 100) * input.ppnActive : 0);
-  const isVoucherRankDisabled = grandTotal < 5000000;
-
-  // paginate strat ----------------------------------------------------------------
+  const isApprovalBlocked =
+    dataRes?.need_voucher_approval === true
 
   useEffect(() => {
+    if (!isApprovalBlocked) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    const handlePopState = () => {
+      window.history.pushState({ approvalLock: true }, "", window.location.href);
+    };
+
+    if (!window.history.state?.approvalLock) {
+      window.history.pushState({ approvalLock: true }, "", window.location.href);
+    }
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
+
+    const intervalId = window.setInterval(() => {
+      refetch();
+    }, 5000);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+      document.body.style.overflow = "";
+    };
+  }, [isApprovalBlocked, refetch]);
+
+  // paginate strat ----------------------------------------------------------------
+useEffect(() => {
     setPaginate({
       isSuccess: isSuccess,
       data: data,
@@ -1132,7 +1166,12 @@ export const Client = () => {
   }
 
   return (
-    <div className="flex flex-col items-start bg-gray-100 w-full relative px-4 py-4">
+    <div
+      className={cn(
+        "flex flex-col items-start bg-gray-100 w-full relative px-4 py-4",
+        isApprovalBlocked && "pointer-events-none select-none opacity-60",
+      )}
+    >
       {/* <SuccessDialog /> */}
       <SubmitDialog />
       <DeletePPNDialog />
@@ -1460,20 +1499,22 @@ export const Client = () => {
                 <TicketPercent className="size-4 mr-1" />
                 Voucher
               </Button>
-              <Button
-                type={"button"}
-                onClick={() => setIsOpenVoucherRank(true)}
-                disabled={isVoucherRankDisabled}
-                title={
-                  isVoucherRankDisabled
-                    ? "Grand total minimal Rp 5.000.000 untuk voucher rank"
-                    : undefined
-                }
-                className="bg-emerald-400/80 hover:bg-emerald-400 text-black disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <Trophy className="size-4 mr-1" />
-                Voucher Rank
-              </Button>
+              {!hasVoucherRank && (
+                <Button
+                  type={"button"}
+                  onClick={() => setIsOpenVoucherRank(true)}
+                  disabled={isApprovalBlocked}
+                  // title={
+                  //   isVoucherRankDisabled
+                  //     ? "Grand total minimal Rp 5.000.000 untuk voucher rank"
+                  //     : undefined
+                  // }
+                  className="bg-emerald-400/80 hover:bg-emerald-400 text-black disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <Trophy className={"size-4 mr-1"} />
+                  Voucher Rank
+                </Button>
+              )}
               {hasVoucherRank && (
                 <Button
                   type="button"
@@ -1888,6 +1929,14 @@ export const Client = () => {
           />
         </div>
       </div>
+      <DialogWaitApproval open={isApprovalBlocked} />
     </div>
   );
 };
+
+
+
+
+
+
+
