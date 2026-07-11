@@ -83,6 +83,8 @@ import { useDeletePPN } from "../_api/use-delete-ppn";
 import { useGetDetailPPN } from "../_api/use-get-detail-ppn";
 import { useRouter } from "next/navigation";
 import { useLepasVoucher } from "../_api/use-lepas-voucher";
+import { usePasangVoucher } from "../_api/use-pasang-voucher";
+import { useDeleteVoucher } from "../_api/use-delete-voucher";
 
 const DialogBuyer = dynamic(() => import("./dialog-buyer"), {
   ssr: false,
@@ -272,6 +274,10 @@ export const Client = () => {
     useUpdatePriceProduct();
   const { mutate: mutateLepasVoucher, isPending: isPendingLepasVoucher } =
     useLepasVoucher();
+  const { mutate: mutatePasangVoucher, isPending: isPendingPasangVoucher } =
+    usePasangVoucher();
+  const { mutate: mutateDeleteVoucher, isPending: isPendingDeleteVoucher } =
+    useDeleteVoucher();
 
   // mutate end ----------------------------------------------------------------
 
@@ -549,6 +555,59 @@ useEffect(() => {
     });
   };
 
+  const handleApplyVoucher = (voucherAmount: number) => {
+    const codeDocumentSale = dataRes?.code_document_sale;
+    if (!codeDocumentSale) {
+      return;
+    }
+
+    mutatePasangVoucher(
+      {
+        body: {
+          voucher: voucherAmount,
+          code_document_sale: codeDocumentSale,
+        },
+      },
+      {
+        onSuccess: (res: any) => {
+          const voucherValue =
+            res?.data?.data?.resource?.voucher ??
+            res?.data?.data?.resource?.value ??
+            voucherAmount;
+          setInput((prev) => ({
+            ...prev,
+            voucher: voucherValue?.toString() ?? voucherAmount.toString(),
+          }));
+          if (!isDirty) {
+            setIsDirty(true);
+          }
+        },
+      },
+    );
+  };
+
+  const handleDeleteVoucher = () => {
+    const codeDocumentSale = dataRes?.code_document_sale;
+    if (!codeDocumentSale) {
+      return;
+    }
+
+    mutateDeleteVoucher(
+      { body: { code_document_sale: codeDocumentSale } },
+      {
+        onSuccess: () => {
+          setInput((prev) => ({
+            ...prev,
+            voucher: "0",
+          }));
+          if (!isDirty) {
+            setIsDirty(true);
+          }
+        },
+      },
+    );
+  };
+
   const handleSubmit = async () => {
     setIsComplete(true);
 
@@ -560,7 +619,7 @@ useEffect(() => {
       cardbox_qty: input.cartonQty,
       cardbox_unit_price: input.cartonUnit,
       total_price_document_sale: totalPriceBeforeTax,
-      voucher: totalVoucher,
+      // voucher: totalVoucher,
       voucher_rank: input.voucherRankAmount,
       voucher_id: input.voucherRankId || null,
       is_tax: isTax ? 1 : 0,
@@ -1208,7 +1267,10 @@ useEffect(() => {
         }}
         data={dataRes?.total_sale}
         voucher={input.voucher}
-        setVoucher={setInput}
+        onApplyVoucher={handleApplyVoucher}
+        onDeleteVoucher={handleDeleteVoucher}
+        isDeleting={isPendingDeleteVoucher}
+        isApplying={isPendingPasangVoucher}
         isDirty={isDirty}
         setIsDirty={setIsDirty}
       />

@@ -18,7 +18,10 @@ const DialogVoucher = ({
   onCloseModal,
   data,
   voucher,
-  setVoucher,
+  onApplyVoucher,
+  onDeleteVoucher,
+  isDeleting,
+  isApplying,
   isDirty,
   setIsDirty,
 }: {
@@ -26,7 +29,10 @@ const DialogVoucher = ({
   onCloseModal: () => void;
   data: any;
   voucher: any;
-  setVoucher: any;
+  onApplyVoucher: (amount: number) => void;
+  onDeleteVoucher: () => void;
+  isDeleting: boolean;
+  isApplying: boolean;
   isDirty: any;
   setIsDirty: any;
 }) => {
@@ -45,7 +51,7 @@ const DialogVoucher = ({
     if (open && voucher) {
       setInput(voucher);
     }
-  }, [open]);
+  }, [open, voucher]);
 
   return (
     <div>
@@ -58,7 +64,8 @@ const DialogVoucher = ({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              setVoucher((prev: any) => ({ ...prev, voucher: input }));
+              const voucherAmount = parseFloat(input) || 0;
+              onApplyVoucher(voucherAmount);
               onCloseModal();
               if (!isDirty) {
                 setIsDirty(true);
@@ -76,7 +83,7 @@ const DialogVoucher = ({
                   setInput(
                     e.target.value.startsWith("0")
                       ? e.target.value.replace(/^0+/, "")
-                      : e.target.value
+                      : e.target.value,
                   )
                 }
               />
@@ -90,20 +97,44 @@ const DialogVoucher = ({
                 {formatRupiah(parseFloat(data) - parseFloat(input))}
               </div>
             </div>
-            <div className="flex w-full gap-2">
-              <Button
-                className="w-full bg-transparent hover:bg-transparent text-black border-black/50 border hover:border-black"
-                onClick={onCloseModal}
-                type="button"
-              >
-                Cancel
-              </Button>
-              <Button
-                className="bg-sky-400 hover:bg-sky-400/80 text-black w-full"
-                type="submit"
-              >
-                Apply
-              </Button>
+            {parseFloat(voucher || "0") > 0 && (
+              <div className="flex flex-col gap-1 w-full">
+                <Label>Applied Voucher</Label>
+                <div className="text-sm font-semibold border border-slate-200 rounded-md flex px-5 items-center justify-center h-9">
+                  {formatRupiah(parseFloat(voucher || "0"))}
+                </div>
+              </div>
+            )}
+            <div className="flex flex-col gap-2 w-full">
+              <div className="flex w-full gap-2">
+                <Button
+                  className="w-full bg-transparent hover:bg-transparent text-black border-black/50 border hover:border-black"
+                  onClick={onCloseModal}
+                  type="button"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-sky-400 hover:bg-sky-400/80 text-black w-full"
+                  type="submit"
+                  disabled={isApplying}
+                >
+                  {isApplying ? "Applying..." : "Apply"}
+                </Button>
+              </div>
+              {parseFloat(voucher || "0") > 0 && (
+                <Button
+                  className="w-full bg-red-100 text-red-700 hover:bg-red-100"
+                  type="button"
+                  onClick={() => {
+                    onDeleteVoucher();
+                    onCloseModal();
+                  }}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Deleting..." : "Delete Voucher"}
+                </Button>
+              )}
             </div>
           </form>
         </DialogContent>

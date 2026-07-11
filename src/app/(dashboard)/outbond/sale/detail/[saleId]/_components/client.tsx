@@ -851,6 +851,12 @@ export const Client = () => {
                 </p>
               </div>
               <div className="flex flex-col">
+                <p className="text-sm">Total Voucher Rank</p>
+                <p className="font-semibold">
+                  {formatRupiah(dataRes?.voucher_rank_value)}
+                </p>
+              </div>
+              <div className="flex flex-col">
                 <p className="text-sm">Discount class</p>
                 <p className="font-semibold">
                   {Math.round(dataRes?.buyer?.percentage_discount)}%
