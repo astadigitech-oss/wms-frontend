@@ -544,6 +544,13 @@ const DialogExportData = ({
                       </p>
                     </div>
                     <div className="flex">
+                      <p className="px-3">Voucher Rank</p>
+                      <p className="w-12 flex-none" />
+                      <p className="w-32 flex-none pr-3 text-end tabular-nums">
+                        -{formatRupiah(data?.buyer?.voucher_rank_value) ?? "Rp 0"}
+                      </p>
+                    </div>
+                    <div className="flex">
                       <p className="px-3">Voucher</p>
                       <p className="w-12 flex-none" />
                       <p className="w-32 flex-none pr-3 text-end tabular-nums">
