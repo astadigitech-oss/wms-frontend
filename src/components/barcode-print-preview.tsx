@@ -47,12 +47,13 @@ const BarcodePrintPreview: React.FC<Props> = ({ items, onClose }) => {
           display: none !important;
         }
 
-        /* Hilangkan hanya border/card paling luar */
+        /* Hilangkan border luar saat print */
         .barcode-wrapper {
           border: none !important;
           box-shadow: none !important;
-          background: transparent !important;
           padding: 0 !important;
+          margin: 0 !important;
+          background: transparent !important;
         }
       }
     `,
@@ -60,19 +61,25 @@ const BarcodePrintPreview: React.FC<Props> = ({ items, onClose }) => {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Preview */}
-      <div ref={printRef} className="grid grid-cols-2 gap-4">
+      {/* Preview Barcode */}
+      <div
+        ref={printRef}
+        className="grid grid-cols-2 gap-4"
+      >
         {items.map((item, index) => (
           <div
             key={`${item.barcode}-${index}`}
             className={(index + 1) % 8 === 0 ? "page-break" : ""}
           >
-            <BarcodePrinted {...item} showAction={false} />
+            <BarcodePrinted
+              {...item}
+              showCancel={false}
+            />
           </div>
         ))}
       </div>
 
-      {/* Footer */}
+      {/* Action */}
       <div className="flex justify-end gap-3 pt-4 border-t no-print">
         <button
           onClick={onClose}

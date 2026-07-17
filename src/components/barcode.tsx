@@ -15,7 +15,7 @@ interface BarcodePrint {
   colorHex?: string;
   description?: string;
   cancel?: () => void;
-  showAction?: boolean;
+  showCancel?: boolean;
 }
 
 const BarcodePrinted: React.FC<BarcodePrint> = ({
@@ -28,7 +28,7 @@ const BarcodePrinted: React.FC<BarcodePrint> = ({
   colorHex,
   description,
   cancel,
-  showAction = true,
+  showCancel = true,
 }) => {
   const componentRef = useRef<HTMLDivElement>(null);
 
@@ -42,7 +42,6 @@ const BarcodePrinted: React.FC<BarcodePrint> = ({
       }
 
       @media print {
-
         .barcode-wrapper{
           border:none !important;
           box-shadow:none !important;
@@ -137,28 +136,26 @@ const BarcodePrinted: React.FC<BarcodePrint> = ({
         </div>
       </div>
 
-      {showAction && (
-        <div className="flex items-center gap-2 mt-6 no-print">
-          {cancel && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                cancel();
-              }}
-              className="py-2 px-8 bg-gray-300/80 text-black rounded-full hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-          )}
-
+      <div className="flex items-center gap-2 mt-6 no-print">
+        {showCancel && cancel && (
           <button
-            onClick={() => handlePrint()}
-            className="py-2 px-8 bg-sky-400/80 text-black rounded-full hover:bg-sky-400"
+            onClick={(e) => {
+              e.preventDefault();
+              cancel();
+            }}
+            className="py-2 px-8 bg-gray-300/80 text-black rounded-full hover:bg-gray-300"
           >
-            Print
+            Cancel
           </button>
-        </div>
-      )}
+        )}
+
+        <button
+          onClick={() => handlePrint()}
+          className="py-2 px-8 bg-sky-400/80 text-black rounded-full hover:bg-sky-400"
+        >
+          Print
+        </button>
+      </div>
     </div>
   );
 };
