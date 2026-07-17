@@ -182,7 +182,7 @@ export const Client = () => {
           barcode: item.new_barcode_product,
           oldPrice: String(hargaBundle),
           newPrice: String(item.new_price_product),
-          description: detailsProduct?.name_product  || "",
+          description: item.new_name_product || "",
           category: item.category ?? item.tag,
           discount: selectedCategory
             ? String(selectedCategory.discount_category)
