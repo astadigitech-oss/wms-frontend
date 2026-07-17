@@ -27,36 +27,56 @@ const BarcodePrintPreview: React.FC<Props> = ({ items, onClose }) => {
     contentRef: printRef,
     documentTitle: `Barcode Bundle (${items.length})`,
     pageStyle: `
-      @page {
-        size: A4;
-        margin: 8mm;
-      }
+  @page {
+    size: 7cm 4cm landscape;
+    margin: 0;
+  }
 
-      @media print {
-        html,
-        body {
-          margin: 0;
-          padding: 0;
-        }
+  @media print {
 
-        .page-break {
-          page-break-after: always;
-        }
+    html,
+    body{
+      margin:0;
+      padding:0;
+    }
 
-        .no-print {
-          display: none !important;
-        }
+    .barcode-print-container{
+      display:block !important;
+    }
 
-        /* Hilangkan border luar saat print */
-        .barcode-wrapper {
-          border: none !important;
-          box-shadow: none !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          background: transparent !important;
-        }
-      }
-    `,
+    .barcode-item{
+      display:block !important;
+      width:7cm !important;
+      height:4cm !important;
+
+      page-break-after: always;
+      page-break-inside: avoid;
+      break-after: page;
+      break-inside: avoid;
+
+      margin:0 !important;
+      padding:0 !important;
+    }
+
+    .barcode-item:last-child{
+      page-break-after:auto;
+      break-after:auto;
+    }
+
+    .barcode-wrapper{
+      border:none !important;
+      box-shadow:none !important;
+      padding:0 !important;
+      margin:0 !important;
+      width:7cm !important;
+      height:4cm !important;
+    }
+
+    .no-print{
+      display:none !important;
+    }
+  }
+`,
   });
 
   return (
@@ -64,16 +84,13 @@ const BarcodePrintPreview: React.FC<Props> = ({ items, onClose }) => {
       {/* Preview Barcode */}
       <div
         ref={printRef}
-        className="grid grid-cols-2 gap-4"
+        className="barcode-print-container grid grid-cols-2 gap-4"
       >
         {items.map((item, index) => (
-          <div
-            key={`${item.barcode}-${index}`}
-            className={(index + 1) % 8 === 0 ? "page-break" : ""}
-          >
+          <div key={`${item.barcode}-${index}`} className="barcode-item">
             <BarcodePrinted
               {...item}
-              showCancel={false}
+              showCancel={true} // tombol Print tetap tampil
             />
           </div>
         ))}
