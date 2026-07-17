@@ -15,6 +15,7 @@ interface BarcodePrint {
   colorHex?: string;
   description?: string;
   cancel?: () => void;
+  showCancel?: boolean;
 }
 
 const BarcodePrinted: React.FC<BarcodePrint> = ({
@@ -27,41 +28,63 @@ const BarcodePrinted: React.FC<BarcodePrint> = ({
   colorHex,
   description,
   cancel,
+  showCancel = true,
 }) => {
   const componentRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
+    documentTitle: `Barcode - ${barcode}`,
+    pageStyle: `
+      @page {
+        size: auto;
+        margin: 8mm;
+      }
+
+      @media print {
+        .barcode-wrapper{
+          border:none !important;
+          box-shadow:none !important;
+          padding:0 !important;
+          margin:0 !important;
+          background:transparent !important;
+        }
+
+        .no-print{
+          display:none !important;
+        }
+      }
+    `,
   });
 
   return (
     <div>
-      <div className="border rounded-md border-gray-500 p-2 w-fit">
+      <div className="barcode-wrapper border rounded-md border-gray-500 p-2 w-fit">
         <div
-          className="w-[7cm] h-[4cm] flex justify-start items-center font-sans p-1"
           ref={componentRef}
+          className="w-[7cm] h-[4cm] flex justify-start items-center font-sans p-1"
         >
           <div className="w-full">
             <div className="flex items-center justify-between w-full">
               {barcode && (
                 <Barcode
-                  fontOptions="bold"
-                  textMargin={3}
-                  fontSize={16}
-                  font="sans-serif"
                   value={barcode}
                   width={1.2}
                   height={50}
+                  font="sans-serif"
+                  fontOptions="bold"
+                  fontSize={16}
+                  textMargin={3}
                 />
               )}
+
               {category && (
-                <div className="border w-[80] py-1 px-2 text-center border-black">
+                <div className="border border-black py-1 px-2 text-center w-[80px]">
                   <p className="font-bold text-[10px] leading-3 break-all">
                     {colorHex && (
                       <span
                         className="inline-block mr-1"
                         style={{
-                          display: "inline-block",
                           width: "12px",
                           height: "12px",
                           backgroundColor: colorHex,
@@ -70,25 +93,33 @@ const BarcodePrinted: React.FC<BarcodePrint> = ({
                         }}
                       />
                     )}
-                    {category}{" "}
+
+                    {category}
+
                     {discount && (
-                      <span className="whitespace-nowrap">({discount}%)</span>
+                      <span className="whitespace-nowrap">
+                        {" "}
+                        ({discount}%)
+                      </span>
                     )}
                   </p>
                 </div>
               )}
             </div>
+
             {description && (
               <div className="text-[11px] font-semibold mt-1 line-clamp-2 leading-tight">
                 {description}
               </div>
             )}
+
             {newPrice && (
-              <div className="flex text-base font-semibold gap-1">
+              <div className="flex text-base font-semibold gap-1 mt-1">
                 <div className="flex flex-col">
                   <p>{!isBundle ? "Harga Retail" : "Total Awal"}</p>
                   <p>{!isBundle ? "Harga Diskon" : "Custom Display"}</p>
                 </div>
+
                 <div className="flex flex-col">
                   <p>
                     :{" "}
@@ -96,6 +127,7 @@ const BarcodePrinted: React.FC<BarcodePrint> = ({
                       {formatRupiah(parseFloat(oldPrice))}
                     </span>
                   </p>
+
                   <p>: {formatRupiah(parseFloat(newPrice))}</p>
                 </div>
               </div>
@@ -103,8 +135,9 @@ const BarcodePrinted: React.FC<BarcodePrint> = ({
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-2 mt-6">
-        {cancel && (
+
+      <div className="flex items-center gap-2 mt-6 no-print">
+        {showCancel && cancel && (
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -115,6 +148,7 @@ const BarcodePrinted: React.FC<BarcodePrint> = ({
             Cancel
           </button>
         )}
+
         <button
           onClick={() => handlePrint()}
           className="py-2 px-8 bg-sky-400/80 text-black rounded-full hover:bg-sky-400"
