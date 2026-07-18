@@ -1629,9 +1629,10 @@ export const Client = () => {
                       <div className="flex items-center gap-3 w-full">
                         <Input
                           className="w-2/5 border-sky-400/80 focus-visible:ring-sky-400"
-                          value={searchValueRackWMS}
+                          value={dataSearchRackWMS}
                           onChange={(e) => {
                             setDataSearchRackWMS(e.target.value);
+                            setPageRackWms(1);
                           }}
                           placeholder="Search..."
                           autoFocus
@@ -1778,7 +1779,10 @@ export const Client = () => {
                         <Input
                           className="w-2/5 border-sky-400/80 focus-visible:ring-sky-400"
                           value={dataSearchWMS}
-                          onChange={(e) => setDataSearchWMS(e.target.value)}
+                          onChange={(e) => {
+                            setDataSearchWMS(e.target.value);
+                            setPageWMS(1);
+                          }}
                           placeholder="Search..."
                           autoFocus
                         />
@@ -1855,7 +1859,10 @@ export const Client = () => {
                     <Input
                       className="w-2/5 border-sky-400/80 focus-visible:ring-sky-400"
                       value={dataSearchAPK}
-                      onChange={(e) => setDataSearchAPK(e.target.value)}
+                      onChange={(e) => {
+                        setDataSearchAPK(e.target.value);
+                        setPageAPK(1);
+                      }}
                       placeholder="Search..."
                       autoFocus
                     />
