@@ -356,6 +356,9 @@ export const Client = () => {
     totalPriceBeforeTax +
     (isTax ? (totalPriceBeforeTax / 100) * input.ppnActive : 0);
   const shouldAutoCheckPPN = grandTotal > 1000000;
+  const isPPNChecked = hasManualTaxSelection
+    ? Boolean(isTax)
+    : shouldAutoCheckPPN;
   const isApprovalBlocked =
     dataRes?.need_voucher_approval === true
 
@@ -1818,13 +1821,13 @@ useEffect(() => {
           <div className="flex items-center">
             <Label className="flex items-center gap-2 text-sm">
               <Checkbox
-                checked={Boolean(isTax) || shouldAutoCheckPPN}
+                checked={isPPNChecked}
                 onCheckedChange={(checked) => {
                   setHasManualTaxSelection(true);
                   setIsTax(Boolean(checked));
                 }}
                 className="size-4"
-                disabled={parseFloat(dataRes?.total_sale) < 1000000} // Disable if grand total < 1 million
+                disabled={grandTotal < 1000000}
               />
               With PPN
             </Label>
