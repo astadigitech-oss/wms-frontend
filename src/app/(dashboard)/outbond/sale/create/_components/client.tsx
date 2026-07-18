@@ -140,6 +140,7 @@ export const Client = () => {
   const [isOpenPPN, setIsOpenPPN] = useState(false);
   const [isOpenSelectPPN, setIsOpenSelectPPN] = useState(false);
   const [isTax, setIsTax] = useState<boolean | "indeterminate">(false);
+  const [hasManualTaxSelection, setHasManualTaxSelection] = useState(false);
   const [dynamicMessage, setDynamicMessage] = useState(
     "This action cannot be undone",
   );
@@ -354,6 +355,7 @@ export const Client = () => {
   const grandTotal =
     totalPriceBeforeTax +
     (isTax ? (totalPriceBeforeTax / 100) * input.ppnActive : 0);
+  const shouldAutoCheckPPN = grandTotal > 1000000;
   const isApprovalBlocked =
     dataRes?.need_voucher_approval === true
 
@@ -434,6 +436,12 @@ useEffect(() => {
       ),
     }));
   }, [dataResPPN]);
+
+  useEffect(() => {
+    if (hasManualTaxSelection) return;
+
+    setIsTax(shouldAutoCheckPPN);
+  }, [shouldAutoCheckPPN, hasManualTaxSelection]);
 
   useEffect(() => {
     setInputPPN((prev) => ({
@@ -1810,7 +1818,11 @@ useEffect(() => {
           <div className="flex items-center">
             <Label className="flex items-center gap-2 text-sm">
               <Checkbox
-                onCheckedChange={setIsTax}
+                checked={Boolean(isTax) || shouldAutoCheckPPN}
+                onCheckedChange={(checked) => {
+                  setHasManualTaxSelection(true);
+                  setIsTax(Boolean(checked));
+                }}
                 className="size-4"
                 disabled={parseFloat(dataRes?.total_sale) < 1000000} // Disable if grand total < 1 million
               />
