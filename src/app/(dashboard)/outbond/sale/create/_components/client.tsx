@@ -359,8 +359,8 @@ export const Client = () => {
   const isPPNChecked = hasManualTaxSelection
     ? Boolean(isTax)
     : shouldAutoCheckPPN;
-  const isApprovalBlocked =
-    dataRes?.need_voucher_approval === true
+  const isApprovalBlocked = dataRes?.need_voucher_approval === true;
+  const isVoucherRankAvailable = dataRes?.voucher_rank_available === false;
 
   useEffect(() => {
     if (!isApprovalBlocked) return;
@@ -371,11 +371,19 @@ export const Client = () => {
     };
 
     const handlePopState = () => {
-      window.history.pushState({ approvalLock: true }, "", window.location.href);
+      window.history.pushState(
+        { approvalLock: true },
+        "",
+        window.location.href,
+      );
     };
 
     if (!window.history.state?.approvalLock) {
-      window.history.pushState({ approvalLock: true }, "", window.location.href);
+      window.history.pushState(
+        { approvalLock: true },
+        "",
+        window.location.href,
+      );
     }
 
     document.body.style.overflow = "hidden";
@@ -395,7 +403,7 @@ export const Client = () => {
   }, [isApprovalBlocked, refetch]);
 
   // paginate strat ----------------------------------------------------------------
-useEffect(() => {
+  useEffect(() => {
     setPaginate({
       isSuccess: isSuccess,
       data: data,
@@ -423,6 +431,7 @@ useEffect(() => {
       ).toString(),
       monthlyPoint: data?.data.data.resource.monthly_point,
       monthlyClassPosition: data?.data.data.resource.monthly_rank_position,
+      voucher: data?.data.data.resource.voucher?.toString() ?? "0",
       voucherRankAmount:
         data?.data.data.resource.voucher_rank_value?.toString() ?? "0",
       voucherRankValue:
@@ -598,6 +607,28 @@ useEffect(() => {
   };
 
   const handleDeleteVoucher = () => {
+    const codeDocumentSale = dataRes?.code_document_sale;
+    if (!codeDocumentSale) {
+      return;
+    }
+
+    mutateDeleteVoucher(
+      { body: { code_document_sale: codeDocumentSale } },
+      {
+        onSuccess: () => {
+          setInput((prev) => ({
+            ...prev,
+            voucher: "0",
+          }));
+          if (!isDirty) {
+            setIsDirty(true);
+          }
+        },
+      },
+    );
+  };
+
+  const handleLepasVoucher = () => {
     const codeDocumentSale = dataRes?.code_document_sale;
     if (!codeDocumentSale) {
       return;
@@ -1564,19 +1595,36 @@ useEffect(() => {
                   Discount
                 </Button>
               )}
-              <Button
-                type={"button"}
-                onClick={() => setIsOpenVoucher(true)}
-                className="bg-violet-400/80 hover:bg-violet-400 text-black"
-              >
-                <TicketPercent className="size-4 mr-1" />
-                Voucher
-              </Button>
+              {parseFloat(input.voucher || "0") > 0 ? (
+                <Button
+                  type="button"
+                  onClick={handleLepasVoucher}
+                  disabled={isPendingDeleteVoucher}
+                  className="bg-red-100 text-red-700 hover:bg-red-100 disabled:opacity-60"
+                >
+                  {isPendingDeleteVoucher ? (
+                    <Loader2 className="size-4 mr-1 animate-spin" />
+                  ) : (
+                    <Trash2 className="size-4 mr-1" />
+                  )}
+                  Lepas Voucher
+                </Button>
+              ) : (
+                <Button
+                  type={"button"}
+                  onClick={() => setIsOpenVoucher(true)}
+                  className="bg-violet-400/80 hover:bg-violet-400 text-black"
+                  disabled={dataRes?.total_price_document_sale < 3000000}
+                >
+                  <TicketPercent className="size-4 mr-1" />
+                  Voucher
+                </Button>
+              )}
               {!hasVoucherRank && (
                 <Button
                   type={"button"}
                   onClick={() => setIsOpenVoucherRank(true)}
-                  disabled={isApprovalBlocked}
+                  disabled={isApprovalBlocked || isVoucherRankAvailable}
                   // title={
                   //   isVoucherRankDisabled
                   //     ? "Grand total minimal Rp 5.000.000 untuk voucher rank"
@@ -2010,10 +2058,3 @@ useEffect(() => {
     </div>
   );
 };
-
-
-
-
-
-
-
