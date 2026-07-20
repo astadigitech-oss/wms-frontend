@@ -35,7 +35,13 @@ export const usePakaiVoucher = () => {
       if (err.status === 403) {
         toast.error(`Error 403: Restricted Access`);
       } else {
-        toast.error(`ERROR ${err?.status}: Voucher rank failed to apply`);
+        const respData = (err.response?.data as any) ?? null;
+        const nested = respData?.data ?? null;
+        const message =
+          nested && typeof nested === "object" && "message" in nested
+            ? nested.message
+            : respData?.message ?? "Voucher rank failed to apply";
+        toast.error(`ERROR ${err?.status}: ${message}`);
         console.log("ERROR_PAKAI_VOUCHER:", err);
       }
     },
