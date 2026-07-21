@@ -1614,7 +1614,7 @@ export const Client = () => {
                   type={"button"}
                   onClick={() => setIsOpenVoucher(true)}
                   className="bg-violet-400/80 hover:bg-violet-400 text-black"
-                  disabled={dataRes?.total_price_document_sale < 3000000}
+                  disabled={dataRes?.total_price_document_sale < 1000000}
                 >
                   <TicketPercent className="size-4 mr-1" />
                   Voucher
